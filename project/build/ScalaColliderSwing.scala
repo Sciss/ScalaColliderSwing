@@ -2,7 +2,7 @@ import xml._
 import sbt.{ FileUtilities => FU, _}
 
 class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( info ) {
-   val scalaCollider          = "de.sciss" %% "scalacollider" % "0.19"
+   val scalaCollider          = "de.sciss" %% "scalacollider" % "0.20"
    val scalaInterpreterPane   = "de.sciss" %% "scalainterpreterpane" % "0.16"
    val prefuse                = "prefuse" % "prefuse" % "beta-SNAPSHOT" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-SNAPSHOT.jar"
 
