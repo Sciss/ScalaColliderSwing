@@ -47,7 +47,7 @@ object ScalaColliderSwing {
       val so = new ServerOptionsBuilder()
 //var ntpx : NodeTreePanel = null
       private val sync = new AnyRef
-      private var booting: BootingServer = null
+      private var booting: ServerConnection = null
 
       // ---- constructor ----
       {
@@ -59,11 +59,11 @@ object ScalaColliderSwing {
          shutDown
          booting = Server.boot( options = so.build )
          booting.addListener {
-            case BootingServer.Preparing( srv ) => {
+            case ServerConnection.Preparing( srv ) => {
                ntp.server = Some( srv )
 //ntpx = ntp
             }
-            case BootingServer.Running( srv ) => {
+            case ServerConnection.Running( srv ) => {
                sync.synchronized {
                   booting = null
                   s = srv

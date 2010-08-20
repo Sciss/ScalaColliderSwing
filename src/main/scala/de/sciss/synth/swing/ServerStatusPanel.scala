@@ -38,7 +38,7 @@ import SwingConstants._
 import javax.swing.event.{ AncestorEvent, AncestorListener }
 import math._
 
-import de.sciss.synth.{ BootingServer, Model, Server }
+import de.sciss.synth.{ ServerConnection, Model, Server }
 import de.sciss.synth.osc.OSCStatusReplyMessage
 
 /**
@@ -81,11 +81,11 @@ class ServerStatusPanel( flags: Int ) extends JPanel {
    private val sync = new AnyRef
 
    private val bootingUpdate: Model.Listener = {
-      case BootingServer.Running( srv ) => {
+      case ServerConnection.Running( srv ) => {
          server_=( Some( srv ))
          updateCounts( srv.counts )
       }
-      case BootingServer.Aborted => {
+      case ServerConnection.Aborted => {
           clearCounts
           actionBoot.serverUpdate( Server.Offline )
       }
@@ -114,9 +114,9 @@ class ServerStatusPanel( flags: Int ) extends JPanel {
       }
    }
 
-   private var bootingVar: Option[ BootingServer ] = None
+   private var bootingVar: Option[ ServerConnection ] = None
    def booting = sync.synchronized { bootingVar }
-   def booting_=( b: Option[ BootingServer ]) {
+   def booting_=( b: Option[ ServerConnection ]) {
       sync.synchronized {
          val wasListening = listening
          if( wasListening ) stopListening
@@ -447,7 +447,7 @@ class ServerStatusPanel( flags: Int ) extends JPanel {
             ggBoot.setEnabled( couldBoot )
             ggBusy.setVisible( false )
          }
-         case BootingServer.Booting => {
+         case ServerConnection.Connecting => {
 //println( "Booting" )
             cond = msg
             ggBoot.setEnabled( false )
