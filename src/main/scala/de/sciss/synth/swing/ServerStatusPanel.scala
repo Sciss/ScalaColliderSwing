@@ -45,8 +45,10 @@ import de.sciss.synth.osc.OSCStatusReplyMessage
  *    @version 0.14, 09-Jun-10
  */
 object ServerStatusPanel {
-  val COUNTS      = 0x01
-  val BOOT_BUTTON = 0x02
+   val COUNTS      = 0x01
+   val BOOT_BUTTON = 0x02
+
+   private val Connecting  = "Connecting"
 }                                                                    
 
 class ServerStatusPanel( flags: Int ) extends JPanel {
@@ -89,7 +91,7 @@ class ServerStatusPanel( flags: Int ) extends JPanel {
           clearCounts
           actionBoot.serverUpdate( Server.Offline )
       }
-      case msg => actionBoot.serverUpdate( msg )
+//      case msg => actionBoot.serverUpdate( msg )
    }
 
    private val serverUpdate: Model.Listener = {
@@ -251,9 +253,12 @@ class ServerStatusPanel( flags: Int ) extends JPanel {
       sync.synchronized {
    		if( !listening ) {
    			listening = true
+            defer {
+               serverUpdate( server.map( _.condition ).getOrElse(
+                  if( bootingVar.isDefined ) Connecting else Server.Offline ))
+            }
             bootingVar.foreach(_.addListener( bootingUpdate ))
             serverVar.foreach(_.addListener( serverUpdate ))
-            defer { serverUpdate( server.map( _.condition ) getOrElse Server.Offline )}
          }
 		}
 	}
@@ -447,7 +452,7 @@ class ServerStatusPanel( flags: Int ) extends JPanel {
             ggBoot.setEnabled( couldBoot )
             ggBusy.setVisible( false )
          }
-         case ServerConnection.Connecting => {
+         case Connecting => { // ServerConnection.Connecting
 //println( "Booting" )
             cond = msg
             ggBoot.setEnabled( false )

@@ -57,11 +57,9 @@ object ScalaColliderSwing {
 
       def boot { sync.synchronized {
          shutDown
-         booting = Server.boot( options = so.build )
-         booting.addListener {
+         booting = Server.boot( options = so.build ) {
             case ServerConnection.Preparing( srv ) => {
                ntp.server = Some( srv )
-//ntpx = ntp
             }
             case ServerConnection.Running( srv ) => {
                sync.synchronized {
@@ -71,7 +69,7 @@ object ScalaColliderSwing {
             }
          }
          ssp.booting = Some( booting )
-         booting.start
+//         booting.start
       }}
 
       private def shutDown { sync.synchronized {

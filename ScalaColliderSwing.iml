@@ -22,15 +22,6 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalacollider_2.8.0-0.19.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
           <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/jsyntaxpane-0.9.5-b29.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -49,7 +40,16 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalaosc_2.8.0-0.19.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalacollider_2.8.0-0.20.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalaosc_2.8.0-0.20.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
