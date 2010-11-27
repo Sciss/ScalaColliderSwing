@@ -233,14 +233,16 @@ class ServerStatusPanel( flags: Int ) extends JPanel {
       }
    }
 
-	def makeWindow: JFrame = {
+   def makeWindow: JFrame = makeWindow()
+	def makeWindow( undecorated: Boolean = false ): JFrame = {
       frame getOrElse {
     	   val fr = new JFrame()
+         if( undecorated ) fr.setUndecorated( true )
         	fr.setResizable( false )
          fr.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
       	fr.getContentPane.add( this )
         	fr.pack()
-         fr.setLocation( 50, 50 )
+         if( !undecorated ) fr.setLocation( 50, 50 )
          frame = Some( fr )
          updateFrameTitle
          fr
