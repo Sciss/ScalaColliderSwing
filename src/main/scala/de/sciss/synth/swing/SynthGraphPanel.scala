@@ -49,7 +49,7 @@ import de.sciss.synth._
 import collection.immutable.IntMap
 
 object SynthGraphPanel {
-   def viewGraph( g: SynthGraph, forceDirected: Boolean = true ) : SynthGraphPanel =
+   def viewGraph( g: UGenGraph, forceDirected: Boolean = true ) : SynthGraphPanel =
       view( new SynthGraphPanel( "", g, forceDirected ))
 
    def viewDef( d: SynthDef, forceDirected: Boolean = true ) : SynthGraphPanel =
@@ -61,7 +61,7 @@ object SynthGraphPanel {
       p
    }
 }
-class SynthGraphPanel ( name: String, graph: SynthGraph, forceDirected: Boolean )
+class SynthGraphPanel ( name: String, graph: UGenGraph, forceDirected: Boolean )
 extends JPanel {
    panel =>
    
