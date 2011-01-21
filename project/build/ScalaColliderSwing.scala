@@ -2,8 +2,8 @@ import xml._
 import sbt.{ FileUtilities => FU, _}
 
 class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( info ) {
-   val scalaCollider          = "de.sciss" %% "scalacollider" % "0.21"
-   val scalaInterpreterPane   = "de.sciss" %% "scalainterpreterpane" % "0.16"
+   val scalaCollider          = "de.sciss" %% "scalacollider" % "0.22"
+   val scalaInterpreterPane   = "de.sciss" %% "scalainterpreterpane" % "0.17"
    val prefuse                = "prefuse" % "prefuse" % "beta-SNAPSHOT" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-SNAPSHOT.jar"
 
    val camelCaseName          = "ScalaColliderSwing"
