@@ -14,6 +14,30 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
    private val jarExt                 = ".jar"
    private val jarFilter: FileFilter  = "*" + jarExt
 
+   // ---- publishing ----
+
+   override def managedStyle  = ManagedStyle.Maven
+   val publishTo              = "Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/"
+
+//   override def packageDocsJar= defaultJarPath( "-javadoc.jar" )
+//   override def packageSrcJar = defaultJarPath( "-sources.jar" )
+//   val sourceArtifact         = Artifact.sources( artifactID )
+//   val docsArtifact           = Artifact.javadoc( artifactID )
+//   override def packageToPublishActions = super.packageToPublishActions ++ Seq( packageDocs, packageSrc )
+
+   override def pomExtra =
+      <licenses>
+        <license>
+          <name>GPL v2+</name>
+          <url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+
+   Credentials( Path.userHome / ".ivy2" / ".credentials", log )
+
+   // ---- standalone and osx app ----
+
    /**
     *    Note: there have been always problems in the shrinking,
     *    even with the most severe keep options, and anyway the
