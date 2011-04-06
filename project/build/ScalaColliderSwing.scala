@@ -50,14 +50,16 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
       FU.clean( cleanPaths.get, quiet, log )
 
       for( fromPath <- jarsPath.get ) {
-         val versionedName = fromPath.asFile.getName
-         val plainName     = versionedName match {
-            case versionedNamePattern( name ) if( name != "scala" ) => name + jarExt
-            case n => n
+         val vName = fromPath.asFile.getName
+         if( !vName.contains( "-javadoc" ) && !vName.contains( "-sources" )) {
+            val plainName     = vName match {
+               case versionedNamePattern( name ) if( name != "scala" ) => name + jarExt
+               case n => n
+            }
+            val toPath = javaPath / plainName
+            log.log( if(quiet) Level.Debug else Level.Info, "Copying to file " + toPath.asFile )
+            FU.copyFile( fromPath, toPath, log )
          }
-         val toPath = javaPath / plainName
-         log.log( if(quiet) Level.Debug else Level.Info, "Copying to file " + toPath.asFile )
-         FU.copyFile( fromPath, toPath, log )
       }
 
 // plist is a real shitty format. we will need apache commons configuration
