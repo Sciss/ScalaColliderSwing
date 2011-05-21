@@ -38,7 +38,7 @@ import de.sciss.synth.ugen.SinOsc
  */
 object ScalaColliderSwing {
    val name          = "ScalaCollider-Swing"
-   val version       = 0.25
+   val version       = 0.26
    val copyright     = "(C)opyright 2008-2011 Hanns Holger Rutz"
    def versionString = (version + 0.001).toString.substring( 0, 4 )
 
