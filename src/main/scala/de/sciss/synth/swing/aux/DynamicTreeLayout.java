@@ -33,7 +33,7 @@
   SUCH DAMAGE.
  */
 
-package de.sciss.synth.swing;
+package de.sciss.synth.swing.aux;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
