@@ -72,7 +72,7 @@ object JServerStatusPanel {
      private var peakCPU = 0 // 0...17
 
        private def getImageResource( name: String ) : Image =
-         Toolkit.getDefaultToolkit.createImage( classOf[ CPUIndicator ].getResource( name ))
+         Toolkit.getDefaultToolkit.createImage( ScalaColliderSwing.getClass.getResource( name ))
 
        private val imgGaugeEmpty = getImageResource( "gauge_empty.png" )
        private val imgGaugeFull  = getImageResource( "gauge_full.png" );

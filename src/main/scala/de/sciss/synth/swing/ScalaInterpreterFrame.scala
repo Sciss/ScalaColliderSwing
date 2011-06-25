@@ -57,10 +57,10 @@ so.transport = de.sciss.scalaosc.TCP
 boot
 
 // analog bubbles
-val x = {
+val x = play {
     val f = LFSaw.kr(0.4).madd(24, LFSaw.kr(List(8, 7.23)).madd(3, 80)).midicps // glissando function
     CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
-}.play
+}
 
 x.release( 10 )
 
@@ -90,9 +90,10 @@ viewDef( df )
       pane.initialCode = Some(
 """
 import math._
-import de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket }
+import de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket, UDP, TCP }
 import de.sciss.synth._
 import de.sciss.synth.swing.SynthGraphPanel._
+import de.sciss.synth.swing.Implicits._
 import de.sciss.synth.io._
 import de.sciss.synth.osc._
 import de.sciss.synth.ugen._

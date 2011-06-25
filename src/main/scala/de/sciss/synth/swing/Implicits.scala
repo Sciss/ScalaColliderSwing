@@ -30,5 +30,6 @@ package de.sciss.synth
 package swing
 
 object Implicits {
-   implicit def enableGUI( group: Group ) = new GUI.Factory( new GUI.Group( group ))
+   implicit def enableGUI( group: Group )    = new GUI.Factory( new GUI.Group( group ))
+   implicit def enableGUI( server: Server )  = new GUI.Factory( new GUI.Server( server ))
 }

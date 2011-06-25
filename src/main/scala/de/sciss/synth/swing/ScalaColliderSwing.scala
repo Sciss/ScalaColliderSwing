@@ -33,6 +33,8 @@ import java.io.File
 import actors.DaemonActor
 import de.sciss.synth._
 import de.sciss.synth.ugen.SinOsc
+import scala.swing.Swing
+
 /**
  *    @version 0.14, 09-Jun-10
  */
@@ -86,7 +88,7 @@ object ScalaColliderSwing {
    }
 
    def main( args: Array[ String ]) {
-      defer { buildGUI }
+      Swing.onEDT( buildGUI )
    }
 
    def buildGUI {
@@ -101,11 +103,5 @@ object ScalaColliderSwing {
       ntpw.setVisible( true )
       sif.setLocation( sspw.getX + sspw.getWidth + 32, sif.getY )
       sif.setVisible( true )
-   }
-
-   private def defer( thunk: => Unit ) {
-      EventQueue.invokeLater( new Runnable {
-         def run = thunk
-      })
    }
 }
