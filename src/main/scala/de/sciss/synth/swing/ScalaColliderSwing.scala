@@ -95,6 +95,8 @@ object ScalaColliderSwing {
       val ssp  = new ServerStatusPanel()
       val sspw = ssp.peer.makeWindow
       val ntp  = new NodeTreePanel()
+      ntp.nodeActionButtons         = true
+      ntp.confirmDestructiveActions = true
       val ntpw = ntp.peer.makeWindow
       val repl = new REPLSupport( ssp, ntp )
       val sif  = new ScalaInterpreterFrame( repl )

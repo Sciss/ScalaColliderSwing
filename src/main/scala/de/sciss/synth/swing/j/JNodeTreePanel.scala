@@ -1,5 +1,3 @@
-package de.sciss.synth.swing.j
-
 /*
  *  JNodeTreePanel.scala
  *  (ScalaCollider-Swing)
@@ -28,31 +26,35 @@ package de.sciss.synth.swing.j
  *  Changelog:
  */
 
+package de.sciss.synth.swing.j
+
 import java.awt.geom.Point2D
 import collection.immutable.IntMap
 import prefuse.action.{ ActionList, RepaintAction }
 import prefuse.action.animate.{ ColorAnimator, LocationAnimator, VisibilityAnimator }
-import prefuse.action.assignment.{ ColorAction }
 import prefuse.action.layout.graph.{  NodeLinkTreeLayout }
-import prefuse.data.tuple.DefaultTupleSet
 import prefuse.render.{ AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer, LabelRenderer }
 import prefuse.util.{ ColorLib }
-import prefuse.visual.expression.InGroupPredicate
 import prefuse.visual.sort.TreeDepthItemSorter
 import de.sciss.synth.{ Group, Model, Node, NodeManager, Server, Synth }
 import de.sciss.synth.osc.OSCNodeInfo
-import prefuse.data.{Graph, Node => PNode, Tree}
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
-import prefuse.controls._
 import de.sciss.synth.swing.ScalaColliderSwing
-import java.awt.{Image, Toolkit, BorderLayout, Color, EventQueue}
 import de.sciss.synth.swing.aux.DynamicTreeLayout
+import java.awt.event.{InputEvent, ActionEvent}
+import javax.swing.{JOptionPane, JFrame, Action, JButton, WindowConstants, JPanel, AbstractAction}
+import prefuse.data.expression.AbstractPredicate
+import prefuse.data.{Tuple, Graph, Node => PNode, Tree}
+import prefuse.controls.{FocusControl, PanControl, WheelZoomControl, ZoomControl, ZoomToFitControl}
+import prefuse.visual.expression.InGroupPredicate
+import prefuse.data.event.TupleSetListener
+import prefuse.data.tuple.{TupleSet, DefaultTupleSet}
+import java.awt.{BasicStroke, Image, Toolkit, Color, BorderLayout, GridLayout, EventQueue}
+import prefuse.action.assignment.{StrokeAction, ColorAction}
 
 //import VisualInsertionTree._
 import DynamicTreeLayout.{ INFO, NodeInfo }
-import javax.swing.{ JFrame, JPanel, WindowConstants }
-
 /**
  *    @version	0.11, 27-Apr-10
  */
@@ -62,19 +64,28 @@ import javax.swing.{ JFrame, JPanel, WindowConstants }
 //   }
 //}
 
+trait NodeTreePanelLike {
+   def nodeActionButtons : Boolean
+   def nodeActionButtons_=( b: Boolean ) : Unit
+   def confirmDestructiveActions : Boolean
+   def confirmDestructiveActions_=( b : Boolean ) : Unit
+}
+
 object JNodeTreePanel {
    private val COL_LABEL            = "name"
    private val COL_PAUSED           = "paused"
+   private val COL_NODE             = "node"
    // create the tree layout action
    private val orientation = Constants.ORIENT_LEFT_RIGHT
    private val GROUP_TREE           = "tree"
    private val GROUP_NODES          = "tree.nodes"
    private val GROUP_EDGES          = "tree.edges"
-   private val GROUP_PAUSED         = "paused"
+//   private val GROUP_PAUSED         = "paused"
    private val ACTION_LAYOUT        = "layout"
    private val ACTION_LAYOUT_ANIM   = "layout-anim"
+   private val ACTION_FOCUS         = "focus"
    private val ACTION_COLOR         = "color"
-   private val ACTION_COLOR_ANIM    = "layout-anim"
+   private val ACTION_COLOR_ANIM    = "color-anim"
    private val FADE_TIME            = 333
    private val COL_ICON             = "icon"
    private val imgGroup             = Toolkit.getDefaultToolkit.createImage( ScalaColliderSwing.getClass.getResource( "path_group_16.png" ))
@@ -90,7 +101,9 @@ object JNodeTreePanel {
       }
    }
 }
-class JNodeTreePanel extends JPanel( new BorderLayout() ) {
+class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike {
+   treePanel =>
+
    import JNodeTreePanel._
    import NodeManager._
 
@@ -99,10 +112,11 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
    private val t                    = {
 //      val t       = new Tree
       val t       = new Graph
-      val nodes   = t.getNodeTable()
+      val nodes   = t.getNodeTable
       nodes.addColumn( COL_LABEL,  classOf[ String ])
       nodes.addColumn( COL_ICON,   classOf[ String ])
       nodes.addColumn( COL_PAUSED, classOf[ Boolean ])
+      nodes.addColumn( COL_NODE,   classOf[ Node ])
 //      FIELDS.foreach( PrefuseHelper.addColumn( nodes, _, classOf[ PNode ]))
       nodes.addColumn( INFO, classOf[ NodeInfo ])
       t
@@ -111,7 +125,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
    private val vis           = {
       val res = new Visualization()
       res.add( GROUP_TREE, t )
-      res.addFocusGroup( GROUP_PAUSED, setPaused )
+//      res.addFocusGroup( GROUP_PAUSED, setPausedTuples )
       res
    }
    private val lay = {
@@ -120,7 +134,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       res
    }
 
-   private val setPaused      = new DefaultTupleSet()
+//   private val setPausedTuples   = new DefaultTupleSet()
 
    private val nodeListener: Model.Listener = {
       case NodeGo( synth: Synth, info ) => defer( nlAddSynth( synth, info ))
@@ -139,7 +153,8 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       val display = new Display( vis )
 
       val nodeRenderer = new NodeLabelRenderer( COL_LABEL )
-      nodeRenderer.setRenderType( AbstractShapeRenderer.RENDER_TYPE_FILL )
+//      nodeRenderer.setRenderType( AbstractShapeRenderer.RENDER_TYPE_FILL )
+      nodeRenderer.setRenderType( AbstractShapeRenderer.RENDER_TYPE_DRAW_AND_FILL )
       nodeRenderer.setHorizontalAlignment( Constants.LEFT )
       nodeRenderer.setRoundedCorner( 8, 8 )
       nodeRenderer.setVerticalPadding( 2 )
@@ -150,76 +165,64 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       vis.setRendererFactory( rf )
 
       // colors
-//      val nodeColor = new NodeColorAction( treeNodes )
-      val actionNodeColor = new ColorAction( GROUP_NODES, VisualItem.FILLCOLOR, ColorLib.rgb( 200, 200, 200 ))
-      actionNodeColor.add( new InGroupPredicate( GROUP_PAUSED ), ColorLib.rgb( 200, 0, 0 ))
-      val actionTextColor = new ColorAction( GROUP_NODES, VisualItem.TEXTCOLOR, ColorLib.rgb( 0, 0, 0 ))
-//      vis.putAction( "nodeColor", actionNodeColor )
-//      vis.putAction( "textColor", actionTextColor )
-
-      val actionEdgeColor = new ColorAction( GROUP_EDGES, VisualItem.STROKECOLOR, ColorLib.rgb( 200, 200, 200 ))
+      val actionNodeFill = new ColorAction( GROUP_NODES, VisualItem.FILLCOLOR, ColorLib.rgb( 200, 200, 200 ))
+      val predFocused = new InGroupPredicate( Visualization.FOCUS_ITEMS )
+      actionNodeFill.add( new AbstractPredicate {
+         override def getBoolean( t: Tuple ) : Boolean = t.getBoolean( COL_PAUSED )
+      }, ColorLib.rgb( 200, 0, 0 ))
+//actionNodeFill.add( predFocused, ColorLib.rgb( 0, 255, 0 ))
+      val actionTextColor  = new ColorAction( GROUP_NODES, VisualItem.TEXTCOLOR,   ColorLib.rgb(   0,   0  , 0 ))
+      val actionEdgeColor  = new ColorAction( GROUP_EDGES, VisualItem.STROKECOLOR, ColorLib.rgb( 200, 200, 200 ))
+      val actionNodeDraw   = new ColorAction( GROUP_NODES, VisualItem.STROKECOLOR, ColorLib.rgb( 100, 100, 255 ))
+      val actionRepaint    = new RepaintAction()
 
       // quick repaint
-      val actionColor = new ActionList()
-      actionColor.add( actionNodeColor )
-//      actionColorRepaint.add( new RepaintAction() )
-//actionColor.add( new RepaintAction() )
-      vis.putAction( ACTION_COLOR, actionColor )
+      val actionFocus = new ActionList()
+      val actionFocusStroke = new StrokeAction( GROUP_NODES, new BasicStroke( 0f ))
+      actionFocusStroke.add( predFocused, new BasicStroke( 2f ))
+      actionFocus.add( actionFocusStroke )
+      actionFocus.add( actionNodeDraw )
+      actionFocus.add( actionRepaint )
+      vis.putAction( ACTION_FOCUS, actionFocus )
 
-//      // full paint
-//      val fullPaint = new ActionList()
-//      fullPaint.add( nodeColor )
-//      vis.putAction( "fullPaint", fullPaint )
+      val actionColor = new ActionList()
+      actionColor.add( actionNodeFill )
+      vis.putAction( ACTION_COLOR, actionColor )
 
       // animate paint change
       val animateColor = new ActionList( FADE_TIME )
       animateColor.add( new ColorAnimator( GROUP_NODES ))
-      animateColor.add( new RepaintAction() )
+      animateColor.add( actionRepaint )
       vis.putAction( ACTION_COLOR_ANIM, animateColor )
       vis.alwaysRunAfter( ACTION_COLOR, ACTION_COLOR_ANIM )
 
-//      val actionTreeLayout = new NodeLinkTreeLayout( GROUP_TREE, orientation, 32, 2, 8 )
-//      treeLayout.setOrientation( orientation )
-//      vis.putAction( "treeLayout", actionTreeLayout )
-
-//      val subLayout = new CollapsedSubtreeLayout( tree, orientation )
-//      subLayout.setOrientation( orientation )
-//      vis.putAction( "subLayout", subLayout )
-
-//      val autoPan = new AutoPanAction()
-
       // create the filtering and layout
       val actionLayout = new ActionList()
-//      actionLayout.add( new FisheyeTreeFilter( tree, 2 ))
-//      actionLayout.add( new FontAction( treeNodes, FontLib.getFont( "Helvetica", 16 )))
       actionLayout.add( lay )
-//      actionLayout.add( subLayout )
       actionLayout.add( actionTextColor )
-      actionLayout.add( actionNodeColor )
+      actionLayout.add( actionNodeFill )
+      actionLayout.add( actionNodeDraw )
       actionLayout.add( actionEdgeColor )
-//actionLayout.add( new RepaintAction() )
+actionLayout.add( actionFocusStroke )
       vis.putAction( ACTION_LAYOUT, actionLayout )
 
       // animated transition
       val animateLayout = new ActionList( FADE_TIME )
-//      animateLayout.setPacingFunction( new SlowInSlowOutPacer() )
-//      animateLayout.add( autoPan )
-//      animateLayout.add( new QualityControlAnimator() )
       animateLayout.add( new VisibilityAnimator( GROUP_TREE ))
       animateLayout.add( new LocationAnimator( GROUP_NODES ))
       animateLayout.add( new ColorAnimator( GROUP_NODES ))
-      animateLayout.add( new RepaintAction() )
+      animateLayout.add( actionRepaint )
       vis.putAction( ACTION_LAYOUT_ANIM, animateLayout )
       vis.alwaysRunAfter( ACTION_LAYOUT, ACTION_LAYOUT_ANIM )
 
-//      // create animator for orientation changes
-//      val orient = new ActionList( 2000 )
-//      orient.setPacingFunction( new SlowInSlowOutPacer() )
-////      orient.add( autoPan )
-//      orient.add( new QualityControlAnimator() )
-//      orient.add( new LocationAnimator( treeNodes ))
-//      orient.add( new RepaintAction() )
-//      vis.putAction( "orient", orient )
+      val focusGroup = vis.getGroup( Visualization.FOCUS_ITEMS )
+      focusGroup.addTupleSetListener( new TupleSetListener {
+          def tupleSetChanged( ts: TupleSet, add: Array[ Tuple ], remove: Array[ Tuple ]) {
+             nodeActionButtonsPanel.foreach( _.selection_=( add.headOption.map( _.get( COL_NODE ).asInstanceOf[ Node ])))
+//             println( "SEL" )
+//             vis.run( ACTION_FOCUS )
+          }
+      })
 
       // ------------------------------------------------
 
@@ -232,7 +235,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       display.addControlListener( new PanControl() )
 //display.addControlListener( new DragControl() ) // para debugging
       display.setHighQuality( true )
-//      display.addControlListener( new FocusControl( 1, "filter" ))
+      display.addControlListener( new FocusControl( Visualization.FOCUS_ITEMS, 1, ACTION_FOCUS ))
 
 //      registerKeyboardAction(
 //          new OrientAction(Constants.ORIENT_LEFT_RIGHT),
@@ -272,15 +275,28 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       display.setForeground( Color.WHITE )
       display.setBackground( Color.BLACK )
 
-//      setLayout( new BorderLayout() )
       add( display, BorderLayout.CENTER )
+   }
 
-//      server.nodeMgr.addListener( nodeListener )
+   // ---- NodeTreePanelLike ----
 
-//      val test = treeLayout.getLayoutRoot
-//      val ch = test.getFirstChild
-//      val st = t.getSpanningTree()
-//      println( test )
+   private var nodeActionButtonsPanel = Option.empty[ NodeActionsPanel ]
+   def nodeActionButtons : Boolean = nodeActionButtonsPanel.isDefined
+   def nodeActionButtons_=( b: Boolean ) {
+      if( nodeActionButtonsPanel.isDefined != b ) {
+         nodeActionButtonsPanel.foreach( _.dispose() )
+         nodeActionButtonsPanel = if( b ) {
+            Some( new NodeActionsPanel( confirmDestructiveActions ))
+         } else None
+      }
+   }
+   private var confirmDestructiveActionsVar = false
+   def confirmDestructiveActions : Boolean = confirmDestructiveActionsVar
+   def confirmDestructiveActions_=( b : Boolean ) {
+      if( confirmDestructiveActionsVar != b ) {
+         confirmDestructiveActionsVar = b
+         nodeActionButtonsPanel.foreach( _.confirmDestructiveActions_=( b ))
+      }
    }
 
    private def defer( code: => Unit ) {
@@ -288,7 +304,6 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
    }
 
    private def insertChild( pNode: PNode, pParent: PNode, info: OSCNodeInfo, iNode: NodeInfo ) {
-//      val iNode   = new NodeInfo
       val iParent = pParent.get( INFO ).asInstanceOf[ NodeInfo ]
       val pPred   = if( info.predID == -1 ) {
          iParent.head = pNode
@@ -313,7 +328,6 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
          iSucc.pred = pNode
       }
       iNode.parent = pParent
-//      pNode.set( INFO, iNode )
    }
 
    private def deleteChild( node: Node, pNode: PNode ) {
@@ -327,9 +341,6 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
    }
 
    private def removeChild( pNode: PNode ) {
-//      val pPred   = pNode.get( PRED ).asInstanceOf[ PNode ]
-//      val pSucc   = pNode.get( SUCC ).asInstanceOf[ PNode ]
-//      val pParent = pNode.get( PARENT ).asInstanceOf[ PNode ]
       val iInfo   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
       val pPred   = iInfo.pred
       val pSucc   = iInfo.succ
@@ -354,154 +365,77 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       }
    }
 
-//   private def createChild( node: Node, pParent: PNode, info: OSCNodeInfo ) : PNode =
-//      createChild( node, pParent, info, new NodeInfo )
-//
-//   private def createChild( node: Node, pParent: PNode, info: OSCNodeInfo, iNode: NodeInfo ) : PNode = {
-//      val pNode = t.addChild( pParent )
-//      pNode.set( INFO, iNode )
-//      insertChild( pNode, pParent, info, iNode )
-//      map += node.id -> pNode
-//      pNode
-//   }
-
    private def createChild( node: Node, pParent: PNode, info: OSCNodeInfo ) : PNode = {
       val pNode   = t.addNode()
       t.addEdge( pParent, pNode )
       val iNode   = new NodeInfo
       pNode.set( INFO, iNode )
+      pNode.set( COL_NODE, node )
       insertChild( pNode, pParent, info, iNode )
       map += node.id -> pNode
       pNode
    }
 
-
-//   private def createChild( node: Node, pParent: PNode, info: OSCNodeInfo, iNode: NodeInfo ) : PNode = {
-//      val pNode = t.addChild( pParent )
-//      pNode.set( INFO, iNode )
-//      insertChild( pNode, pParent, info, iNode )
-//      map += node.id -> pNode
-//      pNode
-//   }
-
    private def nlAddSynth( synth: Synth, info: OSCNodeInfo ) {
-      map.get( info.parentID ).map( pParent => {
-         vis.synchronized {
-            stopAnimation
-            val pNode = createChild( synth, pParent, info )
-            pNode.set( COL_LABEL, synth.id.toString )
-            pNode.set( COL_ICON, "synth" )
-            initPosAndAnimate( pNode )
-         }
+      map.get( info.parentID ).map( pParent => visDo( true ) {
+         val pNode = createChild( synth, pParent, info )
+         pNode.set( COL_LABEL, synth.id.toString )
+         pNode.set( COL_ICON, "synth" )
+         initPos( pNode )
       })
    }
 
    private def nlAddGroup( group: Group, info: OSCNodeInfo ) {
-//println( "addGroup " + group )
-      map.get( info.parentID ).map( pParent => {
-//println( "--> JA" )
-         vis.synchronized {
-            stopAnimation
-//Debug.breakpoint
-            val pNode = createChild( group, pParent, info )
-            pNode.set( COL_LABEL, group.id.toString )
-            pNode.set( COL_ICON, "group" )
-            initPosAndAnimate( pNode )
-         }
+      map.get( info.parentID ).map( pParent => visDo( true ) {
+         val pNode = createChild( group, pParent, info )
+         pNode.set( COL_LABEL, group.id.toString )
+         pNode.set( COL_ICON, "group" )
+         initPos( pNode )
       })
    }
 
    private def nlRemoveNode( node: Node, info: OSCNodeInfo ) {
-      map.get( node.id ).foreach( pNode => {
-         vis.synchronized {
-            stopAnimation
-            deleteChild( node, pNode )
-            vis.run( ACTION_LAYOUT )
-         }
+      map.get( node.id ).foreach( pNode => visDo( true ) {
+         deleteChild( node, pNode )
       })
    }
 
    private def nlMoveChild( node: Node, info: OSCNodeInfo ) {
-      map.get( node.id ).foreach( pNode => {
-         vis.synchronized {
-            stopAnimation
-//Debug.breakpoint
-//            val vi         = vis.getVisualItem( GROUP_TREE, pOld )
-//            val startPos   = if( vi != null ) Some( new Point2D.Double( vi.getX, vi.getY )) else None
-//            val labelOld   = pOld.get( COL_LABEL )
-//            val iconOld    = pOld.get( COL_ICON )
-//            val iOld       = pOld.get( INFO ).asInstanceOf[ NodeInfo ]
-//            deleteChild( node, pOld )
-            val iNode   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
-            val oldEdge = t.getEdge( iNode.parent, pNode )
-            removeChild( pNode )
-            t.removeEdge( oldEdge )
-            map.get( info.parentID ).map { pParent =>
-               insertChild( pNode, pParent, info, iNode )
-//               // somehow there is layout garbage left...
-//               val vi = vis.getVisualItem( GROUP_TREE, pParent )
-//               vi.set( DynamicTreeLayout.PARAMS, null )
-               t.addEdge( pParent, pNode )
-//               val pNew = createChild( node, pParent, info, iOld )
-//               pNew.set( COL_LABEL, labelOld )
-//               pNew.set( COL_ICON, iconOld )
-//               val viNew = vis.getVisualItem( GROUP_TREE, pNew )
-//               if( viNew != null ) {
-//                  startPos.foreach( p => { viNew.setX( p.getX ); viNew.setY( p.getY )})
-//               }
-            } getOrElse { // disappeared from the radar
-               t.removeNode( pNode )
-               map -= node.id
-            }
-            vis.run( ACTION_LAYOUT )
+      map.get( node.id ).foreach( pNode => visDo( true ) {
+         val iNode   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
+         val oldEdge = t.getEdge( iNode.parent, pNode )
+         removeChild( pNode )
+         t.removeEdge( oldEdge )
+         map.get( info.parentID ).map { pParent =>
+            insertChild( pNode, pParent, info, iNode )
+            t.addEdge( pParent, pNode )
+         } getOrElse { // disappeared from the radar
+            t.removeNode( pNode )
+            map -= node.id
          }
       })
    }
 
-
-   private def nlPauseChild( node: Node, onOff: Boolean ) {
-      map.get( node.id ).foreach( pNode => {
-         vis.synchronized {
-            stopAnimation
-            val vi = vis.getVisualItem( GROUP_NODES, pNode )
-            if( vi != null ) {
-               if( onOff) {
-                  setPaused.addTuple( vi )
-               } else {
-                  setPaused.removeTuple( vi )
-               }
-               vis.run( ACTION_COLOR )
-            }
-         }
+   private def nlPauseChild( node: Node, paused: Boolean ) {
+      map.get( node.id ).foreach( pNode => visDo( false ) {
+         pNode.setBoolean( COL_PAUSED, paused )
+//         val vi = vis.getVisualItem( GROUP_NODES, pNode )
+//         if( vi != null ) {
+//            if( onOff) {
+//               setPausedTuples.addTuple( vi )
+//            } else {
+//               setPausedTuples.removeTuple( vi )
+//            }
+//         }
       })
    }
-
-//   private def removeChild( pNode: PNode ) {
-//      val iNode   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
-//      var pSucc   = iNode.head
-//      while( pSucc != null ) {
-//         removeChild( pSucc )
-//         val iSucc   = pSucc.get( INFO ).asInstanceOf[ NodeInfo ]
-//         pSucc       = if( iSucc == null ) null else iSucc.succ
-//      }
-//      map -=
-//   }
 
    private def nlClear {
-      vis.synchronized {
-         stopAnimation
-         setPaused.clear
+      visDo( true ) {
+//         setPausedTuples.clear()
          t.clear()
          map = IntMap.empty
          newRoot
-////         val r = t.getRoot
-//
-//         val c = r.children
-//         while( c.hasNext ) {
-//            t.removeChild( c.next.asInstanceOf[ PNode ])
-//         }
-//         map   = IntMap( 0 -> r )
-         vis.run( ACTION_LAYOUT )
       }
    }
 
@@ -509,9 +443,9 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       val r = t.addNode()
       r.set( INFO, new NodeInfo )
       val vi = vis.getVisualItem( GROUP_TREE, r ).asInstanceOf[ NodeItem ]
-      val pt = lay.getLayoutAnchor()
-      vi.setX( pt.getX() )
-      vi.setY( pt.getY() )
+      val pt = lay.getLayoutAnchor
+      vi.setX( pt.getX )
+      vi.setY( pt.getY )
       lay.setLayoutRoot( vi )
       map += 0 -> r
    }
@@ -519,6 +453,10 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
    private val sync = new AnyRef
    private var serverVar: Option[ Server ] = None
    def server: Option[ Server ] = serverVar
+
+   /**
+    * This method is thread-safe.
+    */
    def server_=( s: Option[ Server ]) {
       sync.synchronized {
          serverVar.foreach( _.nodeMgr.removeListener( nodeListener ))
@@ -531,7 +469,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
       }
    }
       
-   private def initPosAndAnimate( pNode: PNode ) {
+   private def initPos( pNode: PNode ) {
       val pParent = pNode.get( INFO ).asInstanceOf[ NodeInfo ].parent
 //println( "initPosAndAnimate " + pParent )
       if( pParent != null ) {
@@ -542,14 +480,23 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
             vi.setY( vip.getY )
          }
       }
-      vis.run( ACTION_LAYOUT )
+//      vis.run( ACTION_LAYOUT )
    }
 
-   private def stopAnimation {
-//      vis.cancel( ACTION_COLOR )
+   private def stopAnimation() {
       vis.cancel( ACTION_COLOR_ANIM )
-//      vis.cancel( ACTION_LAYOUT )
       vis.cancel( ACTION_LAYOUT_ANIM )
+   }
+
+   private def visDo( layout: Boolean )( code: => Unit ) {
+      vis.synchronized {
+         stopAnimation()
+         try {
+            code
+         } finally {
+            vis.run( if( layout ) ACTION_LAYOUT else ACTION_COLOR )
+         }
+      }
    }
 
    private var frame: Option[ JFrame ] = None
@@ -573,4 +520,118 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) {
          fr
       }
 	}
+
+   private def isPaused( n: Node ) : Boolean = map.get( n.id ).map( _.getBoolean( COL_PAUSED )).getOrElse( false )
+
+   private class NodeActionsPanel( _confirmDestr : Boolean ) extends JPanel {
+      private var confirmDestr = false
+      private var selectionVar = Option.empty[ Node ]
+
+      val actionNodeFree = new AbstractAction {
+         def actionPerformed( e: ActionEvent ) {
+            selectionVar.foreach( n => confirm( this, "Free node " + n.id + "?" )( n.free ))
+         }
+      }
+
+      val actionNodeRun = new AbstractAction( "Run" ) {
+         def actionPerformed( e: ActionEvent ) {
+            selectionVar.foreach( n => n.run( isPaused( n )))
+         }
+      }
+
+      val actionNodeTrace = new AbstractAction( "Trace" ) {
+         def actionPerformed( e: ActionEvent ) {
+            selectionVar.foreach( _.trace )
+         }
+      }
+
+      val actionGroupFreeAll = new AbstractAction {
+         def actionPerformed( e: ActionEvent ) {
+            selectionVar match {
+               case Some( g: Group ) => confirm( this, "Free all nodes in group " + g.id + "?" )( g.freeAll )
+               case _ =>
+            }
+         }
+      }
+
+      val actionGroupDeepFree = new AbstractAction {
+         def actionPerformed( e: ActionEvent ) {
+            selectionVar match {
+               case Some( g: Group ) => confirm( this, "Free all synths in group " + g.id + " and its sub-groups?" )( g.deepFree )
+               case _ =>
+            }
+         }
+      }
+
+      val actionGroupDumpTree = new AbstractAction( "Dump tree" ) {
+         def actionPerformed( e: ActionEvent ) {
+            selectionVar match {
+               case Some( g: Group ) => g.dumpTree( (e.getModifiers & InputEvent.ALT_MASK) != 0 )
+               case _ =>
+            }
+         }
+      }
+
+      private def confirm( action: Action, message: String )( thunk: => Unit ) {
+         if( !confirmDestr || JOptionPane.showConfirmDialog( treePanel, message,
+            action.getValue( Action.NAME ).toString, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE ) ==
+               JOptionPane.YES_OPTION ) {
+
+            thunk
+         }
+      }
+
+      private def but( action: Action ) = {
+         val b = new JButton( action )
+         b.setFocusable( false )
+         b.putClientProperty( "JButton.buttonType", "bevel" )
+         b.putClientProperty( "JComponent.sizeVariant", "small" )
+         p.add( b )
+         b
+      }
+
+      private val p = new JPanel( new GridLayout( 2, 3 ))
+//      setLayout( new GridLayout( 2, 3 ))
+      but( actionNodeFree )
+      but( actionNodeRun )
+      but( actionNodeTrace )
+      but( actionGroupFreeAll )
+      but( actionGroupDeepFree )
+      but( actionGroupDumpTree ).setToolTipText( "Hold Alt key to dump controls" )
+//      setLayout( new BorderLayout() )
+      add( p ) // , BorderLayout.WEST )
+
+      confirmDestructiveActions_=( false )   // inits labels
+      selection_=( None )                    // inits enabled states
+
+      treePanel.add( this, BorderLayout.SOUTH )
+      if( treePanel.isShowing ) treePanel.revalidate()
+
+      def confirmDestructiveActions_=( b: Boolean ) {
+         confirmDestr = b
+         actionNodeFree.putValue(      Action.NAME, if( b ) "Free..." else "Free" )
+         actionGroupFreeAll.putValue(  Action.NAME, if( b ) "Free all..." else "Free all" )
+         actionGroupDeepFree.putValue( Action.NAME, if( b ) "Free deep..." else "Free deep" )
+      }
+
+      def selection_=( nodeOption: Option[ Node ]) {
+         selectionVar = nodeOption
+         val (n, g) = nodeOption match {
+            case Some( g: Group )   => (true, true)
+            case Some( _ )          => (true, false)
+            case _                  => (false, false)
+         }
+         actionNodeFree.setEnabled( n )
+         actionNodeRun.setEnabled( n )
+         actionNodeTrace.setEnabled( n )
+         actionGroupFreeAll.setEnabled( g )
+         actionGroupDeepFree.setEnabled( g )
+         actionGroupDumpTree.setEnabled( g )
+      }
+
+      def dispose() {
+         getParent.remove( this )
+         if( treePanel.isShowing ) treePanel.revalidate()
+      }
+   }
 }

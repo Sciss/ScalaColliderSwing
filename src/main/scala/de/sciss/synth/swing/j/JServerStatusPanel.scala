@@ -263,9 +263,9 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
          ggBoot.putClientProperty( "JButton.buttonType", "bevel" )
          ggBoot.putClientProperty( "JComponent.sizeVariant", "small" )
          ggBoot.setText( txtStop )
-         val d1 = ggBoot.getPreferredSize()
+         val d1 = ggBoot.getPreferredSize
          ggBoot.setText( txtBoot )
-         val d2 = ggBoot.getPreferredSize()
+         val d2 = ggBoot.getPreferredSize
          ggBoot.setPreferredSize( new Dimension( max( d1.width, d2.width ),
                                                  max( d1.height, d2.height )))
 
