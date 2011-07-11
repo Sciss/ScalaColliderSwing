@@ -70,7 +70,7 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
       val javaPath               = appBundleJavaPath
       val cleanPaths             = javaPath * jarFilter
       val quiet                  = false
-      val versionedNamePattern   = """([^-_]*)[-_].*.jar""".r
+      val versionedNamePattern   = """(.*?)(?:[-_](?:(?:[^-_]*\d)|SNAPSHOT))+.jar""".r
 
       FU.clean( cleanPaths.get, quiet, log )
 
@@ -78,7 +78,7 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
          val vName = fromPath.asFile.getName
          if( !vName.contains( "-javadoc" ) && !vName.contains( "-sources" )) {
             val plainName     = vName match {
-               case versionedNamePattern( name ) if( name != "scala" ) => name + jarExt
+               case versionedNamePattern( name ) => name + jarExt
                case n => n
             }
             val toPath = javaPath / plainName
