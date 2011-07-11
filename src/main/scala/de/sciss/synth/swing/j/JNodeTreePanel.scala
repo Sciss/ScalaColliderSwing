@@ -81,11 +81,15 @@ object JNodeTreePanel {
    private val GROUP_NODES          = "tree.nodes"
    private val GROUP_EDGES          = "tree.edges"
 //   private val GROUP_PAUSED         = "paused"
+   private val ACTION_ADD           = "add"
+//   private val ACTION_ADD_ANIM      = "add-anim"
+
    private val ACTION_LAYOUT        = "layout"
-   private val ACTION_LAYOUT_ANIM   = "layout-anim"
+//   private val ACTION_LAYOUT_ANIM   = "layout-anim"
    private val ACTION_FOCUS         = "focus"
-   private val ACTION_COLOR         = "color"
-   private val ACTION_COLOR_ANIM    = "color-anim"
+   private val ACTION_RUN           = "run"
+//   private val ACTION_RUN_ANIM      = "run-anim"
+   private val ACTION_ANIM          = "anim"
    private val FADE_TIME            = 333
    private val COL_ICON             = "icon"
    private val imgGroup             = Toolkit.getDefaultToolkit.createImage( ScalaColliderSwing.getClass.getResource( "path_group_16.png" ))
@@ -176,44 +180,58 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       val actionNodeDraw   = new ColorAction( GROUP_NODES, VisualItem.STROKECOLOR, ColorLib.rgb( 100, 100, 255 ))
       val actionRepaint    = new RepaintAction()
 
-      // quick repaint
+      // the animator
+      val animate = new ActionList( FADE_TIME )
+      animate.add( new ColorAnimator( GROUP_NODES ))
+      animate.add( new VisibilityAnimator( GROUP_TREE ))
+      animate.add( new LocationAnimator( GROUP_NODES ))
+      animate.add( actionRepaint )
+      vis.putAction( ACTION_ANIM, animate )
+
+      // actions taken when focus (selection) changes
       val actionFocus = new ActionList()
       val actionFocusStroke = new StrokeAction( GROUP_NODES, new BasicStroke( 0f ))
       actionFocusStroke.add( predFocused, new BasicStroke( 2f ))
       actionFocus.add( actionFocusStroke )
-      actionFocus.add( actionNodeDraw )
       actionFocus.add( actionRepaint )
       vis.putAction( ACTION_FOCUS, actionFocus )
 
-      val actionColor = new ActionList()
-      actionColor.add( actionNodeFill )
-      vis.putAction( ACTION_COLOR, actionColor )
+      // actions taken when node pauses or resumes
+      val actionRun = new ActionList()
+      actionRun.add( actionNodeFill )
+      vis.putAction( ACTION_RUN, actionRun )
+//      vis.putAction( ACTION_RUN_ANIM, animateRun )
+//      vis.alwaysRunAfter( ACTION_RUN, ACTION_RUN_ANIM )
+      vis.alwaysRunAfter( ACTION_RUN, ACTION_ANIM )
 
-      // animate paint change
-      val animateColor = new ActionList( FADE_TIME )
-      animateColor.add( new ColorAnimator( GROUP_NODES ))
-      animateColor.add( actionRepaint )
-      vis.putAction( ACTION_COLOR_ANIM, animateColor )
-      vis.alwaysRunAfter( ACTION_COLOR, ACTION_COLOR_ANIM )
+      // actions taken when a child is added
+      val actionAdd = new ActionList()
+      actionAdd.add( lay )
+      actionAdd.add( actionTextColor )
+      actionAdd.add( actionNodeFill )
+      actionAdd.add( actionNodeDraw )
+      actionAdd.add( actionEdgeColor )
+      actionAdd.add( actionFocusStroke )
+      vis.putAction( ACTION_ADD, actionAdd )
+//      val animateAdd = new ActionList( FADE_TIME )
+//      animateAdd.add( new VisibilityAnimator( GROUP_TREE ))
+//      animateAdd.add( new LocationAnimator( GROUP_NODES ))
+//      animateAdd.add( actionRepaint )
+//      vis.putAction( ACTION_ADD_ANIM, animateAdd )
+//      vis.alwaysRunAfter( ACTION_ADD, ACTION_ADD_ANIM )
+      vis.alwaysRunAfter( ACTION_ADD, ACTION_ANIM )
 
-      // create the filtering and layout
+      // actions taken when a child is moved or removed
       val actionLayout = new ActionList()
       actionLayout.add( lay )
-      actionLayout.add( actionTextColor )
-      actionLayout.add( actionNodeFill )
-      actionLayout.add( actionNodeDraw )
-      actionLayout.add( actionEdgeColor )
-actionLayout.add( actionFocusStroke )
       vis.putAction( ACTION_LAYOUT, actionLayout )
-
-      // animated transition
-      val animateLayout = new ActionList( FADE_TIME )
-      animateLayout.add( new VisibilityAnimator( GROUP_TREE ))
-      animateLayout.add( new LocationAnimator( GROUP_NODES ))
-      animateLayout.add( new ColorAnimator( GROUP_NODES ))
-      animateLayout.add( actionRepaint )
-      vis.putAction( ACTION_LAYOUT_ANIM, animateLayout )
-      vis.alwaysRunAfter( ACTION_LAYOUT, ACTION_LAYOUT_ANIM )
+//      val animateLayout = new ActionList( FADE_TIME )
+//      animateLayout.add( new VisibilityAnimator( GROUP_TREE ))
+//      animateLayout.add( new LocationAnimator( GROUP_NODES ))
+//      animateLayout.add( actionRepaint )
+//      vis.putAction( ACTION_LAYOUT_ANIM, animateLayout )
+//      vis.alwaysRunAfter( ACTION_LAYOUT, ACTION_LAYOUT_ANIM )
+      vis.alwaysRunAfter( ACTION_LAYOUT, ACTION_ANIM )
 
       val focusGroup = vis.getGroup( Visualization.FOCUS_ITEMS )
       focusGroup.addTupleSetListener( new TupleSetListener {
@@ -252,11 +270,11 @@ actionLayout.add( actionFocusStroke )
 
       // ------------------------------------------------
 
-       nodeRenderer.setHorizontalAlignment( Constants.LEFT )
-       edgeRenderer.setHorizontalAlignment1( Constants.RIGHT )
-       edgeRenderer.setHorizontalAlignment2( Constants.LEFT )
-       edgeRenderer.setVerticalAlignment1( Constants.CENTER )
-       edgeRenderer.setVerticalAlignment2( Constants.CENTER )
+      nodeRenderer.setHorizontalAlignment( Constants.LEFT )
+      edgeRenderer.setHorizontalAlignment1( Constants.RIGHT )
+      edgeRenderer.setHorizontalAlignment2( Constants.LEFT )
+      edgeRenderer.setVerticalAlignment1( Constants.CENTER )
+      edgeRenderer.setVerticalAlignment2( Constants.CENTER )
 
       vis.run( ACTION_LAYOUT )
 
@@ -377,7 +395,7 @@ actionLayout.add( actionFocusStroke )
    }
 
    private def nlAddSynth( synth: Synth, info: OSCNodeInfo ) {
-      map.get( info.parentID ).map( pParent => visDo( true ) {
+      map.get( info.parentID ).map( pParent => visDo( ACTION_ADD ) {
          val pNode = createChild( synth, pParent, info )
          pNode.set( COL_LABEL, synth.id.toString )
          pNode.set( COL_ICON, "synth" )
@@ -386,7 +404,7 @@ actionLayout.add( actionFocusStroke )
    }
 
    private def nlAddGroup( group: Group, info: OSCNodeInfo ) {
-      map.get( info.parentID ).map( pParent => visDo( true ) {
+      map.get( info.parentID ).map( pParent => visDo( ACTION_ADD ) {
          val pNode = createChild( group, pParent, info )
          pNode.set( COL_LABEL, group.id.toString )
          pNode.set( COL_ICON, "group" )
@@ -395,13 +413,13 @@ actionLayout.add( actionFocusStroke )
    }
 
    private def nlRemoveNode( node: Node, info: OSCNodeInfo ) {
-      map.get( node.id ).foreach( pNode => visDo( true ) {
+      map.get( node.id ).foreach( pNode => visDo( ACTION_LAYOUT ) {
          deleteChild( node, pNode )
       })
    }
 
    private def nlMoveChild( node: Node, info: OSCNodeInfo ) {
-      map.get( node.id ).foreach( pNode => visDo( true ) {
+      map.get( node.id ).foreach( pNode => visDo( ACTION_LAYOUT ) {
          val iNode   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
          val oldEdge = t.getEdge( iNode.parent, pNode )
          removeChild( pNode )
@@ -417,7 +435,7 @@ actionLayout.add( actionFocusStroke )
    }
 
    private def nlPauseChild( node: Node, paused: Boolean ) {
-      map.get( node.id ).foreach( pNode => visDo( false ) {
+      map.get( node.id ).foreach( pNode => visDo( ACTION_RUN ) {
          pNode.setBoolean( COL_PAUSED, paused )
 //         val vi = vis.getVisualItem( GROUP_NODES, pNode )
 //         if( vi != null ) {
@@ -431,7 +449,7 @@ actionLayout.add( actionFocusStroke )
    }
 
    private def nlClear {
-      visDo( true ) {
+      visDo( ACTION_LAYOUT ) {
 //         setPausedTuples.clear()
          t.clear()
          map = IntMap.empty
@@ -483,18 +501,20 @@ actionLayout.add( actionFocusStroke )
 //      vis.run( ACTION_LAYOUT )
    }
 
-   private def stopAnimation() {
-      vis.cancel( ACTION_COLOR_ANIM )
-      vis.cancel( ACTION_LAYOUT_ANIM )
-   }
+//   private def stopAnimation() {
+//      vis.cancel( ACTION_ADD_ANIM )
+//      vis.cancel( ACTION_LAYOUT_ANIM )
+//      vis.cancel( ACTION_RUN_ANIM )
+//   }
 
-   private def visDo( layout: Boolean )( code: => Unit ) {
+   private def visDo( action: String )( code: => Unit ) {
       vis.synchronized {
-         stopAnimation()
+//         stopAnimation()
+         vis.cancel( ACTION_ANIM )
          try {
             code
          } finally {
-            vis.run( if( layout ) ACTION_LAYOUT else ACTION_COLOR )
+            vis.run( action )
          }
       }
    }
