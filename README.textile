@@ -18,14 +18,12 @@ ScalaCollider-Swing currently compiles against the Scala 2.8.1 and requires Java
 
 Where @standalone@ creates a fully self-contained jar, and @package-app@ updates the Mac OS X application bundle.
 
-To install the dependancies, run @sbt update@ first. The dependancies "ScalaOSC":http://github.com/Sciss/ScalaOSC, "ScalaInterpreterPane":http://github.com/Sciss/ScalaInterpreterPane, and "ScalaCollider":http://github.com/Sciss/ScalaCollider currently have no repository entries. The easiest way to install them is to clone their respective gits and make them locally available through @sbt publish-local@. E.g. for ScalaOSC:
+To install the dependancies, run @sbt update@ first. The dependancies
+"ScalaOSC":http://github.com/Sciss/ScalaOSC, "ScalaInterpreterPane":http://github.com/Sciss/ScalaInterpreterPane,
+"ScalaCollider":http://github.com/Sciss/ScalaCollider and "Prefuse":http://github.com/Sciss/Prefuse should be found
+automatically via scala-tools.org.
 
-pre. $ cd <somewhere>
-$ git clone git://github.com/Sciss/ScalaOSC.git scalaosc
-$ cd scalaosc
-$ sbt publish-local
-
-Note that due to an incompatibility between Scala 2.8.1 and sbt 0.7.4, it is not possible to run using @sbt run@. You can use the application bundle instead on OS X:
+Note that it is currently not possible to run using @sbt run@. You can use the application bundle instead on OS X:
 
 pre. $ sbt package-app
 $ open ./ScalaColliderSwing.app
@@ -43,7 +41,7 @@ h3. download
 
 Note that some release versions are now hosted on scala-tools.org, so if you want to set up a dependency on ScalaColliderSwing for your project, this goes in sbt's project file:
 
-pre. val dep1 = "de.sciss" %% "scalacolliderswing" % "0.25"
+pre. val dep1 = "de.sciss" %% "scalacolliderswing" % "0.27"
 val repo1 = "Clojars Repository" at "http://clojars.org/repo"
 
 I'm not sure the Clojars repo is necessary any more. It will help sbt find JSyntaxPane, I hope.
