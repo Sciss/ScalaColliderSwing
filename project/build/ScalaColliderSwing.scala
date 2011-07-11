@@ -8,7 +8,7 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
    val prefuse                = "de.sciss" % "prefuse-core" % "0.20"
 //   val scalaSwing             = "org.scala-lang" % "scala-swing" % "2.9.0"
    val scalaAudioWidgets      = "de.sciss" %% "scalaaudiowidgets" % "0.10-SNAPSHOT"
-//   val repo1                  = "Clojars Repository" at "http://clojars.org/repo"
+   val repo1                  = "Clojars Repository" at "http://clojars.org/repo"   // needed for JSyntaxPane
 
    val camelCaseName          = "ScalaColliderSwing"
    def appBundleName          = camelCaseName + ".app"
@@ -49,7 +49,7 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
       val javaPath               = appBundleJavaPath
       val cleanPaths             = javaPath * jarFilter
       val quiet                  = false
-      val versionedNamePattern   = """([^-_]*)[-_].*.jar""".r
+      val versionedNamePattern   = """(.*?)(?:[-_](?:(?:[^-_]*\d)|SNAPSHOT))+.jar""".r
 
       FU.clean( cleanPaths.get, quiet, log )
 
@@ -57,7 +57,7 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
          val vName = fromPath.asFile.getName
          if( !vName.contains( "-javadoc" ) && !vName.contains( "-sources" )) {
             val plainName     = vName match {
-               case versionedNamePattern( name ) if( name != "scala" ) => name + jarExt
+               case versionedNamePattern( name ) => name + jarExt
                case n => n
             }
             val toPath = javaPath / plainName

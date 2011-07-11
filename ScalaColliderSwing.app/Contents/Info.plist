@@ -45,10 +45,10 @@
 		<array>
 			<string>$JAVAROOT/audiowidgets.jar</string>
 			<string>$JAVAROOT/jsyntaxpane.jar</string>
-			<string>$JAVAROOT/prefuse.jar</string>
+			<string>$JAVAROOT/prefuse-core.jar</string>
 			<string>$JAVAROOT/scala-compiler.jar</string>
 			<string>$JAVAROOT/scala-library.jar</string>
-			<string>$JAVAROOT/scala-swing-2.9.0.jar</string>
+			<string>$JAVAROOT/scala-swing.jar</string>
 			<string>$JAVAROOT/scalaaudiofile.jar</string>
 			<string>$JAVAROOT/scalaaudiowidgets.jar</string>
 			<string>$JAVAROOT/scalacollider.jar</string>
