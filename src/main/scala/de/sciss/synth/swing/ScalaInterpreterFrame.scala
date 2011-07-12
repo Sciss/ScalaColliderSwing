@@ -33,14 +33,14 @@ import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
 import java.io.PrintStream
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
-import tools.nsc.interpreter.IMain
+import tools.nsc.interpreter.{NamedParam, IMain}
 
 class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
 
    val pane = new ScalaInterpreterPane
    private val sync = new AnyRef
-   private var inCode: Option[ IMain => Unit ] = None
+//   private var inCode: Option[ IMain => Unit ] = None
    
    // ---- constructor ----
    {
@@ -97,14 +97,16 @@ viewDef( df )
 //"""
 //      )
 
-//      pane.bindingsCreator = Some( (in: IMain ) => {
-//         sync.synchronized {
-//            inCode.foreach( _.apply( in ))
-//         }
-//         in.bind( "replSupport", classOf[ REPLSupport ].getName, replSupport )
-////         in.bind( "s", classOf[ Server ].getName, ntp )
-////         in.bind( "in", classOf[ Interpreter ].getName, in )
-//      })
+      pane.customImports = Seq(
+         "math._", "de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket, UDP, TCP }",
+         "de.sciss.synth._", "de.sciss.synth.swing.SynthGraphPanel._",
+         "de.sciss.synth.swing.Implicits._", "de.sciss.synth.io._",
+         "de.sciss.synth.osc._", "de.sciss.synth.ugen._", "replSupport._"
+      )
+
+      pane.customBindings = Seq( NamedParam( "replSupport", replSupport ))
+//         in.bind( "s", classOf[ Server ].getName, ntp )
+//         in.bind( "in", classOf[ Interpreter ].getName, in )
 
       val lp = new LogPane
       lp.init()
@@ -129,9 +131,10 @@ viewDef( df )
 
    def withInterpreter( fun: IMain => Unit ) {
       sync.synchronized {
-         pane.interpreter.map( fun( _ )) getOrElse {
-            inCode = Some( fun )
-         }
+         pane.interpreter.map( fun( _ ))
+//         getOrElse {
+//            inCode = Some( fun )
+//         }
       }
    }
 }
