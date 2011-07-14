@@ -31,10 +31,10 @@ package de.sciss.synth.swing
 import java.awt.GraphicsEnvironment
 import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
 import de.sciss.synth.{ Server, ServerOptionsBuilder }
-import tools.nsc.Interpreter
 import java.io.PrintStream
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
+import tools.nsc.interpreter.{NamedParam, IMain}
 
 /**
  *    @version 0.14, 09-Jun-10
@@ -43,8 +43,8 @@ class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
 
    val pane = new ScalaInterpreterPane
-   private val sync = new AnyRef
-   private var inCode: Option[ Interpreter => Unit ] = None
+   private val sync = new AnyRef;
+//   private var inCode: Option[ IMain => Unit ] = None
    
    // ---- constructor ----
    {
@@ -87,36 +87,49 @@ s.freeAll
 viewDef( df )
 """
 
-      pane.initialCode = Some(
-"""
-import math._
-import de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket }
-import de.sciss.synth._
-import de.sciss.synth.swing.SynthGraphPanel._
-import de.sciss.synth.io._
-import de.sciss.synth.osc._
-import de.sciss.synth.ugen._
-import replSupport._
-"""
+//      pane.initialCode = Some(
+////      import math._
+////      import de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket }
+////      import de.sciss.synth._
+////      import de.sciss.synth.swing.SynthGraphPanel._
+////      import de.sciss.synth.io._
+////      import de.sciss.synth.osc._
+////      import de.sciss.synth.ugen._
+//"""
+//import replSupport._
+//"""
+//      )
+
+      pane.customImports = Seq(
+         "math._",
+         "de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket }",
+         "de.sciss.synth._",
+         "de.sciss.synth.swing.SynthGraphPanel._",
+         "de.sciss.synth.io._",
+         "de.sciss.synth.osc._",
+         "de.sciss.synth.ugen._",
+         "replSupport._"
       )
 
-      pane.bindingsCreator = Some( (in: Interpreter ) => {
-         sync.synchronized {
-            inCode.foreach( _.apply( in ))
-         }
-         in.bind( "replSupport", classOf[ REPLSupport ].getName, replSupport )
-//         in.bind( "s", classOf[ Server ].getName, ntp )
-//         in.bind( "in", classOf[ Interpreter ].getName, in )
-      })
+      pane.customBindings = Seq( NamedParam( "replSupport", replSupport ))
+
+//      pane.bindingsCreator = Some( (in: IMain ) => {
+//         sync.synchronized {
+//            inCode.foreach( _.apply( in ))
+//         }
+//         in.bind( "replSupport", classOf[ REPLSupport ].getName, replSupport )
+////         in.bind( "s", classOf[ Server ].getName, ntp )
+////         in.bind( "in", classOf[ Interpreter ].getName, in )
+//      })
 
       val lp = new LogPane
-      lp.init
+      lp.init()
       pane.out = Some( lp.writer )
       Console.setOut( lp.outputStream )
       Console.setErr( lp.outputStream )
       System.setErr( new PrintStream( lp.outputStream ))
 
-      pane.init
+      pane.init()
       val sp = new JSplitPane( SwingConstants.HORIZONTAL )
       sp.setTopComponent( pane )
       sp.setBottomComponent( lp )
@@ -130,11 +143,12 @@ import replSupport._
 //      setVisible( true )
    }
 
-   def withInterpreter( fun: Interpreter => Unit ) {
+   def withInterpreter( fun: IMain => Unit ) {
       sync.synchronized {
-         pane.interpreter.map( fun( _ )) getOrElse {
-            inCode = Some( fun )
-         }
+         pane.interpreter.map( fun( _ ))
+//         getOrElse {
+//            inCode = Some( fun )
+//         }
       }
    }
 }
