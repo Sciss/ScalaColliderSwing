@@ -98,7 +98,7 @@ viewDef( df )
 //      )
 
       pane.customImports = Seq(
-         "math._", "de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket, UDP, TCP }",
+         "math._", "de.sciss.osc", "osc.Implicits._",
          "de.sciss.synth._", "de.sciss.synth.swing.SynthGraphPanel._",
          "de.sciss.synth.swing.Implicits._", "de.sciss.synth.io._",
          "de.sciss.synth.osc._", "de.sciss.synth.ugen._", "replSupport._"
