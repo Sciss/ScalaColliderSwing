@@ -4,7 +4,7 @@ import sys.error
 import de.sciss.gui.PeakMeter
 import swing.event.WindowClosed
 import de.sciss.synth.osc.OSCResponder
-import de.sciss.osc.OSCMessage
+import de.sciss.osc.Message
 import de.sciss.synth.{addToHead, addToTail, AudioBus, Bus, Group => SGroup, Server => SServer}
 import swing.{Swing, BoxPanel, Orientation, Frame}
 
@@ -46,7 +46,7 @@ captionLabels = false // XXX currently they have wrong layout
                }
                val synth = df.play( target = server.rootNode, addAction = addAction )
                val resp = OSCResponder.add({
-                  case OSCMessage( "/$meter", synth.id, _, vals @ _* ) =>
+                  case Message( "/$meter", synth.id, _, vals @ _* ) =>
                      val pairs   = vals.asInstanceOf[ Seq[ Float ]].toIndexedSeq
                      val time    = System.currentTimeMillis
                      Swing.onEDT( meter.update( pairs, 0, time ))
