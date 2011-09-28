@@ -119,7 +119,7 @@ extends JPanel {
                val (pidx, oidx) = spec
                val pNode2 = mapNodes( pidx )
                val pEdge = g.addEdge( pNode2, pNode1 )
-               pEdge.set( COL_RATE, graph.ugens( pidx ).ugen.outputs( oidx ).rate )
+               pEdge.set( COL_RATE, graph.ugens( pidx ).ugen.outputRates( oidx ))
             }
          })
       })
