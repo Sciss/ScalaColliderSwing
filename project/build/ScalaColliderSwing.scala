@@ -7,7 +7,7 @@ class ScalaColliderSwingProject( info: ProjectInfo ) extends ProguardProject( in
 //   val prefuse                = "prefuse" % "prefuse" % "beta-SNAPSHOT" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-SNAPSHOT.jar"
    val prefuse                = "de.sciss" % "prefuse-core" % "0.20"
 //   val scalaSwing             = "org.scala-lang" % "scala-swing" % "2.9.0"
-   val scalaAudioWidgets      = "de.sciss" %% "scalaaudiowidgets" % "0.10-SNAPSHOT"
+   val scalaAudioWidgets      = "de.sciss" %% "scalaaudiowidgets" % "0.10"
    val repo1                  = "Clojars Repository" at "http://clojars.org/repo"   // needed for JSyntaxPane
 
    val camelCaseName          = "ScalaColliderSwing"
