@@ -1,12 +1,12 @@
-h2. ScalaCollider-Swing ==<small>-- version 0.15 (built 11-Jun-10) --</small>==
+h2. ScalaCollider-Swing
 
 h3. statement
 
-ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008-2010 by Hanns Holger Rutz. All rights reserved. It is released under the "GNU General Public License":http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt and comes with absolutely no warranties. To contact the author, send an email to @contact at sciss.de@
+ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008-2011 by Hanns Holger Rutz. All rights reserved. It is released under the "GNU General Public License":http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt and comes with absolutely no warranties. To contact the author, send an email to @contact at sciss.de@
 
 h3. requirements / installation
 
-ScalaCollider-Swing currently compiles against the Scala 2.8.0 and requires Java 1.6. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
+ScalaCollider-Swing currently compiles against the Scala 2.9.1 and requires Java 1.6. The repository contains a project file for Intellij IDEA 10.5 CE, and project files for sbt. Targets for xsbt (sbt 0.11):
 
 * @clean@
 * @compile@
@@ -26,12 +26,12 @@ $ sbt publish-local
 
 (Obsolete?) Note that due to an incompatibility between Scala 2.8.0 and sbt 0.7.3, it is not possible to run using @sbt run@. You can use the application bundle instead on OS X:
 
-pre. $ sbt package-app
+pre. $ sbt appbundle
 $ open ./ScalaColliderSwing.app
 
 ...or create the fully self-contained (double-clickable) jar on other platforms:
 
-pre. $ sbt standalone
+pre. $ sbt assembly
 $ java -jar ./ScalaColliderSwing-full.jar
 
 h3. documentation

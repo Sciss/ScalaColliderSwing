@@ -4,14 +4,14 @@ name           := "scalacolliderswing"
 
 appbundleName  := "ScalaColliderSwing"
 
-version        := "0.30-SNAPSHOT"
+version        := "0.30"
 
 organization   := "de.sciss"
 
 scalaVersion   := "2.9.1"
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "0.30-SNAPSHOT",
+   "de.sciss" %% "scalacollider" % "0.30",
    "de.sciss" %% "scalainterpreterpane" % "0.18",
    "de.sciss" % "prefuse-core" % "0.21",
    "de.sciss" %% "scalaaudiowidgets" % "0.10"

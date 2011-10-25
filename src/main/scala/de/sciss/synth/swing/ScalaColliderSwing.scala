@@ -28,21 +28,14 @@
 
 package de.sciss.synth.swing
 
-import java.awt.EventQueue
-import java.io.File
-import actors.DaemonActor
 import de.sciss.synth._
-import de.sciss.synth.ugen.SinOsc
 import scala.swing.Swing
 
-/**
- *    @version 0.14, 09-Jun-10
- */
 object ScalaColliderSwing {
    val name          = "ScalaCollider-Swing"
    val version       = 0.30
    val copyright     = "(C)opyright 2008-2011 Hanns Holger Rutz"
-   val isSnapshot    = true
+   val isSnapshot    = false
 
    def versionString = {
       val s = (version + 0.001).toString.substring( 0, 4 )
