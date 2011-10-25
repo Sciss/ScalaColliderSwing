@@ -32,12 +32,11 @@ import java.awt.geom.Point2D
 import collection.immutable.IntMap
 import prefuse.action.{ ActionList, RepaintAction }
 import prefuse.action.animate.{ ColorAnimator, LocationAnimator, VisibilityAnimator }
-import prefuse.action.layout.graph.{  NodeLinkTreeLayout }
 import prefuse.render.{ AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer, LabelRenderer }
 import prefuse.util.{ ColorLib }
 import prefuse.visual.sort.TreeDepthItemSorter
 import de.sciss.synth.{ Group, Model, Node, NodeManager, Server, Synth }
-import de.sciss.synth.osc.OSCNodeInfo
+import de.sciss.synth.osc
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
 import de.sciss.synth.swing.ScalaColliderSwing
@@ -45,24 +44,16 @@ import de.sciss.synth.swing.aux.DynamicTreeLayout
 import java.awt.event.{InputEvent, ActionEvent}
 import javax.swing.{JOptionPane, JFrame, Action, JButton, WindowConstants, JPanel, AbstractAction}
 import prefuse.data.expression.AbstractPredicate
-import prefuse.data.{Tuple, Graph, Node => PNode, Tree}
+import prefuse.data.{Tuple, Graph, Node => PNode}
 import prefuse.controls.{FocusControl, PanControl, WheelZoomControl, ZoomControl, ZoomToFitControl}
 import prefuse.visual.expression.InGroupPredicate
 import prefuse.data.event.TupleSetListener
-import prefuse.data.tuple.{TupleSet, DefaultTupleSet}
+import prefuse.data.tuple.TupleSet
 import java.awt.{BasicStroke, Image, Toolkit, Color, BorderLayout, GridLayout, EventQueue}
 import prefuse.action.assignment.{StrokeAction, ColorAction}
 
 //import VisualInsertionTree._
 import DynamicTreeLayout.{ INFO, NodeInfo }
-/**
- *    @version	0.11, 27-Apr-10
- */
-//object NodeTreePanel {
-//   def apply( server: Server ) : NodeTreePanel = {
-//
-//   }
-//}
 
 trait NodeTreePanelLike {
    def nodeActionButtons : Boolean
@@ -321,7 +312,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       EventQueue.invokeLater( new Runnable { def run = code })
    }
 
-   private def insertChild( pNode: PNode, pParent: PNode, info: OSCNodeInfo, iNode: NodeInfo ) {
+   private def insertChild( pNode: PNode, pParent: PNode, info: osc.NodeInfo, iNode: NodeInfo ) {
       val iParent = pParent.get( INFO ).asInstanceOf[ NodeInfo ]
       val pPred   = if( info.predID == -1 ) {
          iParent.head = pNode
@@ -383,7 +374,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       }
    }
 
-   private def createChild( node: Node, pParent: PNode, info: OSCNodeInfo ) : PNode = {
+   private def createChild( node: Node, pParent: PNode, info: osc.NodeInfo ) : PNode = {
       val pNode   = t.addNode()
       t.addEdge( pParent, pNode )
       val iNode   = new NodeInfo
@@ -394,7 +385,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       pNode
    }
 
-   private def nlAddSynth( synth: Synth, info: OSCNodeInfo ) {
+   private def nlAddSynth( synth: Synth, info: osc.NodeInfo ) {
       map.get( info.parentID ).map( pParent => visDo( ACTION_ADD ) {
          val pNode = createChild( synth, pParent, info )
          pNode.set( COL_LABEL, synth.id.toString )
@@ -403,7 +394,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       })
    }
 
-   private def nlAddGroup( group: Group, info: OSCNodeInfo ) {
+   private def nlAddGroup( group: Group, info: osc.NodeInfo ) {
       map.get( info.parentID ).map( pParent => visDo( ACTION_ADD ) {
          val pNode = createChild( group, pParent, info )
          pNode.set( COL_LABEL, group.id.toString )
@@ -412,13 +403,13 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       })
    }
 
-   private def nlRemoveNode( node: Node, info: OSCNodeInfo ) {
+   private def nlRemoveNode( node: Node, info: osc.NodeInfo ) {
       map.get( node.id ).foreach( pNode => visDo( ACTION_LAYOUT ) {
          deleteChild( node, pNode )
       })
    }
 
-   private def nlMoveChild( node: Node, info: OSCNodeInfo ) {
+   private def nlMoveChild( node: Node, info: osc.NodeInfo ) {
       map.get( node.id ).foreach( pNode => visDo( ACTION_LAYOUT ) {
          val iNode   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
          val oldEdge = t.getEdge( iNode.parent, pNode )

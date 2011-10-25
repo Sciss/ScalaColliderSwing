@@ -49,7 +49,7 @@ extends JFrame( "ScalaCollider Interpreter" ) {
       pane.initialText +=
 """
 so.programPath = "/path/to/scsynth"
-so.transport = osc.TCP
+so.transport = TCP
 boot
 
 // analog bubbles
@@ -99,7 +99,8 @@ viewDef( df )
 
       pane.customImports = Seq(
          "math._",
-         "de.sciss.synth._", "de.sciss.osc", "osc.Implicits._", "swing.SynthGraphPanel._",
+         "de.sciss.synth._", "de.sciss.synth.{osc => sosc}", "de.sciss.osc", "osc.Implicits._",
+         "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
          "swing.Implicits._", /* "io._", */ "ugen._", "replSupport._"
       )
 

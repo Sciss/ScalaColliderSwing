@@ -28,23 +28,17 @@
 
 package de.sciss.synth.swing.j
 
-import java.awt.{ Color, Component, Container, Dimension, EventQueue, FlowLayout, Font,
-                 Graphics, Image, Toolkit }
-import java.awt.event.{ ActionEvent }
-import javax.swing.{ AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JButton,
+import java.awt.{Color, Component, Dimension, EventQueue, Graphics, Image, Toolkit}
+import java.awt.event.ActionEvent
+import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JButton,
                     JComponent, JFrame, JLabel, JPanel, JProgressBar,
-                    OverlayLayout, SwingConstants, WindowConstants }
-import SwingConstants._
-import javax.swing.event.{ AncestorEvent, AncestorListener }
+                    OverlayLayout, WindowConstants }
+import javax.swing.event.{AncestorEvent, AncestorListener}
 import math._
 
-import de.sciss.synth.{ ServerConnection, Model, Server }
-import de.sciss.synth.osc.OSCStatusReplyMessage
+import de.sciss.synth.{ServerConnection, Model, Server, osc}
 import de.sciss.synth.swing.ScalaColliderSwing
 
-/**
- *    @version 0.14, 09-Jun-10
- */
 object JServerStatusPanel {
    val COUNTS      = 0x01
    val BOOT_BUTTON = 0x02
@@ -389,7 +383,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
       if( EventQueue.isDispatchThread ) code else EventQueue.invokeLater( new Runnable { def run = code })
    }
    
-	private def updateCounts( cnt: OSCStatusReplyMessage ) {
+	private def updateCounts( cnt: osc.StatusReplyMessage ) {
 		lbCPU.update( cnt.avgCPU / 100, cnt.peakCPU / 100 )
 		lbNumUGens.setText( cnt.numUGens.toString )
 		lbNumSynths.setText( cnt.numSynths.toString )

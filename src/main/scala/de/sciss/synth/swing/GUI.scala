@@ -2,10 +2,8 @@ package de.sciss.synth.swing
 
 import sys.error
 import de.sciss.gui.PeakMeter
-import swing.event.WindowClosed
-import de.sciss.synth.osc.OSCResponder
 import de.sciss.osc.Message
-import de.sciss.synth.{addToHead, addToTail, AudioBus, Bus, Group => SGroup, Server => SServer}
+import de.sciss.synth.{addToHead, addToTail, AudioBus, Group => SGroup, Server => SServer}
 import swing.{Swing, BoxPanel, Orientation, Frame}
 
 object GUI {
@@ -45,7 +43,7 @@ captionLabels = false // XXX currently they have wrong layout
                   SendReply.kr( tr, Flatten( Zip( peak, rms )), "/$meter" )
                }
                val synth = df.play( target = server.rootNode, addAction = addAction )
-               val resp = OSCResponder.add({
+               val resp = osc.Responder.add({
                   case Message( "/$meter", synth.id, _, vals @ _* ) =>
                      val pairs   = vals.asInstanceOf[ Seq[ Float ]].toIndexedSeq
                      val time    = System.currentTimeMillis
