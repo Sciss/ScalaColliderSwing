@@ -2,7 +2,7 @@
  *  SynthGraphPanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -49,7 +49,7 @@ import de.sciss.synth._
 import collection.immutable.IntMap
 
 object SynthGraphPanel {
-   def viewGraph( g: SynthGraph, forceDirected: Boolean = true ) : SynthGraphPanel =
+   def viewGraph( g: UGenGraph, forceDirected: Boolean = true ) : SynthGraphPanel =
       view( new SynthGraphPanel( "", g, forceDirected ))
 
    def viewDef( d: SynthDef, forceDirected: Boolean = true ) : SynthGraphPanel =
@@ -61,7 +61,7 @@ object SynthGraphPanel {
       p
    }
 }
-class SynthGraphPanel ( name: String, graph: SynthGraph, forceDirected: Boolean )
+class SynthGraphPanel ( name: String, graph: UGenGraph, forceDirected: Boolean )
 extends JPanel {
    panel =>
    
@@ -119,7 +119,7 @@ extends JPanel {
                val (pidx, oidx) = spec
                val pNode2 = mapNodes( pidx )
                val pEdge = g.addEdge( pNode2, pNode1 )
-               pEdge.set( COL_RATE, graph.ugens( pidx ).ugen.outputs( oidx ).rate )
+               pEdge.set( COL_RATE, graph.ugens( pidx ).ugen.outputRates( oidx ))
             }
          })
       })

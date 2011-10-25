@@ -1,8 +1,8 @@
 /*
- *  SwingServer.scala
+ *  Implicits.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -26,20 +26,10 @@
  *  Changelog:
  */
 
-//package de.sciss.synth.swing
-//
-//import java.awt.EventQueue
-//import de.sciss.synth.{ Server, ServerOptions }
-//
-///**
-// *    A minimal subclass that uses the java.awt.EventThread for dispatch
-// *
-// *    @version 0.11, 09-May-10
-// */
-//class SwingServer( val name: String = "localhost", val options: ServerOptions = new ServerOptions, val clientID: Int = 0 )
-//extends Server {
-//
-//   protected def invokeOnMainThread( task: Runnable ) {
-//      EventQueue.invokeLater( task )
-//   }
-//}
+package de.sciss.synth
+package swing
+
+object Implicits {
+   implicit def enableGUI( group: Group )    = new GUI.Factory( new GUI.Group( group ))
+   implicit def enableGUI( server: Server )  = new GUI.Factory( new GUI.Server( server ))
+}

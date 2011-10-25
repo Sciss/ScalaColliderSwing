@@ -2,7 +2,7 @@
  *  ScalaInterpreterFrame.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -30,37 +30,33 @@ package de.sciss.synth.swing
 
 import java.awt.GraphicsEnvironment
 import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
-import de.sciss.synth.{ Server, ServerOptionsBuilder }
 import java.io.PrintStream
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
 import tools.nsc.interpreter.{NamedParam, IMain}
 
-/**
- *    @version 0.14, 09-Jun-10
- */
 class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
 
    val pane = new ScalaInterpreterPane
-   private val sync = new AnyRef;
+   private val sync = new AnyRef
 //   private var inCode: Option[ IMain => Unit ] = None
    
    // ---- constructor ----
    {
       val cp = getContentPane
 
-      pane.initialText = pane.initialText +
+      pane.initialText +=
 """
 so.programPath = "/path/to/scsynth"
-so.transport = de.sciss.scalaosc.TCP
+so.transport = TCP
 boot
 
 // analog bubbles
-val x = {
+val x = play {
     val f = LFSaw.kr(0.4).madd(24, LFSaw.kr(List(8, 7.23)).madd(3, 80)).midicps // glissando function
     CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
-}.play
+}
 
 x.release( 10 )
 
@@ -88,39 +84,29 @@ viewDef( df )
 """
 
 //      pane.initialCode = Some(
-////      import math._
-////      import de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket }
-////      import de.sciss.synth._
-////      import de.sciss.synth.swing.SynthGraphPanel._
-////      import de.sciss.synth.io._
-////      import de.sciss.synth.osc._
-////      import de.sciss.synth.ugen._
 //"""
+//import math._
+//import de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket, UDP, TCP }
+//import de.sciss.synth._
+//import de.sciss.synth.swing.SynthGraphPanel._
+//import de.sciss.synth.swing.Implicits._
+//import de.sciss.synth.io._
+//import de.sciss.synth.osc._
+//import de.sciss.synth.ugen._
 //import replSupport._
 //"""
 //      )
 
       pane.customImports = Seq(
          "math._",
-         "de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket }",
-         "de.sciss.synth._",
-         "de.sciss.synth.swing.SynthGraphPanel._",
-         "de.sciss.synth.io._",
-         "de.sciss.synth.osc._",
-         "de.sciss.synth.ugen._",
-         "replSupport._"
+         "de.sciss.synth._", "de.sciss.synth.{osc => sosc}", "de.sciss.osc", "osc.Implicits._",
+         "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
+         "swing.Implicits._", /* "io._", */ "ugen._", "replSupport._"
       )
 
       pane.customBindings = Seq( NamedParam( "replSupport", replSupport ))
-
-//      pane.bindingsCreator = Some( (in: IMain ) => {
-//         sync.synchronized {
-//            inCode.foreach( _.apply( in ))
-//         }
-//         in.bind( "replSupport", classOf[ REPLSupport ].getName, replSupport )
-////         in.bind( "s", classOf[ Server ].getName, ntp )
-////         in.bind( "in", classOf[ Interpreter ].getName, in )
-//      })
+//         in.bind( "s", classOf[ Server ].getName, ntp )
+//         in.bind( "in", classOf[ Interpreter ].getName, in )
 
       val lp = new LogPane
       lp.init()

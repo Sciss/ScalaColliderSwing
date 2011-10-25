@@ -2,7 +2,7 @@
  *  ScalaColliderSwing.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -28,32 +28,29 @@
 
 package de.sciss.synth.swing
 
-import java.awt.EventQueue
-import java.io.File
-import actors.DaemonActor
 import de.sciss.synth._
-import de.sciss.synth.ugen.SinOsc
-/**
- *    @version 0.14, 09-Jun-10
- */
+import scala.swing.Swing
+
 object ScalaColliderSwing {
    val name          = "ScalaCollider-Swing"
-   val version       = 0.27
+   val version       = 0.30
    val copyright     = "(C)opyright 2008-2011 Hanns Holger Rutz"
-   def versionString = (version + 0.001).toString.substring( 0, 4 )
+   val isSnapshot    = false
+
+   def versionString = {
+      val s = (version + 0.001).toString.substring( 0, 4 )
+      if( isSnapshot ) s + "-SNAPSHOT" else s
+   }
 
    class REPLSupport( ssp: ServerStatusPanel, ntp: NodeTreePanel ) {
       var s : Server = null
       val so = new ServerOptionsBuilder()
-//var ntpx : NodeTreePanel = null
       private val sync = new AnyRef
-      private var booting: ServerConnection = null;
+      private var booting: ServerConnection = null
 
       // ---- constructor ----
-      {
-         Runtime.getRuntime().addShutdownHook( new Thread { override def run = shutDown })
-         ssp.bootAction = Some( () => boot )
-      }
+      Runtime.getRuntime.addShutdownHook( new Thread { override def run = shutDown })
+      ssp.bootAction = Some( () => boot )
 
       def boot { sync.synchronized {
          shutDown
@@ -69,7 +66,6 @@ object ScalaColliderSwing {
             }
          }
          ssp.booting = Some( booting )
-//         booting.start
       }}
 
       private def shutDown { sync.synchronized {
@@ -85,16 +81,16 @@ object ScalaColliderSwing {
    }
 
    def main( args: Array[ String ]) {
-      defer { buildGUI }
-//      test
+      Swing.onEDT( buildGUI )
    }
 
    def buildGUI {
       val ssp  = new ServerStatusPanel()
-      val sspw = ssp.makeWindow
+      val sspw = ssp.peer.makeWindow
       val ntp  = new NodeTreePanel()
-      val ntpw = ntp.makeWindow
-      val so   = new ServerOptionsBuilder()
+      ntp.nodeActionButtons         = true
+      ntp.confirmDestructiveActions = true
+      val ntpw = ntp.peer.makeWindow
       val repl = new REPLSupport( ssp, ntp )
       val sif  = new ScalaInterpreterFrame( repl )
       ntpw.setLocation( sspw.getX, sspw.getY + sspw.getHeight + 32 )
@@ -102,16 +98,5 @@ object ScalaColliderSwing {
       ntpw.setVisible( true )
       sif.setLocation( sspw.getX + sspw.getWidth + 32, sif.getY )
       sif.setVisible( true )
-   }
-
-//   def test {
-//      val x = SynthGraph.wrapOut( SinOsc.ar )
-//      SynthGraphPanel.viewDef( SynthDef( "test", x ))
-//   }
-
-   private def defer( thunk: => Unit ) {
-      EventQueue.invokeLater( new Runnable {
-         def run = thunk
-      })
    }
 }
