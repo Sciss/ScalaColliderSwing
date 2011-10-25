@@ -97,11 +97,15 @@ viewDef( df )
 //"""
 //      )
 
+      // note: for the auto-completion in the pane to work, we must
+      // import de.sciss.synth.ugen._ instead of ugen._
+      // ; also name aliasing seems to be broken, thus the stuff
+      // in de.sciss.osc is hidden
       pane.customImports = Seq(
          "math._",
-         "de.sciss.synth._", "de.sciss.synth.{osc => sosc}", "de.sciss.osc", "osc.Implicits._",
+         "de.sciss.synth.{osc => sosc, _}", "de.sciss.osc", "osc.Implicits._",
          "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
-         "swing.Implicits._", /* "io._", */ "ugen._", "replSupport._"
+         "swing.Implicits._", /* "io._", */ "de.sciss.synth.ugen._", "replSupport._"
       )
 
       pane.customBindings = Seq( NamedParam( "replSupport", replSupport ))
