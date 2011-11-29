@@ -17,7 +17,7 @@ object GUI {
       def tree { new Group( server.rootNode ).tree }
       def meter : Frame = {
          val name       = server.name
-         val opt        = server.options
+         val opt        = server.config
          val numInputs  = opt.inputBusChannels
          val numOutputs = opt.outputBusChannels
          val sections   = List(

@@ -35,7 +35,7 @@ object ScalaColliderSwing {
    val name          = "ScalaCollider-Swing"
    val version       = 0.31
    val copyright     = "(C)opyright 2008-2011 Hanns Holger Rutz"
-   val isSnapshot    = true
+   val isSnapshot    = false
 
    def versionString = {
       val s = (version + 0.001).toString.substring( 0, 4 )
@@ -44,17 +44,17 @@ object ScalaColliderSwing {
 
    class REPLSupport( ssp: ServerStatusPanel, ntp: NodeTreePanel ) {
       var s : Server = null
-      val so = new ServerOptionsBuilder()
+      val sCfg = Server.Config()
       private val sync = new AnyRef
       private var booting: ServerConnection = null
 
       // ---- constructor ----
-      Runtime.getRuntime.addShutdownHook( new Thread { override def run = shutDown })
+      Runtime.getRuntime.addShutdownHook( new Thread { override def run = shutDown() })
       ssp.bootAction = Some( () => boot )
 
       def boot { sync.synchronized {
-         shutDown
-         booting = Server.boot( options = so.build ) {
+         shutDown()
+         booting = Server.boot( config = sCfg ) {
             case ServerConnection.Preparing( srv ) => {
                ntp.server = Some( srv )
             }
@@ -68,7 +68,7 @@ object ScalaColliderSwing {
          ssp.booting = Some( booting )
       }}
 
-      private def shutDown { sync.synchronized {
+      private def shutDown() { sync.synchronized {
          if( (s != null) && (s.condition != Server.Offline) ) {
             s.quit
             s = null

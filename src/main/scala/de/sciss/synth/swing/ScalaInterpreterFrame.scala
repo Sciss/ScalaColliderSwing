@@ -48,8 +48,8 @@ extends JFrame( "ScalaCollider Interpreter" ) {
 
       pane.initialText +=
 """
-so.programPath = "/path/to/scsynth"
-so.transport = TCP
+sCfg.programPath = "/path/to/scsynth"
+sCfg.transport = TCP
 boot
 
 // analog bubbles

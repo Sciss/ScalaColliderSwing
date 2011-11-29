@@ -4,7 +4,7 @@
     <facet type="scala" name="Scala">
       <configuration>
         <option name="compilerLibraryLevel" value="Global" />
-        <option name="compilerLibraryName" value="scala-compiler-2.9.0-1" />
+        <option name="compilerLibraryName" value="scala-compiler-2.9.1" />
       </configuration>
     </facet>
   </component>
@@ -68,15 +68,6 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalacollider_2.9.1/scalacollider_2.9.1-0.30-SNAPSHOT.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
           <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalaosc_2.9.1/scalaosc_2.9.1-0.30.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -111,6 +102,15 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="scala-compiler-2.9.1" level="application" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalacollider_2.9.1/scalacollider_2.9.1-0.31.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
 
