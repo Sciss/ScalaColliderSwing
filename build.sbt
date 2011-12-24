@@ -12,12 +12,15 @@ scalaVersion   := "2.9.1"
 
 libraryDependencies ++= Seq(
    "de.sciss" %% "scalacollider" % "0.32-SNAPSHOT",
-   "de.sciss" %% "scalainterpreterpane" % "0.18",
+   "de.sciss" %% "scalainterpreterpane" % "0.20-SNAPSHOT",
    "de.sciss" % "prefuse-core" % "0.21",
    "de.sciss" %% "scalaaudiowidgets" % "0.10"
 )
 
 retrieveManaged := true
+
+// this should make it possible to launch from sbt, but there is still a class path issue?
+// fork in run := true
 
 scalacOptions ++= Seq( "-deprecation", "-unchecked" )
 
