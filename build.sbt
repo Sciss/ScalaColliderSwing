@@ -14,6 +14,8 @@ homepage := Some( url( "https://github.com/Sciss/ScalaColliderSwing" ))
 
 licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 
+resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
+
 libraryDependencies ++= Seq(
    "de.sciss" %% "scalacollider" % "0.32-SNAPSHOT",
    "de.sciss" %% "scalainterpreterpane" % "0.20",
