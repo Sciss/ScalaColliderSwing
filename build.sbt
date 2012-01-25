@@ -1,8 +1,6 @@
 import AssemblyKeys._
 
-name           := "scalacolliderswing"
-
-appbundleName  := "ScalaColliderSwing"
+name           := "ScalaColliderSwing"
 
 version        := "0.32-SNAPSHOT"
 
@@ -10,9 +8,15 @@ organization   := "de.sciss"
 
 scalaVersion   := "2.9.1"
 
+description := "A Swing and REPL front-end for ScalaCollider"
+
+homepage := Some( url( "https://github.com/Sciss/ScalaColliderSwing" ))
+
+licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
+
 libraryDependencies ++= Seq(
    "de.sciss" %% "scalacollider" % "0.32-SNAPSHOT",
-   "de.sciss" %% "scalainterpreterpane" % "0.20-SNAPSHOT",
+   "de.sciss" %% "scalainterpreterpane" % "0.20",
    "de.sciss" % "prefuse-core" % "0.21",
    "de.sciss" %% "scalaaudiowidgets" % "0.10"
 )
@@ -49,4 +53,7 @@ seq( assemblySettings: _* )
 
 test in assembly := {}
 
-seq( appbundleSettings: _* )
+seq( appbundle.settings: _* )
+
+appbundle.icon := Some( file( "application.icns" ))
+
