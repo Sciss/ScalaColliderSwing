@@ -2,7 +2,7 @@
  *  ScalaColliderSwing.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -21,21 +21,21 @@
  *
  *  For further information, please contact Hanns Holger Rutz at
  *  contact@sciss.de
- *
- *
- *  Changelog:
  */
 
-package de.sciss.synth.swing
+package de.sciss.synth
+package swing
 
-import de.sciss.synth._
 import scala.swing.Swing
 
-object ScalaColliderSwing {
+object ScalaColliderSwing extends App {
    val name          = "ScalaCollider-Swing"
    val version       = 0.32
-   val copyright     = "(C)opyright 2008-2011 Hanns Holger Rutz"
+   val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
    val isSnapshot    = true
+
+   // ---- constructor ----
+   Swing.onEDT( buildGUI() )
 
    def versionString = {
       val s = (version + 0.001).toString.substring( 0, 4 )
@@ -49,10 +49,10 @@ object ScalaColliderSwing {
       private var booting: ServerConnection = null
 
       // ---- constructor ----
-      Runtime.getRuntime.addShutdownHook( new Thread { override def run = shutDown() })
-      ssp.bootAction = Some( () => boot )
+      Runtime.getRuntime.addShutdownHook( new Thread { override def run() { shutDown() }})
+      ssp.bootAction = Some( () => boot() )
 
-      def boot { sync.synchronized {
+      def boot() { sync.synchronized {
          shutDown()
          booting = Server.boot( config = sCfg ) {
             case ServerConnection.Preparing( srv ) => {
@@ -80,15 +80,11 @@ object ScalaColliderSwing {
       }}
    }
 
-   def main( args: Array[ String ]) {
-      Swing.onEDT( buildGUI )
-   }
-
-   def buildGUI {
+   def buildGUI() {
       val ssp  = new ServerStatusPanel()
       val sspw = ssp.peer.makeWindow
       val ntp  = new NodeTreePanel()
-      ntp.nodeActionButtons         = true
+      ntp.nodeActionMenu            = true
       ntp.confirmDestructiveActions = true
       val ntpw = ntp.peer.makeWindow
       val repl = new REPLSupport( ssp, ntp )

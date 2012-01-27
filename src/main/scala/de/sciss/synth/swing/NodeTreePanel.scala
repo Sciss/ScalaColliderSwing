@@ -2,7 +2,7 @@
  *  NodeTreePanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -21,9 +21,6 @@
  *
  *  For further information, please contact Hanns Holger Rutz at
  *  contact@sciss.de
- *
- *
- *  Changelog:
  */
 
 package de.sciss.synth.swing
@@ -38,8 +35,8 @@ class NodeTreePanel extends Component with NodeTreePanelLike {
    def server: Option[ Server ]        = peer.server
    def server_=( s: Option[ Server ])  = peer.server_=( s )
 
-   def nodeActionButtons = peer.nodeActionButtons
-   def nodeActionButtons_=( b: Boolean ) { peer.nodeActionButtons = b }
+   def nodeActionMenu = peer.nodeActionMenu
+   def nodeActionMenu_=( b: Boolean ) { peer.nodeActionMenu = b }
    def confirmDestructiveActions = peer.confirmDestructiveActions
    def confirmDestructiveActions_=( b : Boolean ) { peer.confirmDestructiveActions = b }
 }

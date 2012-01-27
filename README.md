@@ -2,7 +2,7 @@
 
 ### statement
 
-ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008-2011 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008-2012 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ### requirements / installation
 
@@ -39,7 +39,7 @@ There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://ww
 
 Note that some release versions are now hosted on scala-tools.org, so if you want to set up a dependency on ScalaColliderSwing for your project, this goes in sbt's project file:
 
-    val dep1 = "de.sciss" %% "scalacolliderswing" % "0.32-SNAPSHOT"
+    val dep1 = "de.sciss" %% "scalacolliderswing" % "0.32"
     val repo1 = "Clojars Repository" at "http://clojars.org/repo"
 
 The Clojars repo is necessary so that JSyntaxPane is found, unfortunately.

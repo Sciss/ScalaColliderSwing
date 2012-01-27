@@ -2,7 +2,7 @@
  *  JNodeTreePanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -21,9 +21,6 @@
  *
  *  For further information, please contact Hanns Holger Rutz at
  *  contact@sciss.de
- *
- *
- *  Changelog:
  */
 
 package de.sciss.synth.swing.j
@@ -41,23 +38,23 @@ import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
 import de.sciss.synth.swing.ScalaColliderSwing
 import de.sciss.synth.swing.aux.DynamicTreeLayout
-import java.awt.event.{InputEvent, ActionEvent}
-import javax.swing.{JOptionPane, JFrame, Action, JButton, WindowConstants, JPanel, AbstractAction}
 import prefuse.data.expression.AbstractPredicate
 import prefuse.data.{Tuple, Graph, Node => PNode}
-import prefuse.controls.{FocusControl, PanControl, WheelZoomControl, ZoomControl, ZoomToFitControl}
 import prefuse.visual.expression.InGroupPredicate
 import prefuse.data.event.TupleSetListener
 import prefuse.data.tuple.TupleSet
 import java.awt.{BasicStroke, Image, Toolkit, Color, BorderLayout, GridLayout, EventQueue}
 import prefuse.action.assignment.{StrokeAction, ColorAction}
+import javax.swing.{JMenuItem, JOptionPane, Action, AbstractAction, JPopupMenu, WindowConstants, JFrame, JPanel}
+import java.awt.event.{MouseEvent, MouseAdapter, InputEvent, ActionEvent}
+import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomControl, ZoomToFitControl}
 
 //import VisualInsertionTree._
 import DynamicTreeLayout.{ INFO, NodeInfo }
 
 trait NodeTreePanelLike {
-   def nodeActionButtons : Boolean
-   def nodeActionButtons_=( b: Boolean ) : Unit
+   def nodeActionMenu : Boolean
+   def nodeActionMenu_=( b: Boolean ) : Unit
    def confirmDestructiveActions : Boolean
    def confirmDestructiveActions_=( b : Boolean ) : Unit
 }
@@ -138,15 +135,15 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       case NodeMove( node, info )       => defer( nlMoveChild( node, info ))
       case NodeOn( node, info )         => defer( nlPauseChild( node, false ))
       case NodeOff( node, info )        => defer( nlPauseChild( node, true ))
-      case Cleared                      => defer( nlClear )
+      case Cleared                      => defer( nlClear() )
    }
+
+   newRoot()
+
+   private val display = new Display( vis )
 
    // ---- constructor ----
    {
-      newRoot
-
-      val display = new Display( vis )
-
       val nodeRenderer = new NodeLabelRenderer( COL_LABEL )
 //      nodeRenderer.setRenderType( AbstractShapeRenderer.RENDER_TYPE_FILL )
       nodeRenderer.setRenderType( AbstractShapeRenderer.RENDER_TYPE_DRAW_AND_FILL )
@@ -227,7 +224,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       val focusGroup = vis.getGroup( Visualization.FOCUS_ITEMS )
       focusGroup.addTupleSetListener( new TupleSetListener {
           def tupleSetChanged( ts: TupleSet, add: Array[ Tuple ], remove: Array[ Tuple ]) {
-             nodeActionButtonsPanel.foreach( _.selection_=( add.headOption.map( _.get( COL_NODE ).asInstanceOf[ Node ])))
+             nodeActionMenuComponent.foreach( _.selection_=( add.headOption.map( _.get( COL_NODE ).asInstanceOf[ Node ])))
 //             println( "SEL" )
 //             vis.run( ACTION_FOCUS )
           }
@@ -238,8 +235,12 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       // initialize the display
       display.setSize( 400, 400 )
       display.setItemSorter( new TreeDepthItemSorter() )
-      display.addControlListener( new ZoomToFitControl() )
-      display.addControlListener( new ZoomControl() )
+      display.addControlListener( new ZoomToFitControl( Control.LEFT_MOUSE_BUTTON ) {
+         override def mouseClicked( e: MouseEvent ) {
+            if( e.getClickCount == 2 ) super.mouseClicked( e ) // XXX ugly
+         }
+      })
+//      display.addControlListener( new ZoomControl() )
       display.addControlListener( new WheelZoomControl() )
       display.addControlListener( new PanControl() )
 //display.addControlListener( new DragControl() ) // para debugging
@@ -289,13 +290,13 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
 
    // ---- NodeTreePanelLike ----
 
-   private var nodeActionButtonsPanel = Option.empty[ NodeActionsPanel ]
-   def nodeActionButtons : Boolean = nodeActionButtonsPanel.isDefined
-   def nodeActionButtons_=( b: Boolean ) {
-      if( nodeActionButtonsPanel.isDefined != b ) {
-         nodeActionButtonsPanel.foreach( _.dispose() )
-         nodeActionButtonsPanel = if( b ) {
-            Some( new NodeActionsPanel( confirmDestructiveActions ))
+   private var nodeActionMenuComponent = Option.empty[ NodeActionsPopupMenu ]
+   def nodeActionMenu : Boolean = nodeActionMenuComponent.isDefined
+   def nodeActionMenu_=( b: Boolean ) {
+      if( nodeActionMenuComponent.isDefined != b ) {
+         nodeActionMenuComponent.foreach( _.dispose() )
+         nodeActionMenuComponent = if( b ) {
+            Some( new NodeActionsPopupMenu( confirmDestructiveActions ))
          } else None
       }
    }
@@ -304,12 +305,12 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
    def confirmDestructiveActions_=( b : Boolean ) {
       if( confirmDestructiveActionsVar != b ) {
          confirmDestructiveActionsVar = b
-         nodeActionButtonsPanel.foreach( _.confirmDestructiveActions_=( b ))
+         nodeActionMenuComponent.foreach( _.confirmDestructiveActions_=( b ))
       }
    }
 
    private def defer( code: => Unit ) {
-      EventQueue.invokeLater( new Runnable { def run = code })
+      EventQueue.invokeLater( new Runnable { def run() { code }})
    }
 
    private def insertChild( pNode: PNode, pParent: PNode, info: osc.NodeInfo, iNode: NodeInfo ) {
@@ -318,7 +319,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
          iParent.head = pNode
          null
       } else {
-         map.get( info.predID ) orNull
+         map.get( info.predID ).orNull
       }
       if( pPred != null ) {
          val iPred   = pPred.get( INFO ).asInstanceOf[ NodeInfo ]
@@ -329,7 +330,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
          iParent.tail = pNode
          null
       } else {
-         map.get( info.succID ) orNull
+         map.get( info.succID ).orNull
       }
       if( pSucc != null ) {
          val iSucc = pSucc.get( INFO ).asInstanceOf[ NodeInfo ]
@@ -439,16 +440,16 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       })
    }
 
-   private def nlClear {
+   private def nlClear() {
       visDo( ACTION_LAYOUT ) {
 //         setPausedTuples.clear()
          t.clear()
          map = IntMap.empty
-         newRoot
+         newRoot()
       }
    }
 
-   private def newRoot {
+   private def newRoot() {
       val r = t.addNode()
       r.set( INFO, new NodeInfo )
       val vi = vis.getVisualItem( GROUP_TREE, r ).asInstanceOf[ NodeItem ]
@@ -471,8 +472,8 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
          serverVar.foreach( _.nodeMgr.removeListener( nodeListener ))
          serverVar = s
          defer {
-            nlClear
-            updateFrameTitle
+            nlClear()
+            updateFrameTitle()
          }
          serverVar.foreach( _.nodeMgr.addListener( nodeListener ))
       }
@@ -512,7 +513,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
 
    private var frame: Option[ JFrame ] = None
 
-   private def updateFrameTitle {
+   private def updateFrameTitle() {
       sync.synchronized {
          frame.foreach( _.setTitle( frameTitle + serverVar.map( s => " (" + s + ")" ).getOrElse( "" )))
       }
@@ -527,14 +528,16 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
          fr.getContentPane.add( this )
          fr.pack()
          frame = Some( fr )
-         updateFrameTitle
+         updateFrameTitle()
          fr
       }
 	}
 
    private def isPaused( n: Node ) : Boolean = map.get( n.id ).map( _.getBoolean( COL_PAUSED )).getOrElse( false )
 
-   private class NodeActionsPanel( _confirmDestr : Boolean ) extends JPanel {
+   private class NodeActionsPopupMenu( _confirmDestr : Boolean ) extends JPopupMenu {
+      pop =>
+
       private var confirmDestr = false
       private var selectionVar = Option.empty[ Node ]
 
@@ -583,6 +586,25 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
          }
       }
 
+      val popupTrigger = new MouseAdapter {
+         private def process( e: MouseEvent ) {
+            if( e.isPopupTrigger ) {
+               pop.show( e.getComponent, e.getX, e.getY )
+            }
+         }
+         override def mousePressed( e: MouseEvent ) {
+            process( e )
+         }
+
+         override def mouseReleased( e: MouseEvent ) {
+            process( e )
+         }
+
+         override def mouseClicked( e: MouseEvent ) {
+            process( e )
+         }
+      }
+
       private def confirm( action: Action, message: String )( thunk: => Unit ) {
          if( !confirmDestr || JOptionPane.showConfirmDialog( treePanel, message,
             action.getValue( Action.NAME ).toString, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE ) ==
@@ -592,31 +614,34 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
          }
       }
 
-      private def but( action: Action ) = {
-         val b = new JButton( action )
-         b.setFocusable( false )
-         b.putClientProperty( "JButton.buttonType", "bevel" )
-         b.putClientProperty( "JComponent.sizeVariant", "small" )
-         p.add( b )
+      private def item( action: Action ) = {
+//         val b = new JButton( action )
+         val b = new JMenuItem( action )
+//         b.setFocusable( false )
+//         b.putClientProperty( "JButton.buttonType", "bevel" )
+//         b.putClientProperty( "JComponent.sizeVariant", "small" )
+         pop.add( b )
          b
       }
 
-      private val p = new JPanel( new GridLayout( 2, 3 ))
+//      private val p = new JPanel( new GridLayout( 2, 3 ))
 //      setLayout( new GridLayout( 2, 3 ))
-      but( actionNodeFree )
-      but( actionNodeRun )
-      but( actionNodeTrace )
-      but( actionGroupFreeAll )
-      but( actionGroupDeepFree )
-      but( actionGroupDumpTree ).setToolTipText( "Hold Alt key to dump controls" )
+      item( actionNodeFree )
+      item( actionNodeRun )
+      item( actionNodeTrace )
+      item( actionGroupFreeAll )
+      item( actionGroupDeepFree )
+      item( actionGroupDumpTree ).setToolTipText( "Hold Alt key to dump controls" )
 //      setLayout( new BorderLayout() )
-      add( p ) // , BorderLayout.WEST )
+//      add( p ) // , BorderLayout.WEST )
+      display.add( this )
+      display.addMouseListener( popupTrigger )
 
       confirmDestructiveActions_=( false )   // inits labels
       selection_=( None )                    // inits enabled states
 
-      treePanel.add( this, BorderLayout.SOUTH )
-      if( treePanel.isShowing ) treePanel.revalidate()
+//      treePanel.add( this, BorderLayout.SOUTH )
+//      if( treePanel.isShowing ) treePanel.revalidate()
 
       def confirmDestructiveActions_=( b: Boolean ) {
          confirmDestr = b
@@ -641,8 +666,10 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       }
 
       def dispose() {
-         getParent.remove( this )
-         if( treePanel.isShowing ) treePanel.revalidate()
+//         getParent.remove( this )
+         display.remove( this )
+         display.removeMouseListener( popupTrigger )
+//         if( treePanel.isShowing ) treePanel.revalidate()
       }
    }
 }

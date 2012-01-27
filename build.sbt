@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "0.32-SNAPSHOT"
+version        := "0.32"
 
 organization   := "de.sciss"
 
@@ -17,7 +17,7 @@ licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "0.32-SNAPSHOT",
+   "de.sciss" %% "scalacollider" % "0.32",
    "de.sciss" %% "scalainterpreterpane" % "0.20",
    "de.sciss" % "prefuse-core" % "0.21",
    "de.sciss" %% "scalaaudiowidgets" % "0.10"
