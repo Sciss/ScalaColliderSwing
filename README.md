@@ -39,7 +39,7 @@ There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://ww
 
 Note that some release versions are now hosted on scala-tools.org, so if you want to set up a dependency on ScalaColliderSwing for your project, this goes in sbt's project file:
 
-    val dep1 = "de.sciss" %% "scalacolliderswing" % "0.32"
+    val dep1 = "de.sciss" %% "scalacolliderswing" % "0.33"
     val repo1 = "Clojars Repository" at "http://clojars.org/repo"
 
 The Clojars repo is necessary so that JSyntaxPane is found, unfortunately.
