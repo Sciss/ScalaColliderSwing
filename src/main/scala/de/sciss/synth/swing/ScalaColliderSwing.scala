@@ -30,9 +30,9 @@ import scala.swing.Swing
 
 object ScalaColliderSwing extends App {
    val name          = "ScalaCollider-Swing"
-   val version       = 0.33
+   val version       = 0.34
    val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
-   val isSnapshot    = false
+   val isSnapshot    = true
 
    // ---- constructor ----
    Swing.onEDT( buildGUI() )
