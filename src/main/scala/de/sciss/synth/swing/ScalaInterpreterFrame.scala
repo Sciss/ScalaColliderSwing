@@ -27,10 +27,10 @@ package de.sciss.synth.swing
 
 import java.awt.GraphicsEnvironment
 import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
-import java.io.PrintStream
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
 import tools.nsc.interpreter.{NamedParam, IMain}
+import java.io.{File, FileInputStream, PrintStream}
 
 class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
@@ -42,43 +42,6 @@ extends JFrame( "ScalaCollider Interpreter" ) {
    // ---- constructor ----
    {
       val cp = getContentPane
-
-      pane.initialText +=
-"""
-sCfg.programPath = "/path/to/scsynth"
-sCfg.transport = TCP
-boot
-
-// analog bubbles
-val x = play {
-    val f = LFSaw.kr(0.4).madd(24, LFSaw.kr(List(8, 7.23)).madd(3, 80)).midicps // glissando function
-    CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
-}
-
-x.release( 10 )
-
-val df = SynthDef("AnalogBubbles") {
-    val f1 = "freq1".kr(0.4)
-    val f2 = "freq2".kr(8)
-    val d  = "detune".kr(0.90375)
-    val f = LFSaw.ar(f1).madd(24, LFSaw.ar(List(f2, f2*d)).madd(3, 80)).midicps // glissando function
-    val x = CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
-    Out.ar( 0, x )
-}
-val x = df.play( args = List( "freq2" -> 222.2 ))
-x.set( "freq1" -> 0.1 )
-x.set( "detune" -> 0.44 )
-
-x.moveAfter( s )  // note: s expands to s.defaultGroup
-x.moveToHead( s )
-
-x.run( false )
-x.run( true )
-
-s.freeAll
-
-viewDef( df )
-"""
 
 //      pane.initialCode = Some(
 //"""
@@ -115,6 +78,21 @@ viewDef( df )
       Console.setOut( lp.outputStream )
       Console.setErr( lp.outputStream )
       System.setErr( new PrintStream( lp.outputStream ))
+
+      try {
+         val fis  = new FileInputStream( new File( new File( "" ).getAbsoluteFile.getParentFile, "interpreter.txt" ))
+         val txt  = try {
+            val arr = new Array[ Byte ]( fis.available() )
+            fis.read( arr )
+            new String( arr, "UTF-8" )
+         } finally {
+            fis.close()
+         }
+         pane.initialText += txt
+
+      } catch {
+         case e => e.printStackTrace()
+      }
 
       pane.init()
       val sp = new JSplitPane( SwingConstants.HORIZONTAL )

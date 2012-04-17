@@ -1,0 +1,72 @@
+
+// analog bubbles
+val x = play {
+   val f = LFSaw.kr(0.4).madd(24, LFSaw.kr(List(8, 7.23)).madd(3, 80)).midicps // glissando function
+   CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
+}
+
+x release 10
+
+val dfx = SynthDef("AnalogBubbles") {
+   val f1 = "freq1".kr(0.4)
+   val f2 = "freq2".kr(8)
+   val d  = "detune".kr(0.90375)
+   val f = LFSaw.ar(f1).madd(24, LFSaw.ar(List(f2, f2*d)).madd(3, 80)).midicps // glissando function
+   val x = CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
+   Out.ar( 0, x )
+}
+val x = dfx.play(args = List("freq2" -> 222.2))
+x.set("freq1" -> 0.1)
+x.set("detune" -> 0.44)
+
+x run false
+x run true
+
+val y = play(target = x, addAction = addAfter) {
+   ReplaceOut.ar(0, In.ar(0, 2) * SinOsc.ar("freq".kr(1)))
+}
+
+y.set("freq" -> 10)
+
+s.freeAll
+
+viewDef(dfx)
+
+// harmonic zither
+// use mouse to strum strings
+val w = play {
+   // harmonic series
+   val pitch = Seq(50, 53.86, 57.02, 59.69, 62, 64.04, 65.86, 67.51, 69.02, 71.69, 72.88, 74)
+   val mousex = MouseX.kr
+   val triggerSpacing = 0.5 / (pitch.size - 1)
+   val panSpacing = 1.5 / (pitch.size - 1)
+   val out = Mix.tabulate(pitch.size)( i => {
+      // place trigger points from 0.25 to 0.75
+      val trigger = HPZ1.kr(mousex > (0.25 + (i * triggerSpacing))).abs
+      val pluck = PinkNoise.ar(Decay.kr(trigger, 0.05))
+      val period = pitch(i).midicps.reciprocal
+      val string = CombL.ar(pluck, period, period, 8)
+      Pan2.ar(string, i * panSpacing - 0.75)
+   })
+   LeakDC.ar(out)
+}
+
+w.free
+
+// ambient by tim walters (added a LeakDC)
+val dfz = SynthDef("Ambient") {
+  val v = GVerb.ar(LeakDC.ar(
+     Mix.tabulate(16) { k =>
+        Mix.tabulate(6) { i =>
+           val x = Impulse.kr(0.5.pow(i) / k)
+           SinOsc.ar(i, SinOsc.ar((i + k).pow(i)) / (Decay.kr(x, Seq(i, i + 1)) * k))
+        }
+     }
+  ), roomSize = 1) / 384
+  WrapOut(v)
+}
+val z = dfz.play
+
+viewDef(dfz)
+
+z release 10

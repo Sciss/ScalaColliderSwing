@@ -27,6 +27,7 @@ package de.sciss.synth
 package swing
 
 import scala.swing.Swing
+import de.sciss.osc.TCP
 
 object ScalaColliderSwing extends App {
    val name          = "ScalaCollider-Swing"
@@ -45,6 +46,7 @@ object ScalaColliderSwing extends App {
    class REPLSupport( ssp: ServerStatusPanel, ntp: NodeTreePanel ) {
       var s : Server = null
       val sCfg = Server.Config()
+      sCfg.transport = TCP
       private val sync = new AnyRef
       private var booting: ServerConnection = null
 
