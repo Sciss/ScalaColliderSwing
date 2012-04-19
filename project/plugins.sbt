@@ -3,6 +3,6 @@ resolvers += Resolver.url( "sbt-plugin-releases",
 
 addSbtPlugin( "com.jsuereth" % "xsbt-gpg-plugin" % "0.6" ) // sorry... sbt ignores ~/.sbt/plugins for some reason :-(
 
-addSbtPlugin( "com.eed3si9n" % "sbt-assembly" % "0.7.3" )
+addSbtPlugin( "com.eed3si9n" % "sbt-assembly" % "0.7.4" )
 
-addSbtPlugin( "de.sciss" % "sbt-appbundle" % "0.12" )
+addSbtPlugin( "de.sciss" % "sbt-appbundle" % "0.13" )

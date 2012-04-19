@@ -25,12 +25,12 @@
 
 package de.sciss.synth.swing
 
-import java.awt.GraphicsEnvironment
 import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
 import tools.nsc.interpreter.{NamedParam, IMain}
 import java.io.{File, FileInputStream, PrintStream}
+import java.awt.GraphicsEnvironment
 
 class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
@@ -79,8 +79,9 @@ extends JFrame( "ScalaCollider Interpreter" ) {
       Console.setErr( lp.outputStream )
       System.setErr( new PrintStream( lp.outputStream ))
 
-      try {
-         val fis  = new FileInputStream( new File( new File( "" ).getAbsoluteFile.getParentFile, "interpreter.txt" ))
+      val file = new File( /* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.txt" )
+      if( file.exists() ) try {
+         val fis  = new FileInputStream( file )
          val txt  = try {
             val arr = new Array[ Byte ]( fis.available() )
             fis.read( arr )
