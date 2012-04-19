@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "0.34-SNAPSHOT"
+version        := "0.34"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.9.1"
+scalaVersion   := "2.9.2"
 
 description := "A Swing and REPL front-end for ScalaCollider"
 
@@ -17,10 +17,10 @@ licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "0.34-SNAPSHOT",
-   "de.sciss" %% "scalainterpreterpane" % "0.20",
+   "de.sciss" %% "scalacollider" % "0.34",
+   "de.sciss" %% "scalainterpreterpane" % "0.21",
    "de.sciss" % "prefuse-core" % "0.21",
-   "de.sciss" %% "scalaaudiowidgets" % "0.10"
+   "de.sciss" %% "scalaaudiowidgets" % "0.11"
 )
 
 retrieveManaged := true
@@ -69,3 +69,15 @@ seq( appbundle.settings: _* )
 
 appbundle.icon := Some( file( "application.icns" ))
 
+// ---- ls.implicit.ly ----
+
+seq( lsSettings :_* )
+
+(LsKeys.tags in LsKeys.lsync) := Seq( "sound-synthesis", "sound", "music", "supercollider" )
+
+(LsKeys.ghUser in LsKeys.lsync) := Some( "Sciss" )
+
+(LsKeys.ghRepo in LsKeys.lsync) := Some( "ScalaColliderSwing" )
+
+// bug in ls -- doesn't find the licenses from global scope
+(licenses in LsKeys.lsync) := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
