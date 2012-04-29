@@ -35,7 +35,6 @@ import math._
 
 import de.sciss.synth.{ServerConnection, Model, Server, osc}
 import de.sciss.synth.swing.ScalaColliderSwing
-import de.sciss.submin.{Submin, SubminButtonUI, SubminPanelUI}
 
 object JServerStatusPanel {
    val COUNTS      = 0x01
@@ -45,7 +44,7 @@ object JServerStatusPanel {
 
    private class CountLabel extends JLabel() {
        putClientProperty( "JComponent.sizeVariant", "small" )
-setForeground( Color.white )
+//setForeground( Color.white )
 
        override def getPreferredSize : Dimension = {
          val dim = super.getPreferredSize
@@ -158,8 +157,8 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
    private val ggBoot       = {
       val b = new JButton( actionBoot )
       b.putClientProperty( "JComponent.sizeVariant", "small" )
-      b.putClientProperty( "submin", true )
-      b.setUI( new SubminButtonUI )
+//      b.putClientProperty( "submin", true )
+//      b.setUI( new SubminButtonUI )
       b
    }
    private val ggBusy       = new JProgressBar()
@@ -237,9 +236,9 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
 	// ---- constructor ----
    {
-      Submin.init()
+//      Submin.init()
       putClientProperty( "submin", true )
-      setUI( new SubminPanelUI )
+//      setUI( new SubminPanelUI )
    	setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
 
       val clz = ScalaColliderSwing.getClass // classOf[ ServerStatusPanel ]
@@ -278,8 +277,8 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
          addS( ggBoot, 2 )
          val busyBox = new JPanel()
-         busyBox.putClientProperty( "submin", true )
-         busyBox.setUI( new SubminPanelUI )
+//         busyBox.putClientProperty( "submin", true )
+//         busyBox.setUI( new SubminPanelUI )
          busyBox.setLayout( new OverlayLayout( busyBox ))
          busyBox.add( Box.createRigidArea( busyDim ))
          busyBox.add( ggBusy )

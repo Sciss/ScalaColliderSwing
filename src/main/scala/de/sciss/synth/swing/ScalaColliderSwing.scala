@@ -28,7 +28,7 @@ package swing
 
 import scala.swing.Swing
 import de.sciss.osc.TCP
-import de.sciss.submin.SubminUtil
+import de.sciss.submin.Submin
 
 object ScalaColliderSwing extends App {
    val name          = "ScalaCollider-Swing"
@@ -84,7 +84,7 @@ object ScalaColliderSwing extends App {
    }
 
    def buildGUI() {
-      SubminUtil.init( true )
+      Submin.init()
 
       val ssp  = new ServerStatusPanel()
       val sspw = ssp.peer.makeWindow
