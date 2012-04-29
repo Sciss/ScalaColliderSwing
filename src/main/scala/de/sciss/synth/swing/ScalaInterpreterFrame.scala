@@ -29,8 +29,8 @@ import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
 import tools.nsc.interpreter.{NamedParam, IMain}
 import java.io.{File, FileInputStream, PrintStream}
-import java.awt.{Color, GraphicsEnvironment}
-import javax.swing.{UIDefaults, JFrame, JSplitPane, SwingConstants, WindowConstants}
+import java.awt.GraphicsEnvironment
+import javax.swing.{JFrame, JSplitPane, SwingConstants, WindowConstants}
 
 class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
@@ -57,6 +57,8 @@ extends JFrame( "ScalaCollider Interpreter" ) {
    // ---- constructor ----
    {
       val cp = getContentPane
+
+      getRootPane.putClientProperty( "submin", true )
 
 //      pane.initialCode = Some(
 //"""

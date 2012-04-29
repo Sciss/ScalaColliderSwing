@@ -237,7 +237,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 	// ---- constructor ----
    {
 //      Submin.init()
-      putClientProperty( "submin", true )
+//      putClientProperty( "submin", true )
 //      setUI( new SubminPanelUI )
    	setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
 
@@ -337,7 +337,9 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
       frame getOrElse {
     	   val fr = new JFrame()
          if( undecorated ) fr.setUndecorated( true )
-         fr.getRootPane.putClientProperty( "Window.style", "small" )
+         val rp = fr.getRootPane
+         rp.putClientProperty( "Window.style", "small" )
+         rp.putClientProperty( "submin", true )
         	fr.setResizable( false )
          fr.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
       	fr.getContentPane.add( this )
