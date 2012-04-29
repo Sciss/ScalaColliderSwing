@@ -28,12 +28,13 @@ package swing
 
 import scala.swing.Swing
 import de.sciss.osc.TCP
+import de.sciss.submin.SubminUtil
 
 object ScalaColliderSwing extends App {
    val name          = "ScalaCollider-Swing"
-   val version       = 0.34
+   val version       = 0.35
    val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
-   val isSnapshot    = false
+   val isSnapshot    = true
 
    // ---- constructor ----
    Swing.onEDT( buildGUI() )
@@ -83,6 +84,8 @@ object ScalaColliderSwing extends App {
    }
 
    def buildGUI() {
+      SubminUtil.init( true )
+
       val ssp  = new ServerStatusPanel()
       val sspw = ssp.peer.makeWindow
       val ntp  = new NodeTreePanel()

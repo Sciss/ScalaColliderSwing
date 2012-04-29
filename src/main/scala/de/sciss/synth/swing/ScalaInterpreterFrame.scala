@@ -26,16 +26,31 @@
 package de.sciss.synth.swing
 
 import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
-import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
 import tools.nsc.interpreter.{NamedParam, IMain}
 import java.io.{File, FileInputStream, PrintStream}
-import java.awt.GraphicsEnvironment
+import java.awt.{Color, GraphicsEnvironment}
+import javax.swing.{UIDefaults, JFrame, JSplitPane, SwingConstants, WindowConstants}
 
 class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
 
-   val pane = new ScalaInterpreterPane
+   val pane : ScalaInterpreterPane = new ScalaInterpreterPane
+//   {
+////      editorPane.setBackground( Color.black )
+//      val editorDefaults = new UIDefaults()
+//      editorDefaults.put( "background", Color.black )
+//      editorDefaults.put( "textBackground", Color.black )
+//      editorDefaults.put( "EditorPane.textBackground", Color.black )
+//      editorDefaults.put( "EditorPane.background", Color.black )
+//      editorDefaults.put( "EditorPane[Enabled].background", Color.black )
+//      editorDefaults.put( "EditorPane[Enabled].textBackground", Color.black )
+//      editorDefaults.put( "EditorPane.backgroundPainter", null )
+//      editorDefaults.put( "EditorPane[Enabled].backgroundPainter", null )
+//      editorPane.putClientProperty( "Nimbus.Overrides", editorDefaults )
+//      editorPane.putClientProperty( "Nimbus.Overrides.InheritDefaults", true )
+//   }
+
    private val sync = new AnyRef
 //   private var inCode: Option[ IMain => Unit ] = None
    

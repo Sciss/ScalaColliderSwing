@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "0.34"
+version        := "0.35-SNAPSHOT"
 
 organization   := "de.sciss"
 
@@ -20,7 +20,8 @@ libraryDependencies ++= Seq(
    "de.sciss" %% "scalacollider" % "0.34",
    "de.sciss" %% "scalainterpreterpane" % "0.21",
    "de.sciss" % "prefuse-core" % "0.21",
-   "de.sciss" %% "scalaaudiowidgets" % "0.11"
+   "de.sciss" %% "scalaaudiowidgets" % "0.11",
+   "de.sciss" %% "submin" % "0.10-SNAPSHOT"
 )
 
 retrieveManaged := true
