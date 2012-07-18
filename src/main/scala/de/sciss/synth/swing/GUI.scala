@@ -79,6 +79,8 @@ captionLabels = false // XXX currently they have wrong layout
          }
 
          val f = new Frame {
+            peer.getRootPane.putClientProperty( "Window.style", "small" )
+            peer.getRootPane.putClientProperty( "submin", true )
             title = "Meter : " + name
             contents = new BoxPanel( Orientation.Horizontal ) {
                contents ++= sections.map( _._1 )
