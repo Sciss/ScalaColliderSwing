@@ -323,12 +323,14 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
    def makeWindow: JFrame = makeWindow()
 	def makeWindow( undecorated: Boolean = false ): JFrame = {
       frame getOrElse {
-    	   val fr = new JFrame()
+         val fr = new JFrame()
          if( undecorated ) fr.setUndecorated( true )
-        	fr.setResizable( false )
+         val rp = fr.getRootPane
+         rp.putClientProperty( "Window.style", "small" )
+         fr.setResizable( false )
          fr.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
-      	fr.getContentPane.add( this )
-        	fr.pack()
+         fr.getContentPane.add( this )
+         fr.pack()
          if( !undecorated ) fr.setLocation( 50, 50 )
          frame = Some( fr )
          updateFrameTitle

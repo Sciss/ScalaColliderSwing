@@ -6,7 +6,7 @@ version        := "0.34"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.9.2"
+scalaVersion   := "2.10.0-M6"
 
 description := "A Swing and REPL front-end for ScalaCollider"
 
@@ -68,6 +68,8 @@ test in assembly := {}
 seq( appbundle.settings: _* )
 
 appbundle.icon := Some( file( "application.icns" ))
+
+appbundle.target := file( "." )
 
 // ---- ls.implicit.ly ----
 
