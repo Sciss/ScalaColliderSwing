@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "0.34"
+version        := "1.0.0"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.0-M6"
+scalaVersion   := "2.9.2"
 
 description := "A Swing and REPL front-end for ScalaCollider"
 
@@ -17,10 +17,10 @@ licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "0.34",
-   "de.sciss" %% "scalainterpreterpane" % "0.21",
+   "de.sciss" %% "scalacollider" % "1.0.+",
+   "de.sciss" %% "scalainterpreterpane" % "1.1.+",
    "de.sciss" % "prefuse-core" % "0.21",
-   "de.sciss" %% "scalaaudiowidgets" % "0.11"
+   "de.sciss" %% "scalaaudiowidgets" % "1.0.+"
 )
 
 retrieveManaged := true
@@ -29,6 +29,19 @@ retrieveManaged := true
 // fork in run := true
 
 scalacOptions ++= Seq( "-deprecation", "-unchecked" )
+
+// ---- build info ----
+
+buildInfoSettings
+
+sourceGenerators in Compile <+= buildInfo
+
+buildInfoKeys := Seq( name, organization, version, scalaVersion, description,
+   BuildInfoKey.map( homepage ) { case (k, opt) => k -> opt.get },
+   BuildInfoKey.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
+)
+
+buildInfoPackage := "de.sciss.synth.swing"
 
 // ---- publishing ----
 

@@ -1,15 +1,13 @@
-resolvers += Resolver.url( "sbt-plugin-releases",
-   url( "http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/" ))( Resolver.ivyStylePatterns )
-
 resolvers ++= Seq(
    "less is" at "http://repo.lessis.me",
    "coda" at "http://repo.codahale.com"
 )
 
-addSbtPlugin( "com.jsuereth" % "xsbt-gpg-plugin" % "0.6" ) // sorry... sbt ignores ~/.sbt/plugins for some reason :-(
-
-addSbtPlugin( "me.lessis" % "ls-sbt" % "0.1.1" )
+addSbtPlugin( "me.lessis" % "ls-sbt" % "0.1.2" )
 
 addSbtPlugin( "com.eed3si9n" % "sbt-assembly" % "0.8.3" )
 
-addSbtPlugin( "de.sciss" % "sbt-appbundle" % "0.14" )
+addSbtPlugin( "de.sciss" % "sbt-appbundle" % "0.15" )
+
+addSbtPlugin( "com.eed3si9n" % "sbt-buildinfo" % "0.2.0" )  // provides version information to copy into main class
+

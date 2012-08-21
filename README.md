@@ -6,7 +6,11 @@ ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008
 
 ### requirements / building
 
-ScalaCollider-Swing currently compiles against the Scala 2.9.2 and requires Java 1.6. Targets for xsbt (sbt 0.11): `clean`, `update`, `compile`, `doc`, `package`, `standalone`, `appbundle`, where `standalone` creates a fully self-contained jar, and `appbundle` updates the Mac OS X application bundle.
+ScalaCollider-Swing currently compiles against the Scala 2.9.2 and requires Java 1.6. Targets for sbt 0.12.0: `clean`, `update`, `compile`, `doc`, `package`, `standalone`, `appbundle`, where `standalone` creates a fully self-contained jar, and `appbundle` updates the Mac OS X application bundle.
+
+To link to ScalaCollider-Swing:
+
+    "de.sciss" %% "scalacolliderswing" % "1.0.+"
 
 ### running
 
@@ -30,10 +34,7 @@ To develop ScalaCollider-Swing under IntelliJ IDEA, you can set up a project wit
     
     addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.0.0")
 
-Then to create the IDEA project, run the following two commands from the xsbt shell:
-
-    > set ideaProjectName := "ScalaColliderSwing"
-    > gen-idea
+Then to create the IDEA project, run `sbt gen-idea`.
 
 ### documentation
 
@@ -41,11 +42,4 @@ There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://ww
 
 ### download
 
-Release versions are now in maven central, so if you want to set up a dependency on ScalaColliderSwing for your project, this goes in sbt's project file:
-
-    val dep1 = "de.sciss" %% "scalacolliderswing" % "0.34"
-    val repo1 = "Clojars Repository" at "http://clojars.org/repo"
-
-The Clojars repo is necessary so that JSyntaxPane is found, unfortunately.
-
-In any case, the current version can be downloaded from [github.com/Sciss/ScalaColliderSwing](http://github.com/Sciss/ScalaColliderSwing).
+The current version can be downloaded from [github.com/Sciss/ScalaColliderSwing](http://github.com/Sciss/ScalaColliderSwing).
