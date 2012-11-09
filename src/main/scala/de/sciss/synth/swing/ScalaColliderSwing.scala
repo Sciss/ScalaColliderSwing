@@ -30,18 +30,8 @@ import scala.swing.Swing
 import de.sciss.osc.TCP
 
 object ScalaColliderSwing extends App {
-//   val name          = "ScalaCollider-Swing"
-//   val version       = 0.34
-//   val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
-//   val isSnapshot    = false
-
    // ---- constructor ----
    Swing.onEDT( buildGUI() )
-
-//   def versionString = {
-//      val s = (version + 0.001).toString.substring( 0, 4 )
-//      if( isSnapshot ) s + "-SNAPSHOT" else s
-//   }
 
    class REPLSupport( ssp: ServerStatusPanel, ntp: NodeTreePanel ) {
       var s : Server = null
@@ -72,7 +62,7 @@ object ScalaColliderSwing extends App {
 
       private def shutDown() { sync.synchronized {
          if( (s != null) && (s.condition != Server.Offline) ) {
-            s.quit
+            s.quit()
             s = null
          }
          if( booting != null ) {

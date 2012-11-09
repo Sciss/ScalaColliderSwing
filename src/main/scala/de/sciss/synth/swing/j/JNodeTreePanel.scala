@@ -37,7 +37,7 @@ import de.sciss.synth.osc
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
 import de.sciss.synth.swing.ScalaColliderSwing
-import de.sciss.synth.swing.aux.DynamicTreeLayout
+import de.sciss.synth.swing.helper.DynamicTreeLayout
 import prefuse.data.expression.AbstractPredicate
 import prefuse.data.{Tuple, Graph, Node => PNode}
 import prefuse.visual.expression.InGroupPredicate

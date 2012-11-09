@@ -28,7 +28,7 @@ package de.sciss.synth.swing
 import de.sciss.scalainterpreter.{CodePane, LogPane, InterpreterPane, NamedParam, Interpreter}
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
-import java.io.{File, FileInputStream, PrintStream}
+import java.io.{IOException, File, FileInputStream}
 import java.awt.GraphicsEnvironment
 
 class ScalaInterpreterFrame( replSupport: REPLSupport )
@@ -41,14 +41,16 @@ extends JFrame( "ScalaCollider Interpreter" ) {
    }
 
    val pane = {
-      val cfg = InterpreterPane.Config()
+//      val paneCfg = InterpreterPane.Config()
       // note: for the auto-completion in the pane to work, we must
       // import de.sciss.synth.ugen._ instead of ugen._
       // ; also name aliasing seems to be broken, thus the stuff
       // in de.sciss.osc is hidden
 
+      val codeCfg = CodePane.Config()
+
       val file = new File( /* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.txt" )
-      if( file.exists() ) try {
+      if( file.isFile ) try {
          val fis  = new FileInputStream( file )
          val txt  = try {
             val arr = new Array[ Byte ]( fis.available() )
@@ -57,10 +59,10 @@ extends JFrame( "ScalaCollider Interpreter" ) {
          } finally {
             fis.close()
          }
-         cfg.initialCode = Some( txt )
+         codeCfg.text = txt
 
       } catch {
-         case e: Throwable => e.printStackTrace()
+         case e: IOException => e.printStackTrace()
       }
 
       val intpCfg = Interpreter.Config()
@@ -76,13 +78,10 @@ extends JFrame( "ScalaCollider Interpreter" ) {
 //         in.bind( "in", classOf[ Interpreter ].getName, in )
       intpCfg.out = Some( lp.writer )
 
-//      val codeCfg = CodePane.Config()
-//      val codePane = CodePane( codeCfg )
-
-      InterpreterPane( cfg, intpCfg /*, codeCfg */)
-//      InterpreterPane.wrap( intp, codePane )
+      InterpreterPane( interpreterConfig = intpCfg, codePaneConfig = codeCfg )
    }
-   private val sync = new AnyRef
+
+//   private val sync = new AnyRef
 //   private var inCode: Option[ IMain => Unit ] = None
    
    // ---- constructor ----
