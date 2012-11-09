@@ -10,6 +10,8 @@ ScalaCollider-Swing currently compiles against the Scala 2.9.2 and requires Java
 
 To link to ScalaCollider-Swing:
 
+    resolvers += "Clojars Repository" at "http://clojars.org/repo"
+    
     "de.sciss" %% "scalacolliderswing" % "1.1.+"
 
 ### running
