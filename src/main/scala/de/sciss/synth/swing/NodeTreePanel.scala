@@ -33,7 +33,7 @@ class NodeTreePanel extends Component with NodeTreePanelLike {
    override lazy val peer: JNodeTreePanel = new JNodeTreePanel with SuperMixin
 
    def server: Option[ Server ]        = peer.server
-   def server_=( s: Option[ Server ])  = peer.server_=( s )
+   def server_=( s: Option[ Server ]) { peer.server_=( s )}
 
    def nodeActionMenu = peer.nodeActionMenu
    def nodeActionMenu_=( b: Boolean ) { peer.nodeActionMenu = b }

@@ -66,9 +66,7 @@ object JServerStatusPanel {
          Toolkit.getDefaultToolkit.createImage( ScalaColliderSwing.getClass.getResource( name ))
 
        private val imgGaugeEmpty = getImageResource( "gauge_empty.png" )
-       private val imgGaugeFull  = getImageResource( "gauge_full.png" );
-
-//        private val ins = getInsets()
+       private val imgGaugeFull  = getImageResource( "gauge_full.png" )
 
        // ---- constructor ----
        {
@@ -175,7 +173,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
          updateCounts( srv.counts )
       }
       case ServerConnection.Aborted => {
-          clearCounts
+          clearCounts()
           actionBoot.serverUpdate( Server.Offline )
       }
 //      case msg => actionBoot.serverUpdate( msg )
@@ -184,7 +182,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
    private val serverUpdate: Model.Listener = {
       case Server.Counts( cnt ) => if( isShowing ) updateCounts( cnt )
       case msg @ Server.Offline => {
-          clearCounts
+          clearCounts()
           actionBoot.serverUpdate( msg )
       }
       case msg => actionBoot.serverUpdate( msg )
@@ -195,11 +193,11 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
    def server_=( s: Option[ Server ]) {
       sync.synchronized {
          val wasListening = listening
-         if( wasListening ) stopListening
+         if( wasListening ) stopListening()
          serverVar   = s
          bootingVar  = None
-         updateFrameTitle
-         if( wasListening ) startListening
+         updateFrameTitle()
+         if( wasListening ) startListening()
       }
    }
 
@@ -208,11 +206,11 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
    def booting_=( b: Option[ ServerConnection ]) {
       sync.synchronized {
          val wasListening = listening
-         if( wasListening ) stopListening
+         if( wasListening ) stopListening()
          serverVar   = None
          bootingVar  = b
-         updateFrameTitle
-         if( wasListening ) startListening
+         updateFrameTitle()
+         if( wasListening ) startListening()
       }
    }
 
@@ -221,9 +219,9 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
    def bootAction_=( a: Option[ () => Unit ]) {
       sync.synchronized {
          val wasListening = listening
-         if( wasListening ) stopListening
+         if( wasListening ) stopListening()
          bootActionVar = a
-         if( wasListening ) startListening
+         if( wasListening ) startListening()
       }
    }
 
@@ -237,7 +235,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
       val icnUGen  = new ImageIcon( clz.getResource( "path_ugen_16.png" ))
       val icnDef   = new ImageIcon( clz.getResource( "path_def_16.png" ))
 
-      def flushImages {
+      def flushImages() {
          icnGroup.getImage.flush()
          icnSynth.getImage.flush()
          icnUGen.getImage.flush()
@@ -293,13 +291,13 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
 		addAncestorListener( new AncestorListener {
 			def ancestorAdded( e: AncestorEvent ) {
-				startListening
+				startListening()
 //				updateCounts
 			}
 
 			def ancestorRemoved( e: AncestorEvent ) {
-				stopListening
-                flushImages
+				stopListening()
+            flushImages()
 //				updateCounts
 			}
 
@@ -313,12 +311,12 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
    private var frame: Option[ JFrame ] = None
 
-   private def updateFrameTitle = defer {
+   private def updateFrameTitle() { defer {
       sync.synchronized {
          val name = serverVar.getOrElse( bootingVar.orNull )
          frame.foreach( _.setTitle( frameTitle + (if( name == null ) "" else " (" + name + ")") )) 
       }
-   }
+   }}
 
    def makeWindow: JFrame = makeWindow()
 	def makeWindow( undecorated: Boolean = false ): JFrame = {
@@ -333,14 +331,14 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
          fr.pack()
          if( !undecorated ) fr.setLocation( 50, 50 )
          frame = Some( fr )
-         updateFrameTitle
+         updateFrameTitle()
          fr
       }
 	}
 
 	private var listening = false
 
-	private def startListening {
+	private def startListening() {
       sync.synchronized {
    		if( !listening ) {
    			listening = true
@@ -354,13 +352,13 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 		}
 	}
 
-	private def stopListening {
+	private def stopListening() {
       sync.synchronized {
    		if( listening ) {
             bootingVar.foreach(_.removeListener( bootingUpdate ))
 	   		serverVar.foreach(_.removeListener( serverUpdate ))
 		   	listening = false
-            clearCounts
+            clearCounts()
          }
 		}
 	}
@@ -379,7 +377,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 //	}
 
    private def defer( code: => Unit ) {
-      if( EventQueue.isDispatchThread ) code else EventQueue.invokeLater( new Runnable { def run = code })
+      if( EventQueue.isDispatchThread ) code else EventQueue.invokeLater( new Runnable { def run() { code }})
    }
    
 	private def updateCounts( cnt: osc.StatusReplyMessage ) {
@@ -390,7 +388,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 		lbNumDefs.setText( cnt.numDefs.toString )
 	}
 
-	private def clearCounts {
+	private def clearCounts() {
 		lbCPU.update( 0, 0 )
 		lbNumUGens.setText( null )
 		lbNumSynths.setText( null )
@@ -407,16 +405,16 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 //	}
 
    // subclasses may override this
-   protected def bootServer {
+   protected def bootServer() {
       sync.synchronized {
          bootAction.foreach( _.apply() )
       }
    }
 
    // subclasses may override this
-   protected def stopServer {
+   protected def stopServer() {
       sync.synchronized {
-         server.foreach( _.quit )
+         server.foreach( _.quit() )
       }
    }
 
@@ -427,13 +425,13 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
 		def actionPerformed( e: ActionEvent ) {
 			if( cond == Offline ) {
-				bootServer
+				bootServer()
 			} else if( cond == Running ) {
-				stopServer
+				stopServer()
 			}
 		}
 
-      def serverUpdate( msg: AnyRef ) = defer { msg match {
+      def serverUpdate( msg: AnyRef ) { defer { msg match {
          case Server.Running => {
 //println( "Running" )
             cond = msg
@@ -458,6 +456,6 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 //          case SuperColliderClient.ServerChanged( server ) => {
 //            serverPanel.server = server
 //          }
-      }}
+      }}}
 	} // class actionBootClass
 }

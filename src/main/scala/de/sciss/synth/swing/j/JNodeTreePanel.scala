@@ -30,10 +30,9 @@ import collection.immutable.IntMap
 import prefuse.action.{ ActionList, RepaintAction }
 import prefuse.action.animate.{ ColorAnimator, LocationAnimator, VisibilityAnimator }
 import prefuse.render.{ AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer, LabelRenderer }
-import prefuse.util.{ ColorLib }
+import prefuse.util.ColorLib
 import prefuse.visual.sort.TreeDepthItemSorter
-import de.sciss.synth.{ Group, Model, Node, NodeManager, Server, Synth }
-import de.sciss.synth.osc
+import de.sciss.synth._
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
 import de.sciss.synth.swing.ScalaColliderSwing
@@ -43,11 +42,11 @@ import prefuse.data.{Tuple, Graph, Node => PNode}
 import prefuse.visual.expression.InGroupPredicate
 import prefuse.data.event.TupleSetListener
 import prefuse.data.tuple.TupleSet
-import java.awt.{BasicStroke, Image, Toolkit, Color, BorderLayout, GridLayout, EventQueue}
+import java.awt.{BasicStroke, Image, Toolkit, Color, BorderLayout, EventQueue}
 import prefuse.action.assignment.{StrokeAction, ColorAction}
 import javax.swing.{JMenuItem, JOptionPane, Action, AbstractAction, JPopupMenu, WindowConstants, JFrame, JPanel}
 import java.awt.event.{MouseEvent, MouseAdapter, InputEvent, ActionEvent}
-import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomControl, ZoomToFitControl}
+import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomToFitControl}
 
 //import VisualInsertionTree._
 import DynamicTreeLayout.{ INFO, NodeInfo }
@@ -133,8 +132,8 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       case NodeGo( group: Group, info ) => defer( nlAddGroup( group, info ))
       case NodeEnd( node, info )        => defer( nlRemoveNode( node, info ))
       case NodeMove( node, info )       => defer( nlMoveChild( node, info ))
-      case NodeOn( node, info )         => defer( nlPauseChild( node, false ))
-      case NodeOff( node, info )        => defer( nlPauseChild( node, true ))
+      case NodeOn( node, info )         => defer( nlPauseChild( node, paused = false ))
+      case NodeOff( node, info )        => defer( nlPauseChild( node, paused = true  ))
       case Cleared                      => defer( nlClear() )
    }
 
@@ -469,13 +468,13 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
     */
    def server_=( s: Option[ Server ]) {
       sync.synchronized {
-         serverVar.foreach( _.nodeMgr.removeListener( nodeListener ))
+         serverVar.foreach( _.nodeManager.removeListener( nodeListener ))
          serverVar = s
          defer {
             nlClear()
             updateFrameTitle()
          }
-         serverVar.foreach( _.nodeMgr.addListener( nodeListener ))
+         serverVar.foreach( _.nodeManager.addListener( nodeListener ))
       }
    }
       
@@ -538,12 +537,14 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
    private class NodeActionsPopupMenu( _confirmDestr : Boolean ) extends JPopupMenu {
       pop =>
 
+      import Ops._
+
       private var confirmDestr = false
       private var selectionVar = Option.empty[ Node ]
 
       val actionNodeFree = new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
-            selectionVar.foreach( n => confirm( this, "Free node " + n.id + "?" )( n.free ))
+            selectionVar.foreach( n => confirm( this, "Free node " + n.id + "?" )( n.free() ))
          }
       }
 
@@ -555,14 +556,14 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
 
       val actionNodeTrace = new AbstractAction( "Trace" ) {
          def actionPerformed( e: ActionEvent ) {
-            selectionVar.foreach( _.trace )
+            selectionVar.foreach( _.trace() )
          }
       }
 
       val actionGroupFreeAll = new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
             selectionVar match {
-               case Some( g: Group ) => confirm( this, "Free all nodes in group " + g.id + "?" )( g.freeAll )
+               case Some( g: Group ) => confirm( this, "Free all nodes in group " + g.id + "?" )( g.freeAll() )
                case _ =>
             }
          }
@@ -571,7 +572,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       val actionGroupDeepFree = new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
             selectionVar match {
-               case Some( g: Group ) => confirm( this, "Free all synths in group " + g.id + " and its sub-groups?" )( g.deepFree )
+               case Some( g: Group ) => confirm( this, "Free all synths in group " + g.id + " and its sub-groups?" )( g.deepFree() )
                case _ =>
             }
          }
@@ -637,8 +638,8 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       display.add( this )
       display.addMouseListener( popupTrigger )
 
-      confirmDestructiveActions_=( false )   // inits labels
-      selection_=( None )                    // inits enabled states
+      confirmDestructiveActions = false   // inits labels
+      selection_=( None )                 // inits enabled states
 
 //      treePanel.add( this, BorderLayout.SOUTH )
 //      if( treePanel.isShowing ) treePanel.revalidate()

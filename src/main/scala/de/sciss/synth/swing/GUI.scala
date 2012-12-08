@@ -28,19 +28,19 @@ package de.sciss.synth.swing
 import sys.error
 import de.sciss.gui.PeakMeter
 import de.sciss.osc.Message
-import de.sciss.synth.{addToHead, addToTail, AudioBus, Group => SGroup, Server => SServer}
+import de.sciss.synth.{Group => SGroup, Server => SServer, Ops, addToHead, addToTail, AudioBus}
 import swing.{Swing, BoxPanel, Orientation, Frame}
 
 object GUI {
    class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
 
    class Group private[swing] ( val group: SGroup ) {
-      def tree { error( "TODO" )}
+      def tree() { error( "TODO" )}
    }
 
    class Server private[swing] ( val server: SServer ) {
-      def tree { new Group( server.rootNode ).tree }
-      def meter : Frame = {
+      def tree() { new Group( server.rootNode ).tree() }
+      def meter() : Frame = {
          val name       = server.name
          val opt        = server.config
          val numInputs  = opt.inputBusChannels
@@ -88,9 +88,10 @@ captionLabels = false // XXX currently they have wrong layout
             override def closeOperation() {
                sections.foreach {
                   case (meter, synth, resp) =>
+                     import Ops._
                      this.dispose()
                      resp.remove
-                     synth.free
+                     synth.free()
                      meter.dispose()
                }
             }

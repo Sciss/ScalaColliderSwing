@@ -41,7 +41,7 @@ object ScalaColliderSwing extends App {
       private var booting: ServerConnection = null
 
       // ---- constructor ----
-      Runtime.getRuntime.addShutdownHook( new Thread { override def run() { shutDown() }})
+      sys.addShutdownHook( shutDown() )
       ssp.bootAction = Some( () => boot() )
 
       def boot() { sync.synchronized {
@@ -66,7 +66,7 @@ object ScalaColliderSwing extends App {
             s = null
          }
          if( booting != null ) {
-            booting.abort
+            booting.abort()
             booting = null
          }
       }}

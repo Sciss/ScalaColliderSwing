@@ -30,7 +30,6 @@ import java.awt.event.{ WindowAdapter, WindowEvent }
 import javax.swing.{ JComponent, JFrame, JPanel, JSplitPane, WindowConstants }
 import prefuse.{ Constants, Display, Visualization }
 import prefuse.action.{ ActionList, RepaintAction }
-import prefuse.action.animate.{ ColorAnimator, LocationAnimator, VisibilityAnimator }
 import prefuse.action.assignment.ColorAction
 import prefuse.action.layout.graph._
 import prefuse.activity.Activity
@@ -53,7 +52,7 @@ object SynthGraphPanel {
       view( new SynthGraphPanel( d.name, d.graph, forceDirected ))
 
    private def view( p: SynthGraphPanel ) = {
-      val f = p.makeWindow
+      val f = p.makeWindow()
       f.setVisible( true )
       p
    }
@@ -71,7 +70,7 @@ extends JPanel {
    private val GROUP_NODES          = "graph.nodes"
    private val GROUP_EDGES          = "graph.edges"
    private val ACTION_LAYOUT        = "layout"
-   private val ACTION_LAYOUT_ANIM   = "layout-anim"
+//   private val ACTION_LAYOUT_ANIM   = "layout-anim"
    private val ACTION_COLOR         = "color"
 //   private val ACTION_COLOR_ANIM    = "layout-anim"
 //   private val FADE_TIME            = 20000
@@ -85,10 +84,10 @@ extends JPanel {
 
    val g                    = {
       val g       = new PGraph( true )
-      val nodes   = g.getNodeTable()
+      val nodes   = g.getNodeTable
       nodes.addColumn( COL_LABEL,  classOf[ String ])
       nodes.addColumn( COL_RATE,   classOf[ Rate ])
-      val edges   = g.getEdgeTable()
+      val edges   = g.getEdgeTable
       edges.addColumn( COL_RATE,   classOf[ Rate ])
 //      PrefuseHelper.addColumn( nodes, COL_ICON,   classOf[ String ])
 //      PrefuseHelper.addColumn( nodes, COL_PAUSED, classOf[ Boolean ])
@@ -231,11 +230,11 @@ extends JPanel {
       vis.run( ACTION_COLOR )
    }
 
-   def dispose {
-      stopAnimation
+   def dispose() {
+      stopAnimation()
    }
 
-   private def stopAnimation {
+   private def stopAnimation() {
       vis.cancel( ACTION_COLOR )
       vis.cancel( ACTION_LAYOUT )
    }
@@ -245,19 +244,19 @@ extends JPanel {
       override def getColor( vi: VisualItem ) = colorMap( vi.get( COL_RATE ))
    }
 
-   def makeWindow: JFrame = {
+   def makeWindow(): JFrame = {
       val frame = new JFrame( "Synth Graph" + (if( name != "" ) " (" + name + ")" else "") )
 //		frame.setResizable( false )
       frame.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE )
       frame.addWindowListener( new WindowAdapter {
          override def windowClosed( e: WindowEvent ) {
-            panel.dispose
+            panel.dispose()
          }
       })
       val cp = frame.getContentPane
       lay match {
          case fd: ForceDirectedLayout => {
-            val fsim = fd.getForceSimulator()
+            val fsim = fd.getForceSimulator
             val fpanel = new JForcePanel( fsim )
             fpanel.setBackground( null )
             def setDeepSchnuck( jc: JComponent ) {
