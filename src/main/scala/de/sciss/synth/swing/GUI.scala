@@ -68,12 +68,12 @@ captionLabels = false // XXX currently they have wrong layout
                   SendReply.kr( tr, Flatten( Zip( peak, rms )), "/$meter" )
                }
                val synth = df.play( target = server.rootNode, addAction = addAction )
-               val resp = osc.Responder.add({
+               val resp = osc.Responder.add( server ) {
                   case Message( "/$meter", synth.id, _, vals @ _* ) =>
                      val pairs   = vals.asInstanceOf[ Seq[ Float ]].toIndexedSeq
                      val time    = System.currentTimeMillis
                      Swing.onEDT( meter.update( pairs, 0, time ))
-               }, server )
+               }
 
                (meter, synth, resp)
          }
@@ -90,7 +90,7 @@ captionLabels = false // XXX currently they have wrong layout
                   case (meter, synth, resp) =>
                      import Ops._
                      this.dispose()
-                     resp.remove
+                     resp.remove()
                      synth.free()
                      meter.dispose()
                }
