@@ -1,0 +1,33 @@
+{
+  "organization" : "de.sciss",
+  "name" : "ScalaColliderSwing",
+  "version" : "1.2.0",
+  "description" : "A Swing and REPL front-end for ScalaCollider",
+  "site" : "https://github.com/Sciss/ScalaColliderSwing",
+  "tags" : [ "sound-synthesis", "sound", "music", "supercollider" ],
+  "docs" : "",
+  "resolvers" : [ "https://oss.sonatype.org/content/repositories/releases" ],
+  "dependencies" : [ {
+    "organization" : "de.sciss",
+    "name" : "scalacollider",
+    "version" : "1.2.+"
+  }, {
+    "organization" : "de.sciss",
+    "name" : "scalainterpreterpane",
+    "version" : "1.2.+"
+  }, {
+    "organization" : "de.sciss",
+    "name" : "prefuse-core",
+    "version" : "0.21"
+  }, {
+    "organization" : "de.sciss",
+    "name" : "scalaaudiowidgets",
+    "version" : "1.0.+"
+  } ],
+  "scalas" : [ "2.9.2" ],
+  "licenses" : [ {
+    "name" : "GPL v2+",
+    "url" : "http://www.gnu.org/licenses/gpl-2.0.txt"
+  } ],
+  "sbt" : false
+}

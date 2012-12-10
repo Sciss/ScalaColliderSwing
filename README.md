@@ -12,7 +12,7 @@ To link to ScalaCollider-Swing:
 
     resolvers += "Clojars Repository" at "http://clojars.org/repo"
     
-    "de.sciss" %% "scalacolliderswing" % "1.1.+"
+    "de.sciss" %% "scalacolliderswing" % "1.2.+"
 
 ### running
 
@@ -32,9 +32,7 @@ Upon startup, a file named `"interpreter.txt"`, which should be a plain UTF-8 te
 
 To develop ScalaCollider-Swing under IntelliJ IDEA, you can set up a project with the sbt-idea plugin. If you haven't globally installed the sbt-idea plugin yet, create the following contents in `~/.sbt/plugins/build.sbt`:
 
-    resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
-    
-    addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.0.0")
+    addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0")
 
 Then to create the IDEA project, run `sbt gen-idea`.
 
