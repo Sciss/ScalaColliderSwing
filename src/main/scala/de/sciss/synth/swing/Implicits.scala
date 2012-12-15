@@ -29,6 +29,7 @@ package swing
 object Implicits {
    implicit def enableGUI( group: Group )    = new GUI.Factory( new GUI.Group( group ))
    implicit def enableGUI( server: Server )  = new GUI.Factory( new GUI.Server( server ))
+   implicit def enableGUI( bus: AudioBus )   = new GUI.Factory( new GUI.AudioBus( bus ))
 
 //   def any2stringadd( x: Any ) {}
 }

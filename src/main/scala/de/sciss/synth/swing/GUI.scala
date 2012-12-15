@@ -28,76 +28,129 @@ package de.sciss.synth.swing
 import sys.error
 import de.sciss.gui.PeakMeter
 import de.sciss.osc.Message
-import de.sciss.synth.{Group => SGroup, Server => SServer, Ops, addToHead, addToTail, AudioBus}
+import de.sciss.synth.{Group => SGroup, Server => SServer, AudioBus => SAudioBus, Synth => SSynth, osc => sosc, SynthDef => SSynthDef, AddAction, Ops, addToHead, addToTail}
 import swing.{Swing, BoxPanel, Orientation, Frame}
+import de.sciss.{synth, osc}
+import collection.breakOut
 
 object GUI {
-   class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
+   final class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
 
-   class Group private[swing] ( val group: SGroup ) {
+   final class Group private[swing] ( val group: SGroup ) {
       def tree() { error( "TODO" )}
    }
 
-   class Server private[swing] ( val server: SServer ) {
+   final class AudioBus private[swing] ( val bus: SAudioBus ) {
+      def meter( target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail ) : Frame = {
+         makeAudioBusMeter( bus.server, bus.toString(), AudioBusMeterConfig( bus, target, addAction ) :: Nil )
+      }
+   }
+
+   private final case class AudioBusMeterConfig( bus: SAudioBus, target: SGroup, addAction: AddAction )
+
+   private def makeAudioBusMeter( server: SServer, name: String, configs: Seq[ AudioBusMeterConfig ]) : Frame = {
+      val chans: Set[ Int ] = configs.map( _.bus.numChannels )( breakOut )
+      val synthDefs: Map[ Int, SSynthDef ] = chans.map({ numChannels =>
+         import synth._
+         import ugen._
+         val d = SSynthDef( "$swing_meter" + numChannels ) {
+            val sig     = In.ar( "bus".ir, numChannels )
+            val tr      = Impulse.kr( 20 )
+            val peak    = Peak.kr( sig, tr )
+            val rms     = A2K.kr( Lag.ar( sig.squared, 0.1 ))
+            SendReply.kr( tr, Flatten( Zip( peak, rms )), "/$meter" )
+         }
+         numChannels -> d
+      })( breakOut )
+
+      var newMsgs    = Map.empty[ Int, List[ osc.Message ]]
+      var resps      = List.empty[ sosc.Responder ]
+      var synths     = List.empty[ SSynth ]
+      var meters     = Vector.empty[ PeakMeter ]
+      var wasClosed  = false
+
+      configs.foreach { cfg =>
+         import cfg._
+         val numChannels      = bus.numChannels
+         val synth            = new SSynth( target.server )
+         val d                = synthDefs( numChannels )
+		   val newMsg           = synth.newMsg( d.name, target, Seq( "bus" -> bus.index ), addAction )
+         val meter            = new PeakMeter
+         meter.numChannels    = numChannels
+         meter.hasCaption     = true
+         meter.borderVisible  = true
+
+         val resp             = sosc.Responder.add( server ) {
+            case Message( "/$meter", synth.id, _, vals @ _* ) =>
+               val pairs   = vals.asInstanceOf[ Seq[ Float ]].toIndexedSeq
+               val time    = System.currentTimeMillis()
+               Swing.onEDT( meter.update( pairs, 0, time ))
+         }
+
+         synth.onGo { Swing.onEDT {
+            if( wasClosed ) {
+               import Ops._
+               synth.free()
+            } else {
+               synths ::= synth
+            }
+         }}
+
+         newMsgs += numChannels -> (newMsg :: newMsgs.getOrElse( numChannels, d.freeMsg :: Nil ))
+         resps  ::= resp
+//         synths ::= synth
+         meters :+= meter
+      }
+
+      val recvMsgs: List[ osc.Message ] = synthDefs.map({ case (numChannels, d) =>
+         d.recvMsg( completion = Some( osc.Bundle.now( newMsgs( numChannels ): _* )))
+      })( breakOut )
+
+      server ! (recvMsgs match {
+         case single :: Nil => single
+         case _ => osc.Bundle.now( recvMsgs: _* )
+      })
+
+      val f = new Frame {
+         peer.getRootPane.putClientProperty( "Window.style", "small" )
+         title = "Meter (" + name + ")"
+         contents = new BoxPanel( Orientation.Horizontal ) {
+            contents ++= meters
+         }
+         pack().centerOnScreen()
+
+         override def toString = "MeterFrame@" + hashCode().toHexString
+
+         override def closeOperation() {
+            resps.foreach( _.remove() )
+            meters.foreach( _.dispose() )
+            wasClosed      = true
+            val freeMsgs   = synths.map( _.freeMsg )
+            this.dispose()
+            freeMsgs match {
+               case single :: Nil => server ! single
+               case Nil =>
+               case _ => server ! osc.Bundle.now( freeMsgs: _* )
+            }
+         }
+         visible = true
+      }
+      f
+   }
+
+   final class Server private[swing] ( val server: SServer ) {
       def tree() { new Group( server.rootNode ).tree() }
+
       def meter() : Frame = {
-         val name       = server.name
          val opt        = server.config
          val numInputs  = opt.inputBusChannels
          val numOutputs = opt.outputBusChannels
-         val sections   = List(
-            ("in",  AudioBus( server, numOutputs, numInputs ), addToHead),   // hardware inputs
-            ("out", AudioBus( server, 0, numOutputs ), addToTail)            // hardware outputs
-         ).map {
-            case (suffix, bus, addAction) =>
-               val meter = new PeakMeter {
-                  numChannels    = bus.numChannels
-                  hasCaption     = true
-                  borderVisible  = true
-captionLabels = false // XXX currently they have wrong layout
-               }
-
-               import de.sciss.synth._
-               import ugen._
-
-               val df = SynthDef( "$" + name + "-" + suffix + "putmeter" ) {
-                  val sig     = In.ar( bus.index, bus.numChannels )
-                  val tr      = Impulse.kr( 20 )
-                  val peak    = Peak.kr( sig, tr )
-                  val rms     = A2K.kr( Lag.ar( sig.squared, 0.1 ))
-                  SendReply.kr( tr, Flatten( Zip( peak, rms )), "/$meter" )
-               }
-               val synth = df.play( target = server.rootNode, addAction = addAction )
-               val resp = osc.Responder.add( server ) {
-                  case Message( "/$meter", synth.id, _, vals @ _* ) =>
-                     val pairs   = vals.asInstanceOf[ Seq[ Float ]].toIndexedSeq
-                     val time    = System.currentTimeMillis
-                     Swing.onEDT( meter.update( pairs, 0, time ))
-               }
-
-               (meter, synth, resp)
-         }
-
-         val f = new Frame {
-            title = "Meter : " + name
-            contents = new BoxPanel( Orientation.Horizontal ) {
-               contents ++= sections.map( _._1 )
-            }
-            pack().centerOnScreen()
-
-            override def closeOperation() {
-               sections.foreach {
-                  case (meter, synth, resp) =>
-                     import Ops._
-                     this.dispose()
-                     resp.remove()
-                     synth.free()
-                     meter.dispose()
-               }
-            }
-            visible = true
-         }
-         f
+         val target     = server.rootNode
+         val inBus      = SAudioBus( server, index = numOutputs, numChannels = numInputs )
+         val outBus     = SAudioBus( server, index = 0,          numChannels = numOutputs )
+         val inCfg      = AudioBusMeterConfig( inBus,  target, addToHead )
+         val outCfg     = AudioBusMeterConfig( outBus, target, addToTail )
+         makeAudioBusMeter( server, server.toString(), inCfg :: outCfg :: Nil )
       }
    }
 }
