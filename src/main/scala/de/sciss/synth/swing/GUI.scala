@@ -23,15 +23,19 @@
  *  contact@sciss.de
  */
 
-package de.sciss.synth.swing
+package de.sciss.synth
+package swing
 
 import sys.error
 import de.sciss.gui.PeakMeter
 import de.sciss.osc.Message
-import de.sciss.synth.{Group => SGroup, Server => SServer, AudioBus => SAudioBus, Synth => SSynth, osc => sosc, SynthDef => SSynthDef, AddAction, Ops, addToHead, addToTail}
-import swing.{Swing, BoxPanel, Orientation, Frame}
+import de.sciss.synth.{GraphFunction => SGraphFunction, Group => SGroup, Server => SServer, Node => SNode,
+   AudioBus => SAudioBus, Synth => SSynth, osc => sosc, SynthDef => SSynthDef, SynthGraph => SSynthGraph }
+import scala.swing.{Swing, BoxPanel, Orientation, Frame}
 import de.sciss.{synth, osc}
 import collection.breakOut
+import collection.immutable.{IndexedSeq => IIdxSeq}
+import java.io.File
 
 object GUI {
    final class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
@@ -43,6 +47,82 @@ object GUI {
    final class AudioBus private[swing] ( val bus: SAudioBus ) {
       def meter( target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail ) : Frame = {
          makeAudioBusMeter( bus.server, bus.toString(), AudioBusMeterConfig( bus, target, addAction ) :: Nil )
+      }
+   }
+
+   private final case class GUIRecordOut( in: GE )( chanFun: Int => Unit )
+   extends UGenSource.ZeroOut( "GUIRecordOut" ) with WritesBus {
+      protected def makeUGens { unwrap( in.expand.outputs )}
+
+      protected def makeUGen( ins: IIdxSeq[ UGenIn ]) {
+         if( ins.isEmpty ) return
+
+         import synth._
+         import ugen._
+         val rate       = ins.map( _.rate ).max
+         val signal: GE = if( rate == audio ) ins else K2A.ar( ins )
+         val buf        = "$buf".ir
+//         val dur        = "$dur".ir
+//         val out        = Out.ar( bus, signal )
+         val out        = RecordBuf.ar( signal, buf, loop = 0, doneAction = freeSelf )
+//         val out = DiskOut.ar( buf, signal )
+//         Line.kr( 0, 0, dur = dur, doneAction = freeSelf )
+         chanFun( ins.size )
+         out.expand
+      }
+   }
+
+   final class GraphFunction[ T ] private[swing]( target: SNode, outBus: Int, fadeTime: Option[ Double ], addAction: AddAction,
+                                                  thunk: => T )( implicit result: SGraphFunction.Result.In[ T ]) {
+      def waveform( duration: Double = 0.1 ) : Frame = {
+         val server     = target.server
+
+         require( server.isLocal, "Currently requires that Server is local" )
+
+         var numChannels= 0
+         val sg         = SSynthGraph {
+            val r       = thunk
+            val signal  = result.view( r )
+            GUIRecordOut( signal )( numChannels = _ )
+         }
+         val ug         = sg.expand
+         val defName    = "$swing_waveform" + numChannels
+         val sd         = SynthDef( defName, ug )
+         val syn        = new SSynth( server )
+         val sr         = server.sampleRate
+         val numFrames  = math.ceil( duration * sr ).toInt
+
+//         def roundUp( i: Int ) = { val j = i + 32768 - 1; j - j % 32768 }
+//
+//         val numFramesC = roundUp( numFrames )
+//         val durC       = numFramesC / server.sampleRate
+         val buf        = Buffer( server )
+         val synthMsg   = syn.newMsg( defName, target, List( "$buf" -> buf.id ), addAction )
+         val defFreeMsg = sd.freeMsg
+         val compl      = osc.Bundle.now( synthMsg, defFreeMsg )
+         val recvMsg    = sd.recvMsg
+         val allocMsg   = buf.allocMsg( numFrames, numChannels, compl )
+//         val allocMsg   = buf.allocMsg( numFrames, numChannels,
+//            completion = buf.writeMsg( path, numFrames = 0, leaveOpen = true, completion = compl ))
+
+         val path       = File.createTempFile( "scalacollider", ".aif" )
+
+         def openBuffer() {
+            println( "JO CHUCK " + path )
+         }
+
+         syn.onEnd {
+            val syncMsg    = server.syncMsg()
+            val syncID     = syncMsg.id
+            val writeMsg   = buf.writeMsg( path.getAbsolutePath, completion = osc.Bundle.now( buf.freeMsg, syncMsg ))
+            server.!?( 10000L, writeMsg, {
+               case sosc.SyncedMessage( `syncID` ) => openBuffer()
+               case actors.TIMEOUT => println( "Timeout!" )
+            })
+         }
+         server ! osc.Bundle.now( recvMsg, allocMsg )
+
+         null // XXX TODO
       }
    }
 
