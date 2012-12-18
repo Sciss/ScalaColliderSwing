@@ -11,6 +11,15 @@ val x = play {
 
 x release 10
 
+// plotter
+val x = gui {
+   val f = LFSaw.kr(0.4).madd(24, LFSaw.kr(List(8, 7.23)).madd(3, 80)).midicps // glissando function
+   CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
+}
+
+x.waveform(duration = 2)
+
+
 val dfx = SynthDef("AnalogBubbles") {
    val f1 = "freq1".kr(0.4)
    val f2 = "freq2".kr(8)

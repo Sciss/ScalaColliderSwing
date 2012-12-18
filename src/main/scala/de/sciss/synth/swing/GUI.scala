@@ -38,7 +38,7 @@ import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.io.File
 import de.sciss.gui.j.WavePainter
 import javax.swing.JComponent
-import java.awt.{RenderingHints, Color, Dimension, Rectangle, Graphics2D, Graphics}
+import java.awt.{Font, Point, RenderingHints, Color, Dimension, Graphics2D, Graphics}
 
 object GUI {
    final class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
@@ -85,18 +85,18 @@ object GUI {
 
          require( server.isLocal, "Currently requires that Server is local" )
 
-         var numChannels= 0
+         var numCh = 0
          val sg         = SSynthGraph {
             val r       = thunk
             val signal  = result.view( r )
-            GUIRecordOut( signal )( numChannels = _ )
+            GUIRecordOut( signal )( numCh = _ )
          }
          val ug         = sg.expand
-         val defName    = "$swing_waveform" + numChannels
+         val defName    = "$swing_waveform" + numCh
          val sd         = SynthDef( defName, ug )
          val syn        = new SSynth( server )
          val sr         = server.sampleRate
-         val numFrames  = math.ceil( duration * sr ).toInt
+         val numFr      = math.ceil( duration * sr ).toInt
 
 //         def roundUp( i: Int ) = { val j = i + 32768 - 1; j - j % 32768 }
 //
@@ -106,7 +106,7 @@ object GUI {
          val synthMsg   = syn.newMsg( defName, target, List( "$buf" -> buf.id, "$dur" -> duration ), addAction )
          val defFreeMsg = sd.freeMsg
          val compl      = osc.Bundle.now( synthMsg, defFreeMsg )
-         val recvMsg    = sd.recvMsg( buf.allocMsg( numFrames, numChannels, compl ))
+         val recvMsg    = sd.recvMsg( buf.allocMsg( numFr, numCh, compl ))
 //         val allocMsg   = buf.allocMsg( numFrames, numChannels,
 //            completion = buf.writeMsg( path, numFrames = 0, leaveOpen = true, completion = compl ))
 
@@ -114,9 +114,15 @@ object GUI {
 
          val path          = File.createTempFile( "scalacollider", ".aif" )
 
-         var paintFun : Graphics2D => Unit = (_) => ()
+         val fontWait      = new Font( "sans", Font.PLAIN, 24 )
+         var paintFun : Graphics2D => Unit = { g =>
+            g.setFont( fontWait )
+            g.setColor( Color.white )
+            g.drawString( "\u231B ...", 10, 26 )   // u231A = 'watch', u231B = 'hourglass'
+         }
 
          lazy val component = new JComponent {
+            setFocusable( true )
             setPreferredSize( new Dimension( 400, 400 ))
             override def paintComponent( g: Graphics ) {
                val g2 = g.asInstanceOf[ Graphics2D ]
@@ -137,30 +143,44 @@ object GUI {
             // println( "JO CHUCK " + path )
             val af = io.AudioFile.openRead( path )
             try {
-               val num  = math.min( numFrames, af.numFrames ).toInt
-               val data = Array.ofDim[ Float ]( numChannels, num )
+               val num  = math.min( numFr, af.numFrames ).toInt
+               val data = Array.ofDim[ Float ]( numCh, num )
                af.read( data, 0, num )
                af.close()
 //println( "... read " + num + " frames from " + path.getAbsolutePath )
                val pntSrc  = MultiResolution.Source.wrap( data )
-               val place   = new MultiResolution.ChannelPlacement {
-                  def rectangleForChannel( ch: Int, result: Rectangle ) {
-                     val w             = component.getWidth
+               val display = new WavePainter.Display {
+                  def numChannels   = numCh
+                  def numFrames     = numFr
+
+                  def refreshAllChannels() { component.repaint() }
+
+                  def channelDimension( result: Dimension ) {
+                     result.width      = component.getWidth
                      val h             = component.getHeight
-                     val viewHeight    = (h - ((numChannels - 1) * 4)) / numChannels
+                     result.height     = (h - ((numCh - 1) * 4)) / numCh
+                  }
+
+                  def channelLocation( ch: Int, result: Point ) {
+                     result.x          = 0
+                     val h             = component.getHeight
+                     val viewHeight    = (h - ((numCh - 1) * 4)) / numCh
                      val trackHeight   = viewHeight + 4
-                     result.setBounds( 0, trackHeight * ch, w, viewHeight )
+                     result.y          = trackHeight * ch
                   }
                }
-               val painter  = MultiResolution( pntSrc, place )
+               val painter       = MultiResolution( pntSrc, display )
                painter.startFrame= 0L
-               painter.stopFrame = numFrames
+               painter.stopFrame = numFr
                painter.magLow    = -1
                painter.magHigh   = 1
                painter.peakColor = Color.gray
                painter.rmsColor  = Color.white
                paintFun = painter.paint
+               WavePainter.HasZoom.defaultKeyActions( painter, display ).foreach( _.install( component ))
+               component.addMouseWheelListener( WavePainter.HasZoom.defaultMouseWheelAction( painter, display ))
                component.repaint()
+               component.requestFocus()
 
             } finally {
                if( af.isOpen ) af.close()
