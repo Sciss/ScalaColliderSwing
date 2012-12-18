@@ -36,6 +36,9 @@ import de.sciss.{synth, osc}
 import collection.breakOut
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.io.File
+import de.sciss.gui.j.WavePainter
+import javax.swing.JComponent
+import java.awt.{RenderingHints, Color, Dimension, Rectangle, Graphics2D, Graphics}
 
 object GUI {
    final class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
@@ -64,11 +67,14 @@ object GUI {
          val buf        = "$buf".ir
 //         val dur        = "$dur".ir
 //         val out        = Out.ar( bus, signal )
-         val out        = RecordBuf.ar( signal, buf, loop = 0, doneAction = freeSelf )
+
+         // XXX RecordBuf doneAction is broken for multi-channel signals
+         /* val out = */ RecordBuf.ar( signal, buf, loop = 0 /* , doneAction = freeSelf */ )
 //         val out = DiskOut.ar( buf, signal )
-//         Line.kr( 0, 0, dur = dur, doneAction = freeSelf )
+         /* val line = */ Line.kr( 0, 0, dur = "$dur".ir, doneAction = freeSelf )
          chanFun( ins.size )
-         out.expand
+//         out.expand
+//         line.expand
       }
    }
 
@@ -97,18 +103,68 @@ object GUI {
 //         val numFramesC = roundUp( numFrames )
 //         val durC       = numFramesC / server.sampleRate
          val buf        = Buffer( server )
-         val synthMsg   = syn.newMsg( defName, target, List( "$buf" -> buf.id ), addAction )
+         val synthMsg   = syn.newMsg( defName, target, List( "$buf" -> buf.id, "$dur" -> duration ), addAction )
          val defFreeMsg = sd.freeMsg
          val compl      = osc.Bundle.now( synthMsg, defFreeMsg )
-         val recvMsg    = sd.recvMsg
-         val allocMsg   = buf.allocMsg( numFrames, numChannels, compl )
+         val recvMsg    = sd.recvMsg( buf.allocMsg( numFrames, numChannels, compl ))
 //         val allocMsg   = buf.allocMsg( numFrames, numChannels,
 //            completion = buf.writeMsg( path, numFrames = 0, leaveOpen = true, completion = compl ))
 
-         val path       = File.createTempFile( "scalacollider", ".aif" )
+         import WavePainter.MultiResolution
+
+         val path          = File.createTempFile( "scalacollider", ".aif" )
+
+         var paintFun : Graphics2D => Unit = (_) => ()
+
+         lazy val component = new JComponent {
+            setPreferredSize( new Dimension( 400, 400 ))
+            override def paintComponent( g: Graphics ) {
+               val g2 = g.asInstanceOf[ Graphics2D ]
+               g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,   RenderingHints.VALUE_ANTIALIAS_ON )
+               g2.setRenderingHint( RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE  )
+               g2.setColor( Color.black )
+               g2.fillRect( 0, 0, getWidth, getHeight )
+               paintFun( g2 ) // painter.paint( g2 )
+            }
+         }
+
+         val box = scala.swing.Component.wrap( component )
+         val f = makeFrame( "Plot", "PlotFrame", box, smallBar = false ) {
+            path.delete()
+         }
 
          def openBuffer() {
-            println( "JO CHUCK " + path )
+            // println( "JO CHUCK " + path )
+            val af = io.AudioFile.openRead( path )
+            try {
+               val num  = math.min( numFrames, af.numFrames ).toInt
+               val data = Array.ofDim[ Float ]( numChannels, num )
+               af.read( data, 0, num )
+               af.close()
+//println( "... read " + num + " frames from " + path.getAbsolutePath )
+               val pntSrc  = MultiResolution.Source.wrap( data )
+               val place   = new MultiResolution.ChannelPlacement {
+                  def rectangleForChannel( ch: Int, result: Rectangle ) {
+                     val w             = component.getWidth
+                     val h             = component.getHeight
+                     val viewHeight    = (h - ((numChannels - 1) * 4)) / numChannels
+                     val trackHeight   = viewHeight + 4
+                     result.setBounds( 0, trackHeight * ch, w, viewHeight )
+                  }
+               }
+               val painter  = MultiResolution( pntSrc, place )
+               painter.startFrame= 0L
+               painter.stopFrame = numFrames
+               painter.magLow    = -1
+               painter.magHigh   = 1
+               painter.peakColor = Color.gray
+               painter.rmsColor  = Color.white
+               paintFun = painter.paint
+               component.repaint()
+
+            } finally {
+               if( af.isOpen ) af.close()
+            }
          }
 
          syn.onEnd {
@@ -120,9 +176,9 @@ object GUI {
                case actors.TIMEOUT => println( "Timeout!" )
             })
          }
-         server ! osc.Bundle.now( recvMsg, allocMsg )
+         server ! recvMsg // osc.Bundle.now( recvMsg, allocMsg )
 
-         null // XXX TODO
+         f
       }
    }
 
@@ -191,31 +247,41 @@ object GUI {
          case _ => osc.Bundle.now( recvMsgs: _* )
       })
 
-      val f = new Frame {
-         peer.getRootPane.putClientProperty( "Window.style", "small" )
-         title = "Meter (" + name + ")"
-         contents = new BoxPanel( Orientation.Horizontal ) {
-            contents ++= meters
+      val box = new BoxPanel( Orientation.Horizontal ) {
+         contents ++= meters
+      }
+      makeFrame( "Meter (" + name + ")", "MeterFrame", box ) {
+         resps.foreach( _.remove() )
+         meters.foreach( _.dispose() )
+         wasClosed      = true
+         val freeMsgs   = synths.map( _.freeMsg )
+         freeMsgs match {
+            case single :: Nil => server ! single
+            case Nil =>
+            case _ => server ! osc.Bundle.now( freeMsgs: _* )
          }
-         pack().centerOnScreen()
+      }
+   }
 
-         override def toString = "MeterFrame@" + hashCode().toHexString
+   private def makeFrame( name: String, string: String, component: scala.swing.Component, smallBar: Boolean = true )
+                        ( onClose: => Unit ) : Frame = {
+      new Frame {
+         if( smallBar ) peer.getRootPane.putClientProperty( "Window.style", "small" )
+         title = name
+         contents = component
+//         new BoxPanel( Orientation.Horizontal ) {
+//            contents ++= meters
+//         }
+         pack().centerOnScreen()
+         visible = true
+
+         override def toString() = string + "@" + hashCode().toHexString
 
          override def closeOperation() {
-            resps.foreach( _.remove() )
-            meters.foreach( _.dispose() )
-            wasClosed      = true
-            val freeMsgs   = synths.map( _.freeMsg )
+            onClose
             this.dispose()
-            freeMsgs match {
-               case single :: Nil => server ! single
-               case Nil =>
-               case _ => server ! osc.Bundle.now( freeMsgs: _* )
-            }
          }
-         visible = true
       }
-      f
    }
 
    final class Server private[swing] ( val server: SServer ) {
