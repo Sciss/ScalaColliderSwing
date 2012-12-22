@@ -98,7 +98,7 @@ object JNodeTreePanel {
       }
    }
 
-   private final val VERBOSE = true
+   private final val VERBOSE = false
 }
 class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike {
    treePanel =>
