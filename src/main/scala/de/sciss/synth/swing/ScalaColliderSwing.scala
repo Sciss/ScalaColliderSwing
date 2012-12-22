@@ -48,7 +48,8 @@ object ScalaColliderSwing extends App {
          shutDown()
          booting = Server.boot( config = sCfg ) {
             case ServerConnection.Preparing( srv ) => {
-               ntp.server = Some( srv )
+//               ntp.server = Some( srv )
+               ntp.group = Some( srv.rootNode )
             }
             case ServerConnection.Running( srv ) => {
                sync.synchronized {
@@ -78,7 +79,7 @@ object ScalaColliderSwing extends App {
       val ntp  = new NodeTreePanel()
       ntp.nodeActionMenu            = true
       ntp.confirmDestructiveActions = true
-      val ntpw = ntp.peer.makeWindow
+      val ntpw = ntp.peer.makeWindow()
       val repl = new REPLSupport( ssp, ntp )
       val sif  = new ScalaInterpreterFrame( repl )
       ntpw.setLocation( sspw.getX, sspw.getY + sspw.getHeight + 32 )

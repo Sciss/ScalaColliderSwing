@@ -44,7 +44,16 @@ object GUI {
    final class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
 
    final class Group private[swing] ( val group: SGroup ) {
-      def tree() { error( "TODO" )}
+      def tree() : Frame = {
+         val ntp  = new NodeTreePanel()
+         ntp.nodeActionMenu            = true
+         ntp.confirmDestructiveActions = true
+         ntp.group                     = Some( group )
+         val ntpw = ntp.peer.makeWindow()
+         ntpw.setLocationRelativeTo( null )
+         ntpw.setVisible( true )
+         null  // XXX TODO can't wrap java swing JFrame in scala swing Frame :-E
+      }
    }
 
    final class AudioBus private[swing] ( val bus: SAudioBus ) {
@@ -305,7 +314,7 @@ object GUI {
    }
 
    final class Server private[swing] ( val server: SServer ) {
-      def tree() { new Group( server.rootNode ).tree() }
+      def tree() : Frame = new Group( server.rootNode ).tree()
 
       def meter() : Frame = {
          val opt        = server.config

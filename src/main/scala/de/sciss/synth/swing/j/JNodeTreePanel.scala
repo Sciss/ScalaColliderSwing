@@ -32,7 +32,7 @@ import prefuse.action.animate.{ ColorAnimator, LocationAnimator, VisibilityAnima
 import prefuse.render.{ AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer, LabelRenderer }
 import prefuse.util.ColorLib
 import prefuse.visual.sort.TreeDepthItemSorter
-import de.sciss.synth._
+import de.sciss.synth.{osc => sosc, Node, Group, Synth, Model, NodeManager, Ops}
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
 import de.sciss.synth.swing.ScalaColliderSwing
@@ -47,6 +47,9 @@ import prefuse.action.assignment.{StrokeAction, ColorAction}
 import javax.swing.{JMenuItem, JOptionPane, Action, AbstractAction, JPopupMenu, WindowConstants, JFrame, JPanel}
 import java.awt.event.{MouseEvent, MouseAdapter, InputEvent, ActionEvent}
 import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomToFitControl}
+import javax.swing.event.{AncestorEvent, AncestorListener}
+import de.sciss.osc
+import annotation.tailrec
 
 //import VisualInsertionTree._
 import DynamicTreeLayout.{ INFO, NodeInfo }
@@ -82,15 +85,20 @@ object JNodeTreePanel {
    private val imgGroup             = Toolkit.getDefaultToolkit.createImage( ScalaColliderSwing.getClass.getResource( "path_group_16.png" ))
    private val imgSynth             = Toolkit.getDefaultToolkit.createImage( ScalaColliderSwing.getClass.getResource( "path_synth_16.png" ))
 
+   private final val ICON_SYNTH     = "synth"
+   private final val ICON_GROUP     = "group"
+
    private class NodeLabelRenderer( label: String ) extends LabelRenderer( label ) {
       override protected def getImage( item: VisualItem ) : Image = {
          item.get( COL_ICON ) match {
-            case "synth" => imgSynth
-            case "group" => imgGroup
+            case ICON_SYNTH => imgSynth
+            case ICON_GROUP => imgGroup
             case _ => null
          }
       }
    }
+
+   private final val VERBOSE = true
 }
 class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike {
    treePanel =>
@@ -129,16 +137,16 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
 //   private val setPausedTuples   = new DefaultTupleSet()
 
    private val nodeListener: Model.Listener = {
-      case NodeGo( synth: Synth, info ) => defer( nlAddSynth(   synth, info ))
-      case NodeGo( group: Group, info ) => defer( nlAddGroup(   group, info ))
-      case NodeEnd( node, info )        => defer( nlRemoveNode( node,  info ))
-      case NodeMove( node, info )       => defer( nlMoveChild(  node,  info ))
-      case NodeOn( node, info )         => defer( nlPauseChild( node, paused = false ))
-      case NodeOff( node, info )        => defer( nlPauseChild( node, paused = true  ))
-      case Cleared                      => defer( nlClear() )
+      case NodeGo(   synth: Synth, info ) => deferIfNeeded( nlAddSynth(   synth, info ))
+      case NodeGo(   group: Group, info ) => deferIfNeeded( nlAddGroup(   group, info ))
+      case NodeEnd(  node, info )         => deferIfNeeded( nlRemoveNode( node,  info ))
+      case NodeMove( node, info )         => deferIfNeeded( nlMoveChild(  node,  info ))
+      case NodeOn(   node, info )         => deferIfNeeded( nlPauseChild( node, paused = false ))
+      case NodeOff(  node, info )         => deferIfNeeded( nlPauseChild( node, paused = true  ))
+      case Cleared                        => deferIfNeeded( nlClear() )
    }
 
-   newRoot()
+//   newRoot()
 
    private val display = new Display( vis )
 
@@ -286,6 +294,87 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       display.setBackground( Color.BLACK )
 
       add( display, BorderLayout.CENTER )
+
+      addAncestorListener( new AncestorListener {
+         def ancestorAdded( e: AncestorEvent ) {
+            startListening()
+         }
+
+         def ancestorRemoved( e: AncestorEvent ) {
+            stopListening()
+         }
+
+         def ancestorMoved( e: AncestorEvent ) {}
+      })
+   }
+
+   private var isListening = false
+
+   private def startListening() {
+      if( isListening ) return
+//println( "startListening" )
+      isListening = true
+
+      swingGroupVar.foreach { g =>
+         val queryMsg   = g.queryTreeMsg( postControls = false )
+         val server     = g.server
+//       val syncMsg    = server.syncMsg()
+//       val syncID     = syncMsg.id
+         server.!?( 5000, queryMsg, {
+//            case sosc.NodeInfoMessage( g.id, info ) =>
+            case osc.Message( "/g_queryTree.reply", 0, g.id, _numChildren: Int, rest @ _* ) =>
+               deferIfNeeded { visDo( ACTION_ADD ) {
+//println( "newRoot " + g )
+                  newRoot( g )
+                  updateFrameTitle()
+                  val iter = rest.iterator
+                  @tailrec def loop( parentID: Int, predID: Int, numChildren: Int ) {
+                     if( numChildren == 0 ) return // pop
+                     val nodeID        = iter.next().asInstanceOf[ Int ]
+                     val subChildren   = iter.next().asInstanceOf[ Int ]
+                     val (node, info, icon) = if( subChildren < 0 ) {
+                        val _info   = sosc.SynthInfo( parentID = parentID, predID = predID, succID = -1 )
+                        /* val defName = */ iter.next().toString
+                        val synth   = Synth( server, nodeID )
+                        (synth, _info, ICON_SYNTH)
+                        // stupid way to set the defName: XXX TODO : synth.newMsg( defName )
+//                        nlAddSynth( synth, info )
+
+                     } else {
+                        val _info   = sosc.GroupInfo( parentID = parentID, predID = predID,
+                                                      succID = -1, headID = -1, tailID = -1 )
+                        val group   = Group( server, nodeID )
+                        (group, _info, ICON_GROUP)
+//                        nlAddGroup( group, info )
+                     }
+                     map.get( parentID ).foreach { p =>
+                        addNode( node, info, p, icon )
+                     }
+
+                     if( subChildren > 0 ) { // push
+                        loop( parentID = nodeID, predID = -1, numChildren = subChildren )
+                     } else {                // iter
+                        loop( parentID = parentID, predID = nodeID, numChildren = numChildren - 1 )
+                     }
+                  }
+
+                  loop( parentID = g.id, predID = -1, numChildren = _numChildren )
+                  server.nodeManager.addListener( nodeListener )
+               }}
+            case sosc.TIMEOUT =>
+               println( queryMsg.name +  " : timeout!" )
+         })
+      }
+   }
+
+   private def stopListening() {
+      if( !isListening ) return
+//println( "stopListening" )
+      isListening = false
+      swingGroupVar.foreach { g =>
+         g.server.nodeManager.removeListener( nodeListener )
+      }
+      nlClear()
    }
 
    // ---- NodeTreePanelLike ----
@@ -309,11 +398,19 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       }
    }
 
-   private def defer( code: => Unit ) {
-      EventQueue.invokeLater( new Runnable { def run() { code }})
+   private def deferIfNeeded( code: => Unit ) {
+      if( EventQueue.isDispatchThread ) {
+         code
+      } else {
+         EventQueue.invokeLater( new Runnable { def run() { code }})
+      }
    }
 
-   private def insertChild( pNode: PNode, pParent: PNode, info: osc.NodeInfo, iNode: NodeInfo ) {
+//   private def deferVisDo( action: String )( code: => Unit ) {
+//      deferIfNeeded( visDo( action )( code ))
+//   }
+
+   private def insertChild( pNode: PNode, pParent: PNode, info: sosc.NodeInfo, iNode: NodeInfo ) {
       val iParent = pParent.get( INFO ).asInstanceOf[ NodeInfo ]
       val pPred   = if( info.predID == -1 ) {
          iParent.head = pNode
@@ -375,7 +472,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       }
    }
 
-   private def createChild( node: Node, pParent: PNode, info: osc.NodeInfo ) : PNode = {
+   private def createChild( node: Node, pParent: PNode, info: sosc.NodeInfo ) : PNode = {
       val pNode   = t.addNode()
       t.addEdge( pParent, pNode )
       val iNode   = new NodeInfo
@@ -386,31 +483,35 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       pNode
    }
 
-   private def nlAddSynth( synth: Synth, info: osc.NodeInfo ) {
-      map.get( info.parentID ).map( pParent => visDo( ACTION_ADD ) {
-         val pNode = createChild( synth, pParent, info )
-         pNode.set( COL_LABEL, synth.id.toString )
-         pNode.set( COL_ICON, "synth" )
-         initPos( pNode )
+   private def nlAddSynth( synth: Synth, info: sosc.NodeInfo ) {
+      val pNodeOpt = map.get( info.parentID )
+      pNodeOpt.foreach( pParent => visDo( ACTION_ADD ) {
+         addNode( synth, info, pParent, ICON_SYNTH )
       })
    }
 
-   private def nlAddGroup( group: Group, info: osc.NodeInfo ) {
-      map.get( info.parentID ).map( pParent => visDo( ACTION_ADD ) {
-         val pNode = createChild( group, pParent, info )
-         pNode.set( COL_LABEL, group.id.toString )
-         pNode.set( COL_ICON, "group" )
-         initPos( pNode )
+   private def nlAddGroup( group: Group, info: sosc.NodeInfo ) {
+      val pNodeOpt = map.get( info.parentID )
+      pNodeOpt.foreach( pParent => visDo( ACTION_ADD ) {
+         addNode( group, info, pParent, ICON_GROUP )
       })
    }
 
-   private def nlRemoveNode( node: Node, info: osc.NodeInfo ) {
+   private def addNode( n: Node, info: sosc.NodeInfo, pParent: PNode, icon: String ) {
+if( VERBOSE ) println( "add " + n + " ; " + info + " ; " + pParent )
+      val pNode = createChild( n, pParent, info )
+      pNode.set( COL_LABEL, n.id.toString )
+      pNode.set( COL_ICON, icon )
+      initPos( pNode )
+   }
+
+   private def nlRemoveNode( node: Node, info: sosc.NodeInfo ) {
       map.get( node.id ).foreach( pNode => visDo( ACTION_LAYOUT ) {
          deleteChild( node, pNode )
       })
    }
 
-   private def nlMoveChild( node: Node, info: osc.NodeInfo ) {
+   private def nlMoveChild( node: Node, info: sosc.NodeInfo ) {
       map.get( node.id ).foreach( pNode => visDo( ACTION_LAYOUT ) {
          val iNode   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
          val oldEdge = t.getEdge( iNode.parent, pNode )
@@ -429,56 +530,57 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
    private def nlPauseChild( node: Node, paused: Boolean ) {
       map.get( node.id ).foreach( pNode => visDo( ACTION_RUN ) {
          pNode.setBoolean( COL_PAUSED, paused )
-//         val vi = vis.getVisualItem( GROUP_NODES, pNode )
-//         if( vi != null ) {
-//            if( onOff) {
-//               setPausedTuples.addTuple( vi )
-//            } else {
-//               setPausedTuples.removeTuple( vi )
-//            }
-//         }
       })
    }
 
    private def nlClear() {
-      visDo( ACTION_LAYOUT ) {
+      visCancel {
 //         setPausedTuples.clear()
          t.clear()
          map = IntMap.empty
-         newRoot()
+//         newRoot()
       }
    }
 
-   private def newRoot() {
+   private def newRoot( g: Group ) {
       val r = t.addNode()
-      r.set( INFO, new NodeInfo )
+      val iNode   = new NodeInfo
+      r.set( INFO, iNode )
+      r.set( COL_NODE, g )
+      r.set( COL_ICON, ICON_GROUP )
       val vi = vis.getVisualItem( GROUP_TREE, r ).asInstanceOf[ NodeItem ]
       val pt = lay.getLayoutAnchor
       vi.setX( pt.getX )
       vi.setY( pt.getY )
       lay.layoutRoot = vi
-      map += 0 -> r
+      map += g.id -> r
    }
 
    private val sync = new AnyRef
-   private var serverVar: Option[ Server ] = None
-   def server: Option[ Server ] = serverVar
+//   private var serverVar: Option[ Server ] = None
+//   def server: Option[ Server ] = serverVar
+
+   private var groupVar      : Option[ Group ] = None
+   private var swingGroupVar : Option[ Group ] = None
+
+   def group: Option[ Group ] = groupVar
 
    /**
     * This method is thread-safe.
     */
-   def server_=( s: Option[ Server ]) {
+   def group_=( value: Option[ Group ]) {
       sync.synchronized {
-         serverVar.foreach( _.nodeManager.removeListener( nodeListener ))
-         serverVar = s
-         defer {
-            nlClear()
-            updateFrameTitle()
+         groupVar = value
+
+         deferIfNeeded {
+            val active = isListening
+            if( active ) stopListening()
+            swingGroupVar = value
+            if( active ) startListening()
          }
-         serverVar.foreach( _.nodeManager.addListener( nodeListener ))
       }
    }
-      
+
    private def initPos( pNode: PNode ) {
       val pParent = pNode.get( INFO ).asInstanceOf[ NodeInfo ].parent
 //println( "initPosAndAnimate " + pParent )
@@ -511,24 +613,45 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       }
    }
 
-   private var frame: Option[ JFrame ] = None
-
-   private def updateFrameTitle() {
-      sync.synchronized {
-         frame.foreach( _.setTitle( frameTitle + serverVar.map( s => " (" + s + ")" ).getOrElse( "" )))
+   private def visCancel( code: => Unit ) {
+      vis.synchronized {
+         vis.cancel( ACTION_ANIM )
+         code
       }
    }
 
-	def makeWindow: JFrame = {
-      frame getOrElse {
-         val fr = sync.synchronized {
-            new JFrame()
+   private var frame: Option[ JFrame ] = None
+
+   private def updateFrameTitle() {
+      frame.foreach { fr =>
+         val tit = swingGroupVar match {
+            case Some( g ) => frameTitle + " (" + (if( g.id == 0 ) g.server.toString() else g.toString) + ")"
+            case None      => frameTitle
          }
-         fr.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
+         fr.setTitle( tit )
+      }
+   }
+
+	def makeWindow( disposeOnClose: Boolean = true ): JFrame = {
+      require( EventQueue.isDispatchThread )
+      frame getOrElse {
+         val fr = new JFrame()
+         fr.setDefaultCloseOperation(
+            if( disposeOnClose ) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE
+         )
          fr.getContentPane.add( this )
          fr.pack()
          frame = Some( fr )
          updateFrameTitle()
+
+//         if( disposeOnClose ) {
+//            fr.addWindowListener( new WindowAdapter {
+//               override def windowClosing( e: WindowEvent ) {
+//                  // setServerNoRefresh( None )
+//               }
+//            })
+//         }
+
          fr
       }
 	}

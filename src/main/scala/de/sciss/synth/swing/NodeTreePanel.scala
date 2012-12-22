@@ -27,13 +27,15 @@ package de.sciss.synth.swing
 
 import j.{NodeTreePanelLike, JNodeTreePanel}
 import scala.swing.Component
-import de.sciss.synth.Server
+import de.sciss.synth.{Group, Server}
 
 class NodeTreePanel extends Component with NodeTreePanelLike {
    override lazy val peer: JNodeTreePanel = new JNodeTreePanel with SuperMixin
 
-   def server: Option[ Server ]        = peer.server
-   def server_=( s: Option[ Server ]) { peer.server_=( s )}
+//   def server: Option[ Server ]        = peer.server
+//   def server_=( s: Option[ Server ]) { peer.server_=( s )}
+   def group: Option[ Group ]        = peer.group
+   def group_=( value: Option[ Group ]) { peer.group = value }
 
    def nodeActionMenu = peer.nodeActionMenu
    def nodeActionMenu_=( b: Boolean ) { peer.nodeActionMenu = b }

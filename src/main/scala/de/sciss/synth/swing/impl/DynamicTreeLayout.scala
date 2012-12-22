@@ -182,6 +182,9 @@ extends Layout( group ) {
     * @see prefuse.action.Action#run(double)
     */
    def run( frac: Double ) {
+      val root   = rootVar
+      if( root == null ) return  // graceful fail
+
       val g = m_vis.getGroup( m_group ).asInstanceOf[ prefuse.data.Graph ]
       initSchema( g.getNodes )
 
@@ -192,7 +195,6 @@ extends Layout( group ) {
       anchorX = a.getX
       anchorY = a.getY
 
-      val root   = layoutRoot
       val rp     = getParams( root )
 
       // do first pass - compute breadth information, collect depth info
