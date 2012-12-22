@@ -6,13 +6,13 @@ ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008
 
 ### requirements / building
 
-ScalaCollider-Swing currently compiles against the Scala 2.9.2 and requires Java 1.6. Targets for sbt 0.12.0: `clean`, `update`, `compile`, `doc`, `package`, `standalone`, `appbundle`, where `standalone` creates a fully self-contained jar, and `appbundle` updates the Mac OS X application bundle.
+ScalaCollider-Swing compiles against Scala 2.10 (default) and 2.9.2 using sbt 0.12. Targets for sbt: `clean`, `update`, `compile`, `doc`, `package`, `standalone`, `appbundle`, where `standalone` creates a fully self-contained jar, and `appbundle` updates the Mac OS X application bundle.
 
 To link to ScalaCollider-Swing:
 
     resolvers += "Clojars Repository" at "http://clojars.org/repo"
     
-    "de.sciss" %% "scalacolliderswing" % "1.2.+"
+    "de.sciss" %% "scalacolliderswing" % "1.3.+"
 
 ### running
 
@@ -38,7 +38,8 @@ Then to create the IDEA project, run `sbt gen-idea`.
 
 ### documentation
 
-There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://www.screencast.com/t/YjUwNDZjMT)
+ - There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://www.screencast.com/t/YjUwNDZjMT)
+ - ScalaCollider was also presented at [Scala Days 2012](http://skillsmatter.com/podcast/scala/scalacollider)
 
 ### download
 

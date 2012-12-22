@@ -636,13 +636,14 @@ if( VERBOSE ) println( "add " + n + " ; " + info + " ; " + pParent )
       require( EventQueue.isDispatchThread )
       frame getOrElse {
          val fr = new JFrame()
+         fr.getRootPane.putClientProperty( "Window.style", "small" )
          fr.setDefaultCloseOperation(
             if( disposeOnClose ) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE
          )
          fr.getContentPane.add( this )
          fr.pack()
-         frame = Some( fr )
-         updateFrameTitle()
+         fr.setLocationRelativeTo( null )
+         setFrame( fr )
 
 //         if( disposeOnClose ) {
 //            fr.addWindowListener( new WindowAdapter {
@@ -655,6 +656,11 @@ if( VERBOSE ) println( "add " + n + " ; " + info + " ; " + pParent )
          fr
       }
 	}
+
+   private[swing] def setFrame( fr: JFrame ) {
+      frame = Some( fr )
+      updateFrameTitle()
+   }
 
    private def isPaused( n: Node ) : Boolean = map.get( n.id ).map( _.getBoolean( COL_PAUSED )).getOrElse( false )
 

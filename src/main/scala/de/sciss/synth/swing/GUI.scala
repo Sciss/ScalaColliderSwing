@@ -26,7 +26,6 @@
 package de.sciss.synth
 package swing
 
-import sys.error
 import de.sciss.audiowidgets.PeakMeter
 import de.sciss.osc.Message
 import de.sciss.synth.{GraphFunction => SGraphFunction, Group => SGroup, Server => SServer, Node => SNode,
@@ -45,20 +44,28 @@ object GUI {
 
    final class Group private[swing] ( val group: SGroup ) {
       def tree() : Frame = {
-         val ntp  = new NodeTreePanel()
+         val ntp                       = new NodeTreePanel()
          ntp.nodeActionMenu            = true
          ntp.confirmDestructiveActions = true
          ntp.group                     = Some( group )
-         val ntpw = ntp.peer.makeWindow()
-         ntpw.setLocationRelativeTo( null )
-         ntpw.setVisible( true )
-         null  // XXX TODO can't wrap java swing JFrame in scala swing Frame :-E
+         val ntpw                      = ntp.makeWindow()
+         ntpw.open()
+         ntpw
       }
    }
 
    final class AudioBus private[swing] ( val bus: SAudioBus ) {
       def meter( target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail ) : Frame = {
          makeAudioBusMeter( bus.server, bus.toString, AudioBusMeterConfig( bus, target, addAction ) :: Nil )
+      }
+
+      def waveform( duration: Double = 0.1, target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail ) : Frame = {
+         val gf = new GraphFunction( target = target, fadeTime = None, outBus = 0, addAction = addAction,
+                                     args = ("$inbus" -> bus.index) :: Nil, thunk = {
+            import ugen._
+            In.ar( "$inbus".ir, bus.numChannels )
+         })
+         gf.waveform( duration )
       }
    }
 
@@ -88,7 +95,8 @@ object GUI {
    }
 
    final class GraphFunction[ T ] private[swing]( target: SNode, outBus: Int, fadeTime: Option[ Double ], addAction: AddAction,
-                                                  thunk: => T )( implicit result: SGraphFunction.Result.In[ T ]) {
+                                                  args: Seq[ ControlSetMap ], thunk: => T )
+                                                ( implicit result: SGraphFunction.Result.In[ T ]) {
       def waveform( duration: Double = 0.1 ) : Frame = {
          val server     = target.server
 
@@ -112,7 +120,8 @@ object GUI {
 //         val numFramesC = roundUp( numFrames )
 //         val durC       = numFramesC / server.sampleRate
          val buf        = Buffer( server )
-         val synthMsg   = syn.newMsg( defName, target, List( "$buf" -> buf.id, "$dur" -> duration ), addAction )
+         val myArgs: List[ ControlSetMap ] = List( "$buf" -> buf.id, "$dur" -> duration )
+         val synthMsg   = syn.newMsg( defName, target, myArgs ++ args, addAction )
          val defFreeMsg = sd.freeMsg
          val compl      = osc.Bundle.now( synthMsg, defFreeMsg )
          val recvMsg    = sd.recvMsg( buf.allocMsg( numFr, numCh, compl ))
@@ -123,7 +132,7 @@ object GUI {
 
          val path          = File.createTempFile( "scalacollider", ".aif" )
 
-         val fontWait      = new Font( "sans", Font.PLAIN, 24 )
+         val fontWait      = new Font( Font.SANS_SERIF, Font.PLAIN, 24 )
          var paintFun : Graphics2D => Unit = { g =>
             g.setFont( fontWait )
             g.setColor( Color.white )
@@ -144,7 +153,7 @@ object GUI {
          }
 
          val box = scala.swing.Component.wrap( component )
-         val f = makeFrame( "Plot", "PlotFrame", box, smallBar = false ) {
+         val f = makeFrame( "Plot", "PlotFrame", box /* , smallBar = false */ ) {
             path.delete()
          }
 

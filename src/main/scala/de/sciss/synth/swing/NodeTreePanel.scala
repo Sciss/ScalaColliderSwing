@@ -26,16 +26,41 @@
 package de.sciss.synth.swing
 
 import j.{NodeTreePanelLike, JNodeTreePanel}
-import scala.swing.Component
+import swing.{Frame, Component}
 import de.sciss.synth.{Group, Server}
+import java.awt.EventQueue
+import javax.swing.WindowConstants
 
 class NodeTreePanel extends Component with NodeTreePanelLike {
+   treePanel =>
+
    override lazy val peer: JNodeTreePanel = new JNodeTreePanel with SuperMixin
+
+   private var frame = Option.empty[ Frame ]
 
 //   def server: Option[ Server ]        = peer.server
 //   def server_=( s: Option[ Server ]) { peer.server_=( s )}
    def group: Option[ Group ]        = peer.group
    def group_=( value: Option[ Group ]) { peer.group = value }
+
+   def makeWindow( disposeOnClose: Boolean = true ): Frame = {
+      require( EventQueue.isDispatchThread )
+      frame getOrElse {
+         val fr = new Frame() {
+            override def toString() = "NodeTreeFrame@" + hashCode().toHexString
+         }
+         fr.peer.setDefaultCloseOperation(
+            if( disposeOnClose ) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE
+         )
+         fr.peer.getRootPane.putClientProperty( "Window.style", "small" )
+         fr.contents = treePanel
+         fr.pack()
+         fr.centerOnScreen()
+         peer.setFrame( fr.peer )
+         frame = Some( fr )
+         fr
+      }
+   }
 
    def nodeActionMenu = peer.nodeActionMenu
    def nodeActionMenu_=( b: Boolean ) { peer.nodeActionMenu = b }

@@ -36,7 +36,7 @@ object Implicits {
       def apply[ T : GraphFunction.Result.In ]( target: Node = Server.default, outBus: Int = 0,
                 fadeTime: Optional[ Double ] = None, addAction: AddAction = addToHead )
                                               ( thunk: => T ) : GUI.GraphFunction[ T ] = {
-         new GUI.GraphFunction( target, outBus, fadeTime.option, addAction, thunk )
+         new GUI.GraphFunction( target, outBus, fadeTime.option, addAction, Nil, thunk )
       }
    }
 
