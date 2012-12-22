@@ -27,7 +27,7 @@ package de.sciss.synth
 package swing
 
 import sys.error
-import de.sciss.gui.PeakMeter
+import de.sciss.audiowidgets.PeakMeter
 import de.sciss.osc.Message
 import de.sciss.synth.{GraphFunction => SGraphFunction, Group => SGroup, Server => SServer, Node => SNode,
    AudioBus => SAudioBus, Synth => SSynth, osc => sosc, SynthDef => SSynthDef, SynthGraph => SSynthGraph }
@@ -36,7 +36,7 @@ import de.sciss.{synth, osc}
 import collection.breakOut
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.io.File
-import de.sciss.gui.j.WavePainter
+import de.sciss.audiowidgets.j.WavePainter
 import javax.swing.JComponent
 import java.awt.{Font, Point, RenderingHints, Color, Dimension, Graphics2D, Graphics}
 
@@ -49,7 +49,7 @@ object GUI {
 
    final class AudioBus private[swing] ( val bus: SAudioBus ) {
       def meter( target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail ) : Frame = {
-         makeAudioBusMeter( bus.server, bus.toString(), AudioBusMeterConfig( bus, target, addAction ) :: Nil )
+         makeAudioBusMeter( bus.server, bus.toString, AudioBusMeterConfig( bus, target, addAction ) :: Nil )
       }
    }
 

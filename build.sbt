@@ -6,7 +6,9 @@ version        := "1.3.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.9.2"
+scalaVersion   := "2.10.0"
+
+crossScalaVersions in ThisBuild := Seq( "2.10.0", "2.9.2" )
 
 description := "A Swing and REPL front-end for ScalaCollider"
 
@@ -15,10 +17,10 @@ homepage := Some( url( "https://github.com/Sciss/ScalaColliderSwing" ))
 licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "1.2.+",
+   "de.sciss" %% "scalacollider" % "1.3.+",
    "de.sciss" %% "scalainterpreterpane" % "1.3.+",
    "de.sciss" % "prefuse-core" % "0.21",
-   "de.sciss" %% "scalaaudiowidgets" % "1.1.+"
+   "de.sciss" %% "audiowidgets-swing" % "1.1.+"
 )
 
 retrieveManaged := true
