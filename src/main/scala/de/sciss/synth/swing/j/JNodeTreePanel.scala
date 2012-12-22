@@ -36,7 +36,7 @@ import de.sciss.synth._
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
 import de.sciss.synth.swing.ScalaColliderSwing
-import de.sciss.synth.swing.helper.DynamicTreeLayout
+import de.sciss.synth.swing.impl.DynamicTreeLayout
 import prefuse.data.expression.AbstractPredicate
 import prefuse.data.{Tuple, Graph, Node => PNode}
 import prefuse.visual.expression.InGroupPredicate
@@ -120,7 +120,8 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       res
    }
    private val lay = {
-      val res = new DynamicTreeLayout( GROUP_TREE, orientation, 32, 2, 8 )
+      val res = DynamicTreeLayout( GROUP_TREE, orientation = orientation,
+                                   depthSpacing = 32, breadthSpacing = 2, subtreeSpacing = 8 )
       res.setLayoutAnchor( new Point2D.Double( 25, 200 ))
       res
    }
@@ -128,10 +129,10 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
 //   private val setPausedTuples   = new DefaultTupleSet()
 
    private val nodeListener: Model.Listener = {
-      case NodeGo( synth: Synth, info ) => defer( nlAddSynth( synth, info ))
-      case NodeGo( group: Group, info ) => defer( nlAddGroup( group, info ))
-      case NodeEnd( node, info )        => defer( nlRemoveNode( node, info ))
-      case NodeMove( node, info )       => defer( nlMoveChild( node, info ))
+      case NodeGo( synth: Synth, info ) => defer( nlAddSynth(   synth, info ))
+      case NodeGo( group: Group, info ) => defer( nlAddGroup(   group, info ))
+      case NodeEnd( node, info )        => defer( nlRemoveNode( node,  info ))
+      case NodeMove( node, info )       => defer( nlMoveChild(  node,  info ))
       case NodeOn( node, info )         => defer( nlPauseChild( node, paused = false ))
       case NodeOff( node, info )        => defer( nlPauseChild( node, paused = true  ))
       case Cleared                      => defer( nlClear() )
@@ -455,7 +456,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
       val pt = lay.getLayoutAnchor
       vi.setX( pt.getX )
       vi.setY( pt.getY )
-      lay.setLayoutRoot( vi )
+      lay.layoutRoot = vi
       map += 0 -> r
    }
 
