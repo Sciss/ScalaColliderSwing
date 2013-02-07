@@ -167,19 +167,19 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
    private val sync = new AnyRef
 
-   private val bootingUpdate: Model.Listener = {
-      case ServerConnection.Running( srv ) => {
-         server_=( Some( srv ))
-         updateCounts( srv.counts )
-      }
-      case ServerConnection.Aborted => {
-          clearCounts()
-          actionBoot.serverUpdate( Server.Offline )
-      }
-//      case msg => actionBoot.serverUpdate( msg )
-   }
+  private val bootingUpdate: ServerConnection.Listener = {
+    case ServerConnection.Running(srv) =>
+      server_=(Some(srv))
+      updateCounts(srv.counts)
 
-   private val serverUpdate: Model.Listener = {
+    case ServerConnection.Aborted =>
+      clearCounts()
+      actionBoot.serverUpdate(Server.Offline)
+
+    //      case msg => actionBoot.serverUpdate( msg )
+  }
+
+  private val serverUpdate: Model.Listener[Any] = {
       case Server.Counts( cnt ) => if( isShowing ) updateCounts( cnt )
       case msg @ Server.Offline => {
           clearCounts()
@@ -418,44 +418,45 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
       }
    }
 
-	private class ActionBoot extends AbstractAction {
-      import Server._
+  private class ActionBoot extends AbstractAction {
 
-      private var cond: AnyRef = Offline
+    import Server._
 
-		def actionPerformed( e: ActionEvent ) {
-			if( cond == Offline ) {
-				bootServer()
-			} else if( cond == Running ) {
-				stopServer()
-			}
-		}
+    private var cond: Any = Offline
 
-      def serverUpdate( msg: AnyRef ) { defer { msg match {
-         case Server.Running => {
-//println( "Running" )
-            cond = msg
-            ggBoot.setText( txtStop )
-            ggBoot.setEnabled( true )
-            ggBusy.setVisible( false )
-         }
-         case Server.Offline => {
-//println( "Offline" )
-            cond = msg
-            ggBoot.setText( txtBoot )
-            ggBoot.setEnabled( couldBoot )
-            ggBusy.setVisible( false )
-         }
-         case Connecting => { // ServerConnection.Connecting
-//println( "Booting" )
-            cond = msg
-            ggBoot.setEnabled( false )
-            ggBusy.setVisible( true )
-         }
-         case _ =>
-//          case SuperColliderClient.ServerChanged( server ) => {
-//            serverPanel.server = server
-//          }
-      }}}
+    def actionPerformed(e: ActionEvent) {
+      if (cond == Offline) {
+        bootServer()
+      } else if (cond == Running) {
+        stopServer()
+      }
+    }
+
+    def serverUpdate(msg: Any) { defer { msg match {
+      case Server.Running =>
+        //println( "Running" )
+        cond = msg
+        ggBoot.setText(txtStop)
+        ggBoot.setEnabled(true)
+        ggBusy.setVisible(false)
+
+      case Server.Offline =>
+        //println( "Offline" )
+        cond = msg
+        ggBoot.setText(txtBoot)
+        ggBoot.setEnabled(couldBoot)
+        ggBusy.setVisible(false)
+
+      case Connecting => // ServerConnection.Connecting
+        //println( "Booting" )
+        cond = msg
+        ggBoot.setEnabled(false)
+        ggBusy.setVisible(true)
+
+      case _ =>
+      //          case SuperColliderClient.ServerChanged( server ) => {
+      //            serverPanel.server = server
+      //          }
+    }}}
 	} // class actionBootClass
 }

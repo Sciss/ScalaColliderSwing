@@ -136,7 +136,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
 
 //   private val setPausedTuples   = new DefaultTupleSet()
 
-   private val nodeListener: Model.Listener = {
+   private val nodeListener: NodeManager.Listener = {
       case NodeGo(   synth: Synth, info ) => deferIfNeeded( nlAddSynth(   synth, info ))
       case NodeGo(   group: Group, info ) => deferIfNeeded( nlAddGroup(   group, info ))
       case NodeEnd(  node, info )         => deferIfNeeded( nlRemoveNode( node,  info ))

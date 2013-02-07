@@ -2,17 +2,17 @@
 
 ### statement
 
-ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008-2012 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008-2013 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ### requirements / building
 
-ScalaCollider-Swing compiles against Scala 2.10 (default) and 2.9.2 using sbt 0.12. Targets for sbt: `clean`, `update`, `compile`, `doc`, `package`, `standalone`, `appbundle`, where `standalone` creates a fully self-contained jar, and `appbundle` updates the Mac OS X application bundle.
+ScalaCollider-Swing compiles against Scala 2.10 using sbt 0.12. Targets for sbt: `clean`, `update`, `compile`, `doc`, `package`, `standalone`, `appbundle`, where `standalone` creates a fully self-contained jar, and `appbundle` updates the Mac OS X application bundle.
 
 To link to ScalaCollider-Swing:
 
     resolvers += "Clojars Repository" at "http://clojars.org/repo"
     
-    "de.sciss" %% "scalacolliderswing" % "1.3.+"
+    "de.sciss" %% "scalacolliderswing" % "1.4.+"
 
 ### running
 

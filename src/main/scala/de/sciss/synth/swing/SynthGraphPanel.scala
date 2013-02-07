@@ -103,7 +103,7 @@ extends JPanel {
       indexed.foreach( tup => {
          val (ru, idx) = tup
          val pNode = g.addNode()
-         pNode.setString( COL_LABEL, ru.ugen.displayName )
+         pNode.setString( COL_LABEL, ru.ugen.productPrefix )
          pNode.set( COL_RATE, ru.ugen.rate )
          mapNodes += idx -> pNode
       })

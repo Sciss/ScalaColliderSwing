@@ -2,25 +2,23 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.3.1"
+version        := "1.4.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
 scalaVersion   := "2.10.0"
 
-crossScalaVersions in ThisBuild := Seq( "2.10.0", "2.9.2" )
-
 description := "A Swing and REPL front-end for ScalaCollider"
 
-homepage := Some( url( "https://github.com/Sciss/ScalaColliderSwing" ))
+homepage <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
 
-licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
+licenses := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "1.3.+",
-   "de.sciss" %% "scalainterpreterpane" % "1.3.+",
-   "de.sciss" % "prefuse-core" % "0.21",
-   "de.sciss" %% "audiowidgets-swing" % "1.1.+"
+  "de.sciss" %% "scalacollider" % "1.4.0-SNAPSHOT",
+  "de.sciss" %% "scalainterpreterpane" % "1.3.+",
+  "de.sciss" % "prefuse-core" % "0.21",
+  "de.sciss" %% "audiowidgets-swing" % "1.1.+"
 )
 
 retrieveManaged := true
@@ -28,7 +26,7 @@ retrieveManaged := true
 // this should make it possible to launch from sbt, but there is still a class path issue?
 // fork in run := true
 
-scalacOptions ++= Seq( "-deprecation", "-unchecked" )
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
 // ---- build info ----
 
@@ -59,10 +57,10 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-pomExtra :=
+pomExtra <<= name { n =>
 <scm>
-  <url>git@github.com:Sciss/ScalaColliderSwing.git</url>
-  <connection>scm:git:git@github.com:Sciss/ScalaColliderSwing.git</connection>
+  <url>git@github.com:Sciss/{n}.git</url>
+  <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
 </scm>
 <developers>
    <developer>
@@ -71,28 +69,29 @@ pomExtra :=
       <url>http://www.sciss.de</url>
    </developer>
 </developers>
+}
 
 // ---- packaging ----
 
-seq( assemblySettings: _* )
+seq(assemblySettings: _*)
 
 test in assembly := {}
 
-seq( appbundle.settings: _* )
+seq(appbundle.settings: _*)
 
-appbundle.icon := Some( file( "application.icns" ))
+appbundle.icon := Some(file("application.icns"))
 
-appbundle.target := file( "." )
+appbundle.target <<= baseDirectory
 
 // ---- ls.implicit.ly ----
 
-seq( lsSettings :_* )
+seq(lsSettings :_*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq( "sound-synthesis", "sound", "music", "supercollider" )
+(LsKeys.tags in LsKeys.lsync) := Seq("sound-synthesis", "sound", "music", "supercollider")
 
-(LsKeys.ghUser in LsKeys.lsync) := Some( "Sciss" )
+(LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
 
-(LsKeys.ghRepo in LsKeys.lsync) := Some( "ScalaColliderSwing" )
+(LsKeys.ghRepo in LsKeys.lsync) <<= name(Some(_))
 
 // bug in ls -- doesn't find the licenses from global scope
-(licenses in LsKeys.lsync) := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
+(licenses in LsKeys.lsync) := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
