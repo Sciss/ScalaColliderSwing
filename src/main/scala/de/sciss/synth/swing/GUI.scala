@@ -70,7 +70,7 @@ object GUI {
    }
 
    private final case class GUIRecordOut( in: GE )( chanFun: Int => Unit )
-   extends UGenSource.ZeroOut( "GUIRecordOut" ) with WritesBus {
+   extends UGenSource.ZeroOut with WritesBus {  // XXX TODO should not be UGenSource
       protected def makeUGens { unwrap( in.expand.outputs )}
 
       protected def makeUGen( ins: IIdxSeq[ UGenIn ]) {
