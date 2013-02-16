@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.4.0-SNAPSHOT"
+version        := "1.4.0"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.0"
+scalaVersion   := "2.10.0"  // do _not_ use 2.10.+
 
 description := "A Swing and REPL front-end for ScalaCollider"
 
@@ -15,8 +15,8 @@ homepage <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
 licenses := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= Seq(
-  "de.sciss" %% "scalacollider" % "1.4.0-SNAPSHOT",
-  "de.sciss" %% "scalainterpreterpane" % "1.3.+",
+  "de.sciss" %% "scalacollider" % "1.4.+",
+  "de.sciss" %% "scalainterpreterpane" % "1.4.+",
   "de.sciss" % "prefuse-core" % "0.21",
   "de.sciss" %% "audiowidgets-swing" % "1.1.+"
 )
@@ -93,5 +93,3 @@ seq(lsSettings :_*)
 
 (LsKeys.ghRepo in LsKeys.lsync) <<= name(Some(_))
 
-// bug in ls -- doesn't find the licenses from global scope
-(licenses in LsKeys.lsync) := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))

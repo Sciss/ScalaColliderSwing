@@ -10,9 +10,9 @@ ScalaCollider-Swing compiles against Scala 2.10 using sbt 0.12. Targets for sbt:
 
 To link to ScalaCollider-Swing:
 
-    resolvers += "Clojars Repository" at "http://clojars.org/repo"
-    
-    "de.sciss" %% "scalacolliderswing" % "1.4.+"
+    "de.sciss" %% "scalacolliderswing" % v
+
+The current version `v` is `1.4.+`
 
 ### running
 
