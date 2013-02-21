@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.5.0-SNAPSHOT"
+version        := "1.5.0"
 
 organization   := "de.sciss"
 
