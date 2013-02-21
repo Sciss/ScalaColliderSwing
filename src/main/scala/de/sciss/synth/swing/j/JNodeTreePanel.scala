@@ -320,7 +320,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
          val server     = g.server
 //       val syncMsg    = server.syncMsg()
 //       val syncID     = syncMsg.id
-         server.!?( 5000, queryMsg, {
+         server.!?(queryMsg) {
 //            case sosc.NodeInfoMessage( g.id, info ) =>
             case osc.Message( "/g_queryTree.reply", 0, g.id, _numChildren: Int, rest @ _* ) =>
                deferIfNeeded { visDo( ACTION_ADD ) {
@@ -363,7 +363,7 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
                }}
             case sosc.TIMEOUT =>
                println( queryMsg.name +  " : timeout!" )
-         })
+         }
       }
    }
 

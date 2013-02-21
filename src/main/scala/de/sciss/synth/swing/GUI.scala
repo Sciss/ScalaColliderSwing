@@ -108,7 +108,7 @@ object GUI {
             val signal  = result.view( r )
             GUIRecordOut( signal )( numCh = _ )
          }
-         val ug         = sg.expand
+         val ug         = sg.expand(synth.impl.DefaultUGenGraphBuilderFactory)
          val defName    = "$swing_waveform" + numCh
          val sd         = SynthDef( defName, ug )
          val syn        = new SSynth( server )
@@ -209,10 +209,10 @@ object GUI {
             val syncMsg    = server.syncMsg()
             val syncID     = syncMsg.id
             val writeMsg   = buf.writeMsg( path.getAbsolutePath, completion = osc.Bundle.now( buf.freeMsg, syncMsg ))
-            server.!?( 10000L, writeMsg, {
+            server.!?(writeMsg) {
                case sosc.SyncedMessage( `syncID` ) => openBuffer()
                case actors.TIMEOUT => println( "Timeout!" )
-            })
+            }
          }
          server ! recvMsg // osc.Bundle.now( recvMsg, allocMsg )
 
