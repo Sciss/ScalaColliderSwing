@@ -69,9 +69,9 @@ extends JFrame( "ScalaCollider Interpreter" ) {
       intpCfg.imports = Seq(
 //         "Predef.{any2stringadd => _}",
          "math._",
-         "de.sciss.synth.{osc => sosc, _}", "de.sciss.osc", "osc.Implicits._",
+         "de.sciss.synth._", "de.sciss.osc", "osc.Implicits._",
          "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
-         "Ops._", "swing.Implicits._", /* "io._", */ "de.sciss.synth.ugen._", "replSupport._"
+         "Ops._", "swing.Implicits._", /* "io._", */ "ugen._", "replSupport._"
       )
 
       intpCfg.bindings = Seq( NamedParam( "replSupport", replSupport ))

@@ -33,7 +33,7 @@ import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JB
 import javax.swing.event.{AncestorEvent, AncestorListener}
 import math._
 
-import de.sciss.synth.{ServerConnection, Model, Server, osc}
+import de.sciss.synth.{ServerConnection, Model, Server, message}
 import de.sciss.synth.swing.ScalaColliderSwing
 
 object JServerStatusPanel {
@@ -376,25 +376,26 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 //		}
 //	}
 
-   private def defer( code: => Unit ) {
-      if( EventQueue.isDispatchThread ) code else EventQueue.invokeLater( new Runnable { def run() { code }})
-   }
-   
-	private def updateCounts( cnt: osc.StatusReplyMessage ) {
-		lbCPU.update( cnt.avgCPU / 100, cnt.peakCPU / 100 )
-		lbNumUGens.setText( cnt.numUGens.toString )
-		lbNumSynths.setText( cnt.numSynths.toString )
-		lbNumGroups.setText( cnt.numGroups.toString )
-		lbNumDefs.setText( cnt.numDefs.toString )
-	}
+  private def defer(code: => Unit) {
+    if (EventQueue.isDispatchThread) code
+    else EventQueue.invokeLater(new Runnable { def run() { code }})
+  }
 
-	private def clearCounts() {
-		lbCPU.update( 0, 0 )
-		lbNumUGens.setText( null )
-		lbNumSynths.setText( null )
-		lbNumGroups.setText( null )
-		lbNumDefs.setText( null )
-	}
+  private def updateCounts(cnt: message.StatusReply) {
+    lbCPU.update(cnt.avgCPU / 100, cnt.peakCPU / 100)
+    lbNumUGens  .setText(cnt.numUGens.toString)
+    lbNumSynths .setText(cnt.numSynths.toString)
+    lbNumGroups .setText(cnt.numGroups.toString)
+    lbNumDefs   .setText(cnt.numDefs.toString)
+  }
+
+  private def clearCounts() {
+    lbCPU.update(0, 0)
+    lbNumUGens  .setText(null)
+    lbNumSynths .setText(null)
+    lbNumGroups .setText(null)
+    lbNumDefs   .setText(null)
+  }
 
 //	private def setDeepFont( c: Component, fnt: Font ) {
 //		c.setFont( fnt )

@@ -34,6 +34,8 @@ object ScalaColliderSwing extends App {
    Swing.onEDT( buildGUI() )
 
    class REPLSupport( ssp: ServerStatusPanel, ntp: NodeTreePanel ) {
+     override def toString = "repl-support"
+
       var s : Server = null
       val sCfg = Server.Config()
       sCfg.transport = TCP

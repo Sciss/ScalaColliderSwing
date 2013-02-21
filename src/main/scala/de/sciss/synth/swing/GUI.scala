@@ -29,7 +29,7 @@ package swing
 import de.sciss.audiowidgets.PeakMeter
 import de.sciss.osc.Message
 import de.sciss.synth.{GraphFunction => SGraphFunction, Group => SGroup, Server => SServer, Node => SNode,
-   AudioBus => SAudioBus, Synth => SSynth, osc => sosc, SynthDef => SSynthDef, SynthGraph => SSynthGraph }
+   AudioBus => SAudioBus, Synth => SSynth, message, SynthDef => SSynthDef, SynthGraph => SSynthGraph}
 import scala.swing.{Swing, BoxPanel, Orientation, Frame}
 import de.sciss.{synth, osc}
 import collection.breakOut
@@ -110,10 +110,10 @@ object GUI {
          }
          val ug         = sg.expand(synth.impl.DefaultUGenGraphBuilderFactory)
          val defName    = "$swing_waveform" + numCh
-         val sd         = SynthDef( defName, ug )
-         val syn        = new SSynth( server )
+         val sd         = SynthDef(defName, ug)
+         val syn        = SSynth(server)
          val sr         = server.sampleRate
-         val numFr      = math.ceil( duration * sr ).toInt
+         val numFr      = math.ceil(duration * sr).toInt
 
 //         def roundUp( i: Int ) = { val j = i + 32768 - 1; j - j % 32768 }
 //
@@ -210,8 +210,8 @@ object GUI {
             val syncID     = syncMsg.id
             val writeMsg   = buf.writeMsg( path.getAbsolutePath, completion = osc.Bundle.now( buf.freeMsg, syncMsg ))
             server.!?(writeMsg) {
-               case sosc.SyncedMessage( `syncID` ) => openBuffer()
-               case actors.TIMEOUT => println( "Timeout!" )
+               case message.Synced(`syncID`) => openBuffer()
+               case message.TIMEOUT => println( "Timeout!" )
             }
          }
          server ! recvMsg // osc.Bundle.now( recvMsg, allocMsg )
@@ -237,50 +237,53 @@ object GUI {
          numChannels -> d
       })( breakOut )
 
-      var newMsgs    = Map.empty[ Int, List[ osc.Message ]]
-      var resps      = List.empty[ sosc.Responder ]
-      var synths     = List.empty[ SSynth ]
-      var meters     = Vector.empty[ PeakMeter ]
+      var newMsgs    = Map.empty[Int, List[osc.Message]]
+      var resps      = List.empty[message.Responder]
+      var synths     = List.empty[SSynth]
+      var meters     = Vector.empty[PeakMeter]
       var wasClosed  = false
 
-      configs.foreach { cfg =>
-         import cfg._
-         val numChannels      = bus.numChannels
-         val synth            = new SSynth( target.server )
-         val d                = synthDefs( numChannels )
-		   val newMsg           = synth.newMsg( d.name, target, Seq( "bus" -> bus.index ), addAction )
-         val meter            = new PeakMeter
-         meter.numChannels    = numChannels
-         meter.hasCaption     = true
-         meter.borderVisible  = true
+     configs.foreach { cfg =>
+       import cfg._
+       val numChannels      = bus.numChannels
+       val synth            = SSynth(target.server)
+       val d                = synthDefs(numChannels)
+       val newMsg           = synth.newMsg(d.name, target, Seq("bus" -> bus.index), addAction)
+       val meter            = new PeakMeter
+       meter.numChannels    = numChannels
+       meter.hasCaption     = true
+       meter.borderVisible  = true
 
-         val resp             = sosc.Responder.add( server ) {
-            case Message( "/$meter", synth.id, _, vals @ _* ) =>
-               val pairs   = vals.asInstanceOf[ Seq[ Float ]].toIndexedSeq
-               val time    = System.currentTimeMillis()
-               Swing.onEDT( meter.update( pairs, 0, time ))
+       val resp = message.Responder.add(server) {
+         case Message("/$meter", synth.id, _, vals @ _*) =>
+           val pairs = vals.asInstanceOf[Seq[Float]].toIndexedSeq
+           val time = System.currentTimeMillis()
+           Swing.onEDT(meter.update(pairs, 0, time))
+       }
+
+       synth.onGo {
+         Swing.onEDT {
+           if (wasClosed) {
+             import Ops._
+             synth.free()
+           } else {
+             synths ::= synth
+           }
          }
+       }
 
-         synth.onGo { Swing.onEDT {
-            if( wasClosed ) {
-               import Ops._
-               synth.free()
-            } else {
-               synths ::= synth
-            }
-         }}
+       newMsgs += numChannels -> (newMsg :: newMsgs.getOrElse(numChannels, d.freeMsg :: Nil))
+       resps ::= resp
+       // synths ::= synth
+       meters :+= meter
+    }
 
-         newMsgs += numChannels -> (newMsg :: newMsgs.getOrElse( numChannels, d.freeMsg :: Nil ))
-         resps  ::= resp
-//         synths ::= synth
-         meters :+= meter
-      }
+     val recvMsgs: List[osc.Message] = synthDefs.map({
+       case (numChannels, d) =>
+         d.recvMsg(completion = Some(osc.Bundle.now(newMsgs(numChannels): _*)))
+     })(breakOut)
 
-      val recvMsgs: List[ osc.Message ] = synthDefs.map({ case (numChannels, d) =>
-         d.recvMsg( completion = Some( osc.Bundle.now( newMsgs( numChannels ): _* )))
-      })( breakOut )
-
-      server ! (recvMsgs match {
+     server ! (recvMsgs match {
          case single :: Nil => single
          case _ => osc.Bundle.now( recvMsgs: _* )
       })
