@@ -31,108 +31,95 @@ import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JB
                     JComponent, JFrame, JLabel, JPanel, JProgressBar,
                     OverlayLayout, WindowConstants }
 import javax.swing.event.{AncestorEvent, AncestorListener}
-import math._
 
-import de.sciss.synth.{ServerConnection, Model, Server, message}
+import de.sciss.synth.{ServerConnection, Server, message}
 import de.sciss.synth.swing.ScalaColliderSwing
+import de.sciss.model.Model
 
 object JServerStatusPanel {
-   val COUNTS      = 0x01
-   val BOOT_BUTTON = 0x02
+  final val COUNTS      = 0x01
+  final val BOOT_BUTTON = 0x02
 
-   private val Connecting  = "Connecting"
+  private val Connecting = "Connecting"
 
-   private class CountLabel extends JLabel() {
-       putClientProperty( "JComponent.sizeVariant", "small" )
+  private class CountLabel extends JLabel() {
+    putClientProperty("JComponent.sizeVariant", "small")
 
-       override def getPreferredSize : Dimension = {
-         val dim = super.getPreferredSize
-         dim.width = 40
-         dim
-       }
+    override def getPreferredSize: Dimension = {
+      val dim = super.getPreferredSize
+      dim.width = 40
+      dim
+    }
 
-       override def getMinimumSize : Dimension = getPreferredSize()
-       override def getMaximumSize : Dimension = getPreferredSize()
-   }
+    override def getMinimumSize: Dimension = getPreferredSize()
+
+    override def getMaximumSize: Dimension = getPreferredSize()
+  }
 
   private class CPUIndicator extends JComponent {
-//		private var avgCPU  = 0f
-//		private var peakCPU = 0f
-//		private var avgW    = 0
-//		private var peakX   = 0
-     private var peakCPU = 0 // 0...17
+    //		private var avgCPU  = 0f
+    //		private var peakCPU = 0f
+    //		private var avgW    = 0
+    //		private var peakX   = 0
+    private var peakCPU = 0 // 0...17
 
-       private def getImageResource( name: String ) : Image =
-         Toolkit.getDefaultToolkit.createImage( ScalaColliderSwing.getClass.getResource( name ))
+    private def getImageResource(name: String): Image =
+      Toolkit.getDefaultToolkit.createImage(ScalaColliderSwing.getClass.getResource(name))
 
-       private val imgGaugeEmpty = getImageResource( "gauge_empty.png" )
-       private val imgGaugeFull  = getImageResource( "gauge_full.png" )
+    private val imgGaugeEmpty = getImageResource("gauge_empty.png")
+    private val imgGaugeFull  = getImageResource("gauge_full.png")
 
-       // ---- constructor ----
-       {
-         addAncestorListener( new AncestorListener {
-           def ancestorAdded( e: AncestorEvent ) {}
-           def ancestorMoved( e: AncestorEvent ) {}
-           def ancestorRemoved( e: AncestorEvent ) {
-              imgGaugeEmpty.flush()
-              imgGaugeFull.flush()
-           }
-         })
-//          setPreferredSize( new Dimension( 73, 23 ))
-         val dim = new Dimension( 56, 22 )
-         setPreferredSize( dim )
-         setMaximumSize( dim )
-       }
+    // ---- constructor ----
+    {
+      addAncestorListener(new AncestorListener {
+        def ancestorAdded(e: AncestorEvent) {}
 
-     def update( newAvgCPU: Float, newPeakCPU: Float ) {
+        def ancestorMoved(e: AncestorEvent) {}
 
-//            val newPeakPix = max( 0, min( 73, (newPeakCPU * 73 + 0.5f).toInt ))
-//            val newPeakPix = max( 0, min( 73, ((newPeakCPU * 18 + 0.5f).toInt * 4.06f).toInt ))
-           val newPeakPix = max( 0, min( 54, (newPeakCPU * 18 + 0.5f).toInt * 3 ))
+        def ancestorRemoved(e: AncestorEvent) {
+          imgGaugeEmpty.flush()
+          imgGaugeFull.flush()
+        }
+      })
+      //          setPreferredSize( new Dimension( 73, 23 ))
+      val dim = new Dimension(56, 22)
+      setPreferredSize(dim)
+      setMaximumSize(dim)
+    }
 
-           if( newPeakPix != peakCPU ) {
-             peakCPU = newPeakPix
-             repaint() // could use dirty rec
-           }
+    def update(newAvgCPU: Float, newPeakCPU: Float) {
+      val newPeakPix = math.max(0, math.min(54, (newPeakCPU * 18 + 0.5f).toInt * 3))
 
-//			avgCPU  = newAvgCPU
-//			peakCPU = newPeakCPU
-//			val oldAvgW = avgW
-//			val oldPeakX = peakX
-//			updateScreenCoords
-//			if( (oldAvgW != avgW) || (oldPeakX != peakX) ) repaint() // could use dirty rect
-     }
+      if (newPeakPix != peakCPU) {
+        peakCPU = newPeakPix
+        repaint() // could use dirty rec
+      }
+    }
 
-//        private val colrBorder = new Color( 0, 0, 0, 0xB4 )
-//        private val colrEdge   = new Color( 0, 0, 0, 0x7F )
-       private val colrBorder = new Color( 0, 0, 0, 0x35 )
+    //        private val colrBorder = new Color( 0, 0, 0, 0xB4 )
+    //        private val colrEdge   = new Color( 0, 0, 0, 0x7F )
+    private val colrBorder = new Color(0, 0, 0, 0x35)
 
-     override def paintComponent( g: Graphics ) {
-//			g.setColor( Color.black )
-//			val w = getWidth
-//			val h = getHeight
-//			g.fillRect(  0, 0, w, h )
-//			updateScreenCoords
-//			g.setColor( Color.yellow /* Color.blue */)
-//			g.fillRect( 1, 1, avgW, h - 2 )
-//			g.drawLine( peakX, 1, peakX, h - 2 )
-           g.setColor( colrBorder )
-           g.drawRect( 0, 0, 55, 21 )
-           g.drawRect( 1, 0, 53, 21 )
-           g.drawRect( 0, 1, 55, 19 )
-           g.drawImage( imgGaugeFull, 1, 1,
-                        peakCPU + 1, 21, 0, 0, peakCPU, 20,
-                        Color.black, this )
-           g.drawImage( imgGaugeEmpty, peakCPU + 1, 1,
-                        55, 21, peakCPU, 0, 54, 20,
-                        Color.black, this )
-     }
-
-//		private def updateScreenCoords {
-//			val w = getWidth
-//			avgW  = (avgCPU  * (w - 2)).toInt // + 1
-//			peakX = (peakCPU * (w - 2)).toInt + 1
-//		}
+    override def paintComponent(g: Graphics) {
+      //			g.setColor( Color.black )
+      //			val w = getWidth
+      //			val h = getHeight
+      //			g.fillRect(  0, 0, w, h )
+      //			updateScreenCoords
+      //			g.setColor( Color.yellow /* Color.blue */)
+      //			g.fillRect( 1, 1, avgW, h - 2 )
+      //			g.drawLine( peakX, 1, peakX, h - 2 )
+      g.setColor(colrBorder)
+      g.drawRect(0, 0, 55, 21)
+      g.drawRect(1, 0, 53, 21)
+      g.drawRect(0, 1, 55, 19)
+      g.drawImage(imgGaugeFull, 1, 1,
+        peakCPU + 1, 21, 0, 0, peakCPU, 20,
+        Color.black, this)
+      g.drawImage(imgGaugeEmpty, peakCPU + 1, 1,
+        55, 21, peakCPU, 0, 54, 20,
+        Color.black, this)
+    }
   }
 }
 
@@ -180,201 +167,212 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
   }
 
   private val serverUpdate: Model.Listener[Any] = {
-      case Server.Counts( cnt ) => if( isShowing ) updateCounts( cnt )
-      case msg @ Server.Offline => {
-          clearCounts()
-          actionBoot.serverUpdate( msg )
-      }
-      case msg => actionBoot.serverUpdate( msg )
-   }
+    case Server.Counts(cnt) => if (isShowing) updateCounts(cnt)
+    case msg@Server.Offline => {
+      clearCounts()
+      actionBoot.serverUpdate(msg)
+    }
+    case msg => actionBoot.serverUpdate(msg)
+  }
 
-   private var serverVar: Option[ Server ] = None
-   def server = sync.synchronized { serverVar }
-   def server_=( s: Option[ Server ]) {
+  private var _server: Option[Server] = None
+
+  def server = sync.synchronized {
+    _server
+  }
+  def server_=(s: Option[Server]) {
+    sync.synchronized {
+      val wasListening = listening
+      if (wasListening) stopListening()
+      _server = s
+      _booting = None
+      updateFrameTitle()
+      if (wasListening) startListening()
+    }
+  }
+
+  private var _booting: Option[ServerConnection] = None
+
+  def booting = sync.synchronized {
+    _booting
+  }
+  def booting_=(b: Option[ServerConnection]) {
+    sync.synchronized {
+      val wasListening = listening
+      if (wasListening) stopListening()
+      _server = None
+      _booting = b
+      updateFrameTitle()
+      if (wasListening) startListening()
+    }
+  }
+
+  private var _bootAction: Option[() => Unit] = None
+
+  def bootAction = sync.synchronized {
+    _bootAction
+  }
+  def bootAction_=(a: Option[() => Unit]) {
+    sync.synchronized {
+      val wasListening = listening
+      if (wasListening) stopListening()
+      _bootAction = a
+      if (wasListening) startListening()
+    }
+  }
+
+  // ---- constructor ----
+  {
+    setLayout(new BoxLayout(this, BoxLayout.X_AXIS))
+
+    val clz       = ScalaColliderSwing.getClass // classOf[ ServerStatusPanel ]
+    val icnGroup  = new ImageIcon(clz.getResource("path_group_16.png"))
+    val icnSynth  = new ImageIcon(clz.getResource("path_synth_16.png"))
+    val icnUGen   = new ImageIcon(clz.getResource("path_ugen_16.png"))
+    val icnDef    = new ImageIcon(clz.getResource("path_def_16.png"))
+
+    def flushImages() {
+      icnGroup.getImage.flush()
+      icnSynth.getImage.flush()
+      icnUGen .getImage.flush()
+      icnDef  .getImage.flush()
+    }
+
+    def addS(c: Component, gap: Int = 4) {
+      add(c)
+      add(Box.createHorizontalStrut(gap))
+    }
+
+    if ((flags & BOOT_BUTTON) != 0) {
+      ggBoot.setFocusable(false) // prevent user from accidentally starting/stopping server
+      ggBoot.putClientProperty("JButton.buttonType", "bevel")
+      ggBoot.putClientProperty("JComponent.sizeVariant", "small")
+      ggBoot.setText(txtStop)
+      val d1 = ggBoot.getPreferredSize
+      ggBoot.setText(txtBoot)
+      val d2 = ggBoot.getPreferredSize
+      ggBoot.setPreferredSize(new Dimension(math.max(d1.width, d2.width), math.max(d1.height, d2.height)))
+
+      ggBusy.setIndeterminate(true)
+      val busyDim = new Dimension(24, 24)
+      ggBusy.setPreferredSize(busyDim)
+      ggBusy.putClientProperty("JProgressBar.style", "circular")
+
+      addS(ggBoot, 2)
+      val busyBox = new JPanel()
+      busyBox.setLayout(new OverlayLayout(busyBox))
+      busyBox.add(Box.createRigidArea(busyDim))
+      busyBox.add(ggBusy)
+      addS(busyBox, 6)
+
+      setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2))
+    } else {
+      setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 2))
+    }
+
+    if ((flags & COUNTS) != 0) {
+      addS(lbCPU, 8)
+      def addCount(icn: ImageIcon, lb: JLabel, s: Int = 4) {
+        val lb2 = new JLabel(icn)
+        lb2.putClientProperty("JComponent.sizeVariant", "small")
+        addS(lb2)
+        addS(lb, s)
+      }
+      addCount(icnGroup, lbNumGroups)
+      addCount(icnSynth, lbNumSynths)
+      addCount(icnUGen, lbNumUGens)
+      addCount(icnDef, lbNumDefs, 0)
+    }
+
+    addAncestorListener(new AncestorListener {
+      def ancestorAdded(e: AncestorEvent) {
+        startListening()
+        //				updateCounts
+      }
+
+      def ancestorRemoved(e: AncestorEvent) {
+        stopListening()
+        flushImages()
+        //				updateCounts
+      }
+
+      def ancestorMoved(e: AncestorEvent) {}
+    })
+  }
+
+  protected def couldBoot: Boolean = sync.synchronized {
+    bootAction.isDefined
+  }
+
+  private var frame: Option[JFrame] = None
+
+  private def updateFrameTitle() {
+    defer {
       sync.synchronized {
-         val wasListening = listening
-         if( wasListening ) stopListening()
-         serverVar   = s
-         bootingVar  = None
-         updateFrameTitle()
-         if( wasListening ) startListening()
+        val name = _server.getOrElse(_booting.orNull)
+        frame.foreach(_.setTitle(frameTitle + (if (name == null) "" else " (" + name + ")")))
       }
-   }
+    }
+  }
 
-   private var bootingVar: Option[ ServerConnection ] = None
-   def booting = sync.synchronized { bootingVar }
-   def booting_=( b: Option[ ServerConnection ]) {
-      sync.synchronized {
-         val wasListening = listening
-         if( wasListening ) stopListening()
-         serverVar   = None
-         bootingVar  = b
-         updateFrameTitle()
-         if( wasListening ) startListening()
+  def makeWindow: JFrame = makeWindow()
+
+  def makeWindow(undecorated: Boolean = false): JFrame = {
+    frame getOrElse {
+      val fr = new JFrame()
+      if (undecorated) fr.setUndecorated(true)
+      val rp = fr.getRootPane
+      rp.putClientProperty("Window.style", "small")
+      fr.setResizable(false)
+      fr.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+      fr.getContentPane.add(this)
+      fr.pack()
+      if (!undecorated) fr.setLocation(50, 50)
+      frame = Some(fr)
+      updateFrameTitle()
+      fr
+    }
+  }
+
+  private var listening = false
+
+  private def startListening() {
+    sync.synchronized {
+      if (!listening) {
+        listening = true
+        defer {
+          serverUpdate(server.map(_.condition).getOrElse(
+            if (_booting.isDefined) Connecting else Server.Offline))
+        }
+        _booting.foreach(_.addListener(bootingUpdate))
+        _server.foreach(_.addListener(serverUpdate))
       }
-   }
+    }
+  }
 
-   private var bootActionVar: Option[ () => Unit ] = None
-   def bootAction = sync.synchronized { bootActionVar }
-   def bootAction_=( a: Option[ () => Unit ]) {
-      sync.synchronized {
-         val wasListening = listening
-         if( wasListening ) stopListening()
-         bootActionVar = a
-         if( wasListening ) startListening()
+  private def stopListening() {
+    sync.synchronized {
+      if (listening) {
+        _booting.foreach(_.removeListener(bootingUpdate))
+        _server.foreach(_.removeListener(serverUpdate))
+        listening = false
+        clearCounts()
       }
-   }
+    }
+  }
 
-	// ---- constructor ----
-   {
-   	setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
-
-      val clz = ScalaColliderSwing.getClass // classOf[ ServerStatusPanel ]
-      val icnGroup = new ImageIcon( clz.getResource( "path_group_16.png" ))
-      val icnSynth = new ImageIcon( clz.getResource( "path_synth_16.png" ))
-      val icnUGen  = new ImageIcon( clz.getResource( "path_ugen_16.png" ))
-      val icnDef   = new ImageIcon( clz.getResource( "path_def_16.png" ))
-
-      def flushImages() {
-         icnGroup.getImage.flush()
-         icnSynth.getImage.flush()
-         icnUGen.getImage.flush()
-         icnDef.getImage.flush()
-      }
-
-      def addS( c: Component, gap: Int = 4 ) {
-         add( c )
-         add( Box.createHorizontalStrut( gap ))
-      }
-
-      if( (flags & BOOT_BUTTON) != 0 ) {
-         ggBoot.setFocusable( false )	// prevent user from accidentally starting/stopping server
-         ggBoot.putClientProperty( "JButton.buttonType", "bevel" )
-         ggBoot.putClientProperty( "JComponent.sizeVariant", "small" )
-         ggBoot.setText( txtStop )
-         val d1 = ggBoot.getPreferredSize
-         ggBoot.setText( txtBoot )
-         val d2 = ggBoot.getPreferredSize
-         ggBoot.setPreferredSize( new Dimension( max( d1.width, d2.width ),
-                                                 max( d1.height, d2.height )))
-
-         ggBusy.setIndeterminate( true )
-         val busyDim = new Dimension( 24, 24 )
-         ggBusy.setPreferredSize( busyDim )
-         ggBusy.putClientProperty( "JProgressBar.style", "circular" )
-
-         addS( ggBoot, 2 )
-         val busyBox = new JPanel()
-         busyBox.setLayout( new OverlayLayout( busyBox ))
-         busyBox.add( Box.createRigidArea( busyDim ))
-         busyBox.add( ggBusy )
-         addS( busyBox, 6 )
-
-    		setBorder( BorderFactory.createEmptyBorder( 0, 2, 0, 2 ))
-      } else {
-      	setBorder( BorderFactory.createEmptyBorder( 1, 2, 1, 2 ))
-      }
-
-      if( (flags & COUNTS) != 0 ) {
-    	   addS( lbCPU, 8 )
-         def addCount( icn: ImageIcon, lb: JLabel, s: Int = 4 ) {
-            val lb2 = new JLabel( icn )
-            lb2.putClientProperty( "JComponent.sizeVariant", "small" )
-            addS( lb2 )
-            addS( lb, s )
-         }
-         addCount( icnGroup, lbNumGroups )
-         addCount( icnSynth, lbNumSynths )
-         addCount( icnUGen,  lbNumUGens )
-         addCount( icnDef,   lbNumDefs, 0 )
-      }
-
-		addAncestorListener( new AncestorListener {
-			def ancestorAdded( e: AncestorEvent ) {
-				startListening()
-//				updateCounts
-			}
-
-			def ancestorRemoved( e: AncestorEvent ) {
-				stopListening()
-            flushImages()
-//				updateCounts
-			}
-
-			def ancestorMoved( e: AncestorEvent ) {}
-		})
-	}
-
-   protected def couldBoot: Boolean = sync.synchronized {
-      bootAction.isDefined
-   }
-
-   private var frame: Option[ JFrame ] = None
-
-   private def updateFrameTitle() { defer {
-      sync.synchronized {
-         val name = serverVar.getOrElse( bootingVar.orNull )
-         frame.foreach( _.setTitle( frameTitle + (if( name == null ) "" else " (" + name + ")") )) 
-      }
-   }}
-
-   def makeWindow: JFrame = makeWindow()
-	def makeWindow( undecorated: Boolean = false ): JFrame = {
-      frame getOrElse {
-         val fr = new JFrame()
-         if( undecorated ) fr.setUndecorated( true )
-         val rp = fr.getRootPane
-         rp.putClientProperty( "Window.style", "small" )
-         fr.setResizable( false )
-         fr.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
-         fr.getContentPane.add( this )
-         fr.pack()
-         if( !undecorated ) fr.setLocation( 50, 50 )
-         frame = Some( fr )
-         updateFrameTitle()
-         fr
-      }
-	}
-
-	private var listening = false
-
-	private def startListening() {
-      sync.synchronized {
-   		if( !listening ) {
-   			listening = true
-            defer {
-               serverUpdate( server.map( _.condition ).getOrElse(
-                  if( bootingVar.isDefined ) Connecting else Server.Offline ))
-            }
-            bootingVar.foreach(_.addListener( bootingUpdate ))
-            serverVar.foreach(_.addListener( serverUpdate ))
-         }
-		}
-	}
-
-	private def stopListening() {
-      sync.synchronized {
-   		if( listening ) {
-            bootingVar.foreach(_.removeListener( bootingUpdate ))
-	   		serverVar.foreach(_.removeListener( serverUpdate ))
-		   	listening = false
-            clearCounts()
-         }
-		}
-	}
-
-//	private var srv: Option[ Server ] = None
-//	def server = srv
-//	def server_=( newServer: Option[ Server ]) {
-//		if( srv == newServer ) return
-//		val wasAdded = listening
-//		stopListening
-//		srv = newServer
-//		if( isShowing ) {
-//			updateCounts
-//			if( srv.isDefined ) startListening
-//		}
-//	}
+  //	private var srv: Option[ Server ] = None
+  //	def server = srv
+  //	def server_=( newServer: Option[ Server ]) {
+  //		if( srv == newServer ) return
+  //		val wasAdded = listening
+  //		stopListening
+  //		srv = newServer
+  //		if( isShowing ) {
+  //			updateCounts
+  //			if( srv.isDefined ) startListening
+  //		}
+  //	}
 
   private def defer(code: => Unit) {
     if (EventQueue.isDispatchThread) code
@@ -397,27 +395,27 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
     lbNumDefs   .setText(null)
   }
 
-//	private def setDeepFont( c: Component, fnt: Font ) {
-//		c.setFont( fnt )
-//		c match {
-//			case con: Container => con.getComponents.foreach( setDeepFont( _, fnt ))
-//			case _ =>
-//		}
-//	}
+  //	private def setDeepFont( c: Component, fnt: Font ) {
+  //		c.setFont( fnt )
+  //		c match {
+  //			case con: Container => con.getComponents.foreach( setDeepFont( _, fnt ))
+  //			case _ =>
+  //		}
+  //	}
 
-   // subclasses may override this
-   protected def bootServer() {
-      sync.synchronized {
-         bootAction.foreach( _.apply() )
-      }
-   }
+  // subclasses may override this
+  protected def bootServer() {
+    sync.synchronized {
+      bootAction.foreach(_.apply())
+    }
+  }
 
-   // subclasses may override this
-   protected def stopServer() {
-      sync.synchronized {
-         server.foreach( _.quit() )
-      }
-   }
+  // subclasses may override this
+  protected def stopServer() {
+    sync.synchronized {
+      server.foreach(_.quit())
+    }
+  }
 
   private class ActionBoot extends AbstractAction {
 
@@ -433,31 +431,36 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
       }
     }
 
-    def serverUpdate(msg: Any) { defer { msg match {
-      case Server.Running =>
-        //println( "Running" )
-        cond = msg
-        ggBoot.setText(txtStop)
-        ggBoot.setEnabled(true)
-        ggBusy.setVisible(false)
+    def serverUpdate(msg: Any) {
+      defer {
+        msg match {
+          case Server.Running =>
+            //println( "Running" )
+            cond = msg
+            ggBoot.setText(txtStop)
+            ggBoot.setEnabled(true)
+            ggBusy.setVisible(false)
 
-      case Server.Offline =>
-        //println( "Offline" )
-        cond = msg
-        ggBoot.setText(txtBoot)
-        ggBoot.setEnabled(couldBoot)
-        ggBusy.setVisible(false)
+          case Server.Offline =>
+            //println( "Offline" )
+            cond = msg
+            ggBoot.setText(txtBoot)
+            ggBoot.setEnabled(couldBoot)
+            ggBusy.setVisible(false)
 
-      case Connecting => // ServerConnection.Connecting
-        //println( "Booting" )
-        cond = msg
-        ggBoot.setEnabled(false)
-        ggBusy.setVisible(true)
+          case Connecting => // ServerConnection.Connecting
+            //println( "Booting" )
+            cond = msg
+            ggBoot.setEnabled(false)
+            ggBusy.setVisible(true)
 
-      case _ =>
-      //          case SuperColliderClient.ServerChanged( server ) => {
-      //            serverPanel.server = server
-      //          }
-    }}}
-	} // class actionBootClass
+          case _ =>
+          //          case SuperColliderClient.ServerChanged( server ) => {
+          //            serverPanel.server = server
+          //          }
+        }
+      }
+    }
+  }
+  // class actionBootClass
 }

@@ -28,66 +28,74 @@ package swing
 
 import scala.swing.Swing
 import de.sciss.osc.TCP
+import util.control.NonFatal
 
 object ScalaColliderSwing extends App {
-   // ---- constructor ----
-   Swing.onEDT( buildGUI() )
+  // ---- constructor ----
+  Swing.onEDT(buildGUI())
 
-   class REPLSupport( ssp: ServerStatusPanel, ntp: NodeTreePanel ) {
-     override def toString = "repl-support"
+  class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
+    override def toString = "repl-support"
 
-      var s : Server = null
-      val sCfg = Server.Config()
-      sCfg.transport = TCP
-      private val sync = new AnyRef
-      private var booting: ServerConnection = null
+    // var s : Server = null
+    def s: Server = Server.default
 
-      // ---- constructor ----
-      sys.addShutdownHook( shutDown() )
-      ssp.bootAction = Some( () => boot() )
+    val config = Server.Config()
+    config.transport = TCP
+    private val sync = new AnyRef
+    private var booting: ServerConnection = null
 
-      def boot() { sync.synchronized {
-         shutDown()
-         booting = Server.boot( config = sCfg ) {
-            case ServerConnection.Preparing( srv ) => {
-//               ntp.server = Some( srv )
-               ntp.group = Some( srv.rootNode )
+    // ---- constructor ----
+    sys.addShutdownHook(shutDown())
+    ssp.bootAction = Some(() => boot())
+
+    def boot() {
+      sync.synchronized {
+        shutDown()
+        booting = Server.boot(config = config) {
+          case ServerConnection.Preparing(srv) => {
+            //               ntp.server = Some( srv )
+            ntp.group = Some(srv.rootNode)
+          }
+          case ServerConnection.Running(srv) => {
+            sync.synchronized {
+              booting = null
+              //              s = srv
             }
-            case ServerConnection.Running( srv ) => {
-               sync.synchronized {
-                  booting = null
-                  s = srv
-               }
-            }
-         }
-         ssp.booting = Some( booting )
-      }}
+          }
+        }
+        ssp.booting = Some(booting)
+      }
+    }
 
-      private def shutDown() { sync.synchronized {
-         if( (s != null) && (s.condition != Server.Offline) ) {
-            s.quit()
-            s = null
-         }
-         if( booting != null ) {
-            booting.abort()
-            booting = null
-         }
-      }}
-   }
+    private def shutDown() {
+      sync.synchronized {
+        val srv = try { s } catch { case NonFatal(_) => null }
+        if ((srv != null) && (srv.condition != Server.Offline)) {
+          srv.quit()
+          //          s = null
+        }
+        if (booting != null) {
+          booting.abort()
+          booting = null
+        }
+      }
+    }
+  }
 
-   def buildGUI() {
-      val ssp  = new ServerStatusPanel()
-      val sspw = ssp.peer.makeWindow
-      val ntp  = new NodeTreePanel()
-      ntp.nodeActionMenu            = true
-      ntp.confirmDestructiveActions = true
-      val ntpw = ntp.peer.makeWindow()
-      val repl = new REPLSupport( ssp, ntp )
-      val sif  = new ScalaInterpreterFrame( repl )
-      ntpw.setLocation( sspw.getX, sspw.getY + sspw.getHeight + 32 )
-      sspw.setVisible( true )
-      ntpw.setVisible( true )
-      sif.setLocation( sspw.getX + sspw.getWidth + 32, sif.getY )
-      sif.setVisible( true )
-   }
+  def buildGUI() {
+    val ssp = new ServerStatusPanel()
+    val sspw = ssp.peer.makeWindow
+    val ntp = new NodeTreePanel()
+    ntp.nodeActionMenu = true
+    ntp.confirmDestructiveActions = true
+    val ntpw = ntp.peer.makeWindow()
+    val repl = new REPLSupport(ssp, ntp)
+    val sif = new ScalaInterpreterFrame(repl)
+    ntpw.setLocation(sspw.getX, sspw.getY + sspw.getHeight + 32)
+    sspw.setVisible(true)
+    ntpw.setVisible(true)
+    sif.setLocation(sspw.getX + sspw.getWidth + 32, sif.getY)
+    sif.setVisible(true)
+  }
 }

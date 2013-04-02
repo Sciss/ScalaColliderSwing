@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.5.0"
+version        := "1.6.0"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.0"  // do _not_ use 2.10.+
+scalaVersion   := "2.10.1"
 
 description := "A Swing and REPL front-end for ScalaCollider"
 

@@ -1,7 +1,7 @@
 
-sCfg.programPath = "/path/to/scsynth"
-sCfg.transport = TCP
-boot
+config.programPath = "/path/to/scsynth"
+config.transport   = TCP
+boot()
 
 // analog bubbles
 val x = play {

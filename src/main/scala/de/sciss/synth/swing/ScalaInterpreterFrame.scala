@@ -31,86 +31,86 @@ import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
 import java.io.{IOException, File, FileInputStream}
 import java.awt.GraphicsEnvironment
 
-class ScalaInterpreterFrame( replSupport: REPLSupport )
-extends JFrame( "ScalaCollider Interpreter" ) {
+class ScalaInterpreterFrame(replSupport: REPLSupport)
+  extends JFrame("ScalaCollider Interpreter") {
 
-   private val lp = {
-      val p = LogPane()
-      p.makeDefault( error = true )
-      p
-   }
+  private val lp = {
+    val p = LogPane()
+    p.makeDefault(error = true)
+    p
+  }
 
-   val pane = {
-//      val paneCfg = InterpreterPane.Config()
-      // note: for the auto-completion in the pane to work, we must
-      // import de.sciss.synth.ugen._ instead of ugen._
-      // ; also name aliasing seems to be broken, thus the stuff
-      // in de.sciss.osc is hidden
+  val pane = {
+    //      val paneCfg = InterpreterPane.Config()
+    // note: for the auto-completion in the pane to work, we must
+    // import de.sciss.synth.ugen._ instead of ugen._
+    // ; also name aliasing seems to be broken, thus the stuff
+    // in de.sciss.osc is hidden
 
-      val codeCfg = CodePane.Config()
+    val codeCfg = CodePane.Config()
 
-      val file = new File( /* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.txt" )
-      if( file.isFile ) try {
-         val fis  = new FileInputStream( file )
-         val txt  = try {
-            val arr = new Array[ Byte ]( fis.available() )
-            fis.read( arr )
-            new String( arr, "UTF-8" )
-         } finally {
-            fis.close()
-         }
-         codeCfg.text = txt
-
-      } catch {
-         case e: IOException => e.printStackTrace()
+    val file = new File(/* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.txt")
+    if (file.isFile) try {
+      val fis = new FileInputStream(file)
+      val txt = try {
+        val arr = new Array[Byte](fis.available())
+        fis.read(arr)
+        new String(arr, "UTF-8")
+      } finally {
+        fis.close()
       }
+      codeCfg.text = txt
 
-      val intpCfg = Interpreter.Config()
-      intpCfg.imports = Seq(
-//         "Predef.{any2stringadd => _}",
-         "math._",
-         "de.sciss.synth._", "de.sciss.osc", "osc.Implicits._",
-         "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
-         "Ops._", "swing.Implicits._", /* "io._", */ "ugen._", "replSupport._"
-      )
+    } catch {
+      case e: IOException => e.printStackTrace()
+    }
 
-      intpCfg.bindings = Seq( NamedParam( "replSupport", replSupport ))
-//         in.bind( "s", classOf[ Server ].getName, ntp )
-//         in.bind( "in", classOf[ Interpreter ].getName, in )
-      intpCfg.out = Some( lp.writer )
+    val intpCfg = Interpreter.Config()
+    intpCfg.imports = Seq(
+      //         "Predef.{any2stringadd => _}",
+      "math._",
+      "de.sciss.synth._", "de.sciss.osc", "osc.Implicits._",
+      "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
+      "Ops._", "swing.Implicits._", /* "io._", */ "ugen._", "replSupport._"
+    )
 
-      InterpreterPane( interpreterConfig = intpCfg, codePaneConfig = codeCfg )
-   }
+    intpCfg.bindings = Seq(NamedParam("replSupport", replSupport))
+    //         in.bind( "s", classOf[ Server ].getName, ntp )
+    //         in.bind( "in", classOf[ Interpreter ].getName, in )
+    intpCfg.out = Some(lp.writer)
 
-//   private val sync = new AnyRef
-//   private var inCode: Option[ IMain => Unit ] = None
-   
-   // ---- constructor ----
-   {
-      val cp = getContentPane
-//      val lpCfg = LogPane.Settings()
-//      val lp = LogPane()
-//      pane.out = Some( lp.writer )
-//      lp.makeDefault( error = true )
-//      Console.setOut( lp.outputStream )
-//      Console.setErr( lp.outputStream )
-//      System.setErr( new PrintStream( lp.outputStream ))
+    InterpreterPane(interpreterConfig = intpCfg, codePaneConfig = codeCfg)
+  }
 
-//      pane.init()
-      val sp = new JSplitPane( SwingConstants.HORIZONTAL )
-      sp.setTopComponent( pane.component )
-      sp.setBottomComponent( lp.component )
-      cp.add( sp )
-      val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
-      setSize( b.width / 2, b.height * 7 / 8 )
-      sp.setDividerLocation( b.height * 2 / 3 )
-      setLocationRelativeTo( null )
-//      setLocation( x, getY )
-      setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE )
-//      setVisible( true )
-   }
+  //   private val sync = new AnyRef
+  //   private var inCode: Option[ IMain => Unit ] = None
 
-   def withInterpreter( fun: InterpreterPane => Unit ) {
+  // ---- constructor ----
+  {
+    val cp = getContentPane
+    //      val lpCfg = LogPane.Settings()
+    //      val lp = LogPane()
+    //      pane.out = Some( lp.writer )
+    //      lp.makeDefault( error = true )
+    //      Console.setOut( lp.outputStream )
+    //      Console.setErr( lp.outputStream )
+    //      System.setErr( new PrintStream( lp.outputStream ))
+
+    //      pane.init()
+    val sp = new JSplitPane(SwingConstants.HORIZONTAL)
+    sp.setTopComponent(pane.component)
+    sp.setBottomComponent(lp.component)
+    cp.add(sp)
+    val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
+    setSize(b.width / 2, b.height * 7 / 8)
+    sp.setDividerLocation(b.height * 2 / 3)
+    setLocationRelativeTo(null)
+    //      setLocation( x, getY )
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+    //      setVisible( true )
+  }
+
+  def withInterpreter( fun: InterpreterPane => Unit ) {
 //      sync.synchronized {
          fun( pane )
 //         getOrElse {

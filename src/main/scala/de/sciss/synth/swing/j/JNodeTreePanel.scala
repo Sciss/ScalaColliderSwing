@@ -32,7 +32,7 @@ import prefuse.action.animate.{ ColorAnimator, LocationAnimator, VisibilityAnima
 import prefuse.render.{ AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer, LabelRenderer }
 import prefuse.util.ColorLib
 import prefuse.visual.sort.TreeDepthItemSorter
-import de.sciss.synth.{message, Node, Group, Synth, Model, NodeManager, Ops}
+import de.sciss.synth.{message, Node, Group, Synth, NodeManager, Ops}
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
 import de.sciss.synth.swing.ScalaColliderSwing
@@ -315,72 +315,80 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
 //println( "startListening" )
       isListening = true
 
-      swingGroupVar.foreach { g =>
-         val queryMsg   = g.queryTreeMsg( postControls = false )
-         val server     = g.server
-//       val syncMsg    = server.syncMsg()
-//       val syncID     = syncMsg.id
-         server.!?(queryMsg) {
-//            case sosc.NodeInfoMessage( g.id, info ) =>
-            case osc.Message( "/g_queryTree.reply", 0, g.id, _numChildren: Int, rest @ _* ) =>
-               deferIfNeeded { visDo( ACTION_ADD ) {
-//println( "newRoot " + g )
-                  newRoot( g )
-                  updateFrameTitle()
-                  val iter = rest.iterator
-                  @tailrec def loop( parentID: Int, predID: Int, numChildren: Int ) {
-                     if( numChildren == 0 ) return // pop
-                     val nodeID        = iter.next().asInstanceOf[ Int ]
-                     val subChildren   = iter.next().asInstanceOf[ Int ]
-                     val (node, info, icon) = if( subChildren < 0 ) {
-                        val _info   = message.NodeInfo.SynthData(
-                          parentID = parentID, predID = predID, succID = -1
-                        )
-                        /* val defName = */ iter.next().toString
-                        val synth   = Synth( server, nodeID )
-                        (synth, _info, ICON_SYNTH)
-                        // stupid way to set the defName: XXX TODO : synth.newMsg( defName )
-//                        nlAddSynth( synth, info )
+     swingGroupVar.foreach { g =>
+       val queryMsg = g.queryTreeMsg(postControls = false)
+       val server = g.server
+       //       val syncMsg    = server.syncMsg()
+       //       val syncID     = syncMsg.id
+       val fut = server.!!(queryMsg) {
+         //            case sosc.NodeInfoMessage( g.id, info ) =>
+         case osc.Message("/g_queryTree.reply", 0, g.id, _numChildren: Int, rest@_*) =>
+           deferIfNeeded {
+             visDo(ACTION_ADD) {
+               //println( "newRoot " + g )
+               newRoot(g)
+               updateFrameTitle()
+               val iter = rest.iterator
+               @tailrec def loop(parentID: Int, predID: Int, numChildren: Int) {
+                 if (numChildren == 0) return // pop
+                 val nodeID = iter.next().asInstanceOf[Int]
+                 val subChildren = iter.next().asInstanceOf[Int]
+                 val (node, info, icon) = if (subChildren < 0) {
+                   val _info = message.NodeInfo.SynthData(
+                     parentID = parentID, predID = predID, succID = -1
+                   )
+                   /* val defName = */ iter.next().toString
+                   val synth = Synth(server, nodeID)
+                   (synth, _info, ICON_SYNTH)
+                   // stupid way to set the defName: XXX TODO : synth.newMsg( defName )
+                   //                        nlAddSynth( synth, info )
 
-                     } else {
-                        val _info   = message.NodeInfo.GroupData(
-                          parentID = parentID, predID = predID, succID = -1, headID = -1, tailID = -1
-                        )
-                        val group   = Group( server, nodeID )
-                        (group, _info, ICON_GROUP)
-//                        nlAddGroup( group, info )
-                     }
-                     map.get( parentID ).foreach { p =>
-                        addNode( node, info, p, icon )
-                     }
+                 } else {
+                   val _info = message.NodeInfo.GroupData(
+                     parentID = parentID, predID = predID, succID = -1, headID = -1, tailID = -1
+                   )
+                   val group = Group(server, nodeID)
+                   (group, _info, ICON_GROUP)
+                   //                        nlAddGroup( group, info )
+                 }
+                 map.get(parentID).foreach {
+                   p =>
+                     addNode(node, info, p, icon)
+                 }
 
-                     if( subChildren > 0 ) { // push
-                        loop( parentID = nodeID, predID = -1, numChildren = subChildren )
-                     } else {                // iter
-                        loop( parentID = parentID, predID = nodeID, numChildren = numChildren - 1 )
-                     }
-                  }
+                 if (subChildren > 0) {
+                   // push
+                   loop(parentID = nodeID, predID = -1, numChildren = subChildren)
+                 } else {
+                   // iter
+                   loop(parentID = parentID, predID = nodeID, numChildren = numChildren - 1)
+                 }
+               }
 
-                  loop( parentID = g.id, predID = -1, numChildren = _numChildren )
-                  server.nodeManager.addListener( nodeListener )
-               }}
-            case message.TIMEOUT =>
-               println( queryMsg.name +  " : timeout!" )
-         }
-      }
+               loop(parentID = g.id, predID = -1, numChildren = _numChildren)
+               server.nodeManager.addListener(nodeListener)
+             }
+           }
+       }
+       val c = server.clientConfig
+       import c.executionContext
+       fut.onFailure {
+         case message.Timeout() => println(queryMsg.name + " : timeout!")
+       }
+     }
    }
 
-   private def stopListening() {
-      if( !isListening ) return
-//println( "stopListening" )
-      isListening = false
-      swingGroupVar.foreach { g =>
-         g.server.nodeManager.removeListener( nodeListener )
-      }
-      nlClear()
-   }
+  private def stopListening() {
+    if (!isListening) return
+    //println( "stopListening" )
+    isListening = false
+    swingGroupVar.foreach { g =>
+      g.server.nodeManager.removeListener(nodeListener)
+    }
+    nlClear()
+  }
 
-   // ---- NodeTreePanelLike ----
+  // ---- NodeTreePanelLike ----
 
   private var nodeActionMenuComponent = Option.empty[NodeActionsPopupMenu]
 
@@ -403,79 +411,83 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
     }
   }
 
-   private def deferIfNeeded( code: => Unit ) {
-      if( EventQueue.isDispatchThread ) {
-         code
-      } else {
-         EventQueue.invokeLater( new Runnable { def run() { code }})
-      }
-   }
+  private def deferIfNeeded(code: => Unit) {
+    if (EventQueue.isDispatchThread) {
+      code
+    } else {
+      EventQueue.invokeLater(new Runnable {
+        def run() {
+          code
+        }
+      })
+    }
+  }
 
-//   private def deferVisDo( action: String )( code: => Unit ) {
-//      deferIfNeeded( visDo( action )( code ))
-//   }
+  //   private def deferVisDo( action: String )( code: => Unit ) {
+  //      deferIfNeeded( visDo( action )( code ))
+  //   }
 
-   private def insertChild( pNode: PNode, pParent: PNode, info: message.NodeInfo.Data, iNode: NodeInfo ) {
-      val iParent = pParent.get( INFO ).asInstanceOf[ NodeInfo ]
-      val pPred   = if( info.predID == -1 ) {
-         iParent.head = pNode
-         null
-      } else {
-         map.get( info.predID ).orNull
-      }
-      if( pPred != null ) {
-         val iPred   = pPred.get( INFO ).asInstanceOf[ NodeInfo ]
-         iPred.succ = pNode
-         iNode.pred = pPred
-      }
-      val pSucc = if( info.succID == -1 ) {
-         iParent.tail = pNode
-         null
-      } else {
-         map.get( info.succID ).orNull
-      }
-      if( pSucc != null ) {
-         val iSucc = pSucc.get( INFO ).asInstanceOf[ NodeInfo ]
-         iNode.succ = pSucc
-         iSucc.pred = pNode
-      }
-      iNode.parent = pParent
-   }
+  private def insertChild(pNode: PNode, pParent: PNode, info: message.NodeInfo.Data, iNode: NodeInfo) {
+    val iParent = pParent.get(INFO).asInstanceOf[NodeInfo]
+    val pPred = if (info.predID == -1) {
+      iParent.head = pNode
+      null
+    } else {
+      map.get(info.predID).orNull
+    }
+    if (pPred != null) {
+      val iPred = pPred.get(INFO).asInstanceOf[NodeInfo]
+      iPred.succ = pNode
+      iNode.pred = pPred
+    }
+    val pSucc = if (info.succID == -1) {
+      iParent.tail = pNode
+      null
+    } else {
+      map.get(info.succID).orNull
+    }
+    if (pSucc != null) {
+      val iSucc = pSucc.get(INFO).asInstanceOf[NodeInfo]
+      iNode.succ = pSucc
+      iSucc.pred = pNode
+    }
+    iNode.parent = pParent
+  }
 
-   private def deleteChild( node: Node, pNode: PNode ) {
-      removeChild( pNode )
-      // note: we need to update the graph structure first,
-      // because after calling Tree->removeChild, it is
-      // not allowed to call get on the PNode any more.
-//      t.removeChild( pNode )
-      t.removeNode( pNode )
-      map -= node.id
-   }
+  private def deleteChild(node: Node, pNode: PNode) {
+    removeChild(pNode)
+    // note: we need to update the graph structure first,
+    // because after calling Tree->removeChild, it is
+    // not allowed to call get on the PNode any more.
+    //      t.removeChild( pNode )
+    t.removeNode(pNode)
+    map -= node.id
+  }
 
-   private def removeChild( pNode: PNode ) {
-      val iInfo   = pNode.get( INFO ).asInstanceOf[ NodeInfo ]
-      val pPred   = iInfo.pred
-      val pSucc   = iInfo.succ
-      val pParent = iInfo.parent
-      val iParent = if( pParent != null ) {
-         iInfo.parent = null
-         pParent.get( INFO ).asInstanceOf[ NodeInfo ]
-      } else null
-      if( pPred == null ) {
-         if( iParent != null ) iParent.head = pSucc
-      } else {
-         val iPred   = pPred.get( INFO ).asInstanceOf[ NodeInfo ]
-         iPred.succ  = pSucc
-         iInfo.pred  = null
-      }
-      if( pSucc == null ) {
-         if( iParent != null ) iParent.tail = pPred
-      } else {
-         val iSucc   = pSucc.get( INFO ).asInstanceOf[ NodeInfo ]
-         iSucc.pred  = pPred
-         iInfo.succ  = null
-      }
-   }
+  private def removeChild(pNode: PNode) {
+    val iInfo   = pNode.get(INFO).asInstanceOf[NodeInfo]
+    val pPred   = iInfo.pred
+    val pSucc   = iInfo.succ
+    val pParent = iInfo.parent
+    val iParent = if (pParent != null) {
+      iInfo.parent = null
+      pParent.get(INFO).asInstanceOf[NodeInfo]
+    } else null
+    if (pPred == null) {
+      if (iParent != null) iParent.head = pSucc
+    } else {
+      val iPred = pPred.get(INFO).asInstanceOf[NodeInfo]
+      iPred.succ = pSucc
+      iInfo.pred = null
+    }
+    if (pSucc == null) {
+      if (iParent != null) iParent.tail = pPred
+    } else {
+      val iSucc = pSucc.get(INFO).asInstanceOf[NodeInfo]
+      iSucc.pred = pPred
+      iInfo.succ = null
+    }
+  }
 
   private def createChild(node: Node, pParent: PNode, info: message.NodeInfo.Data): PNode = {
     val pNode = t.addNode()
@@ -563,8 +575,8 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
   }
 
   private final val sync = new AnyRef
-//   private var serverVar: Option[ Server ] = None
-//   def server: Option[ Server ] = serverVar
+  //   private var serverVar: Option[ Server ] = None
+  //   def server: Option[ Server ] = serverVar
 
   private var groupVar: Option[Group] = None
   private var swingGroupVar: Option[Group] = None
@@ -601,205 +613,215 @@ class JNodeTreePanel extends JPanel( new BorderLayout() ) with NodeTreePanelLike
     //      vis.run( ACTION_LAYOUT )
   }
 
-//   private def stopAnimation() {
-//      vis.cancel( ACTION_ADD_ANIM )
-//      vis.cancel( ACTION_LAYOUT_ANIM )
-//      vis.cancel( ACTION_RUN_ANIM )
-//   }
+  //   private def stopAnimation() {
+  //      vis.cancel( ACTION_ADD_ANIM )
+  //      vis.cancel( ACTION_LAYOUT_ANIM )
+  //      vis.cancel( ACTION_RUN_ANIM )
+  //   }
 
-   private def visDo( action: String )( code: => Unit ) {
-      vis.synchronized {
-//         stopAnimation()
-         vis.cancel( ACTION_ANIM )
-         try {
-            code
-         } finally {
-            vis.run( action )
-         }
+  private def visDo( action: String )( code: => Unit ) {
+    vis.synchronized {
+      //         stopAnimation()
+      vis.cancel(ACTION_ANIM)
+      try {
+        code
+      } finally {
+        vis.run(action)
       }
-   }
+    }
+  }
 
-   private def visCancel( code: => Unit ) {
-      vis.synchronized {
-         vis.cancel( ACTION_ANIM )
-         code
+  private def visCancel(code: => Unit) {
+    vis.synchronized {
+      vis.cancel(ACTION_ANIM)
+      code
+    }
+  }
+
+  private var frame: Option[JFrame] = None
+
+  private def updateFrameTitle() {
+    frame.foreach { fr =>
+      val tit = swingGroupVar match {
+        case Some(g) => frameTitle + " (" + (if (g.id == 0) g.server.toString() else g.toString) + ")"
+        case None => frameTitle
       }
-   }
+      fr.setTitle(tit)
+    }
+  }
 
-   private var frame: Option[ JFrame ] = None
+  def makeWindow( disposeOnClose: Boolean = true ): JFrame = {
+    require(EventQueue.isDispatchThread)
+    frame getOrElse {
+      val fr = new JFrame()
+      fr.getRootPane.putClientProperty("Window.style", "small")
+      fr.setDefaultCloseOperation(
+        if (disposeOnClose) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE
+      )
+      fr.getContentPane.add(this)
+      fr.pack()
+      fr.setLocationRelativeTo(null)
+      setFrame(fr)
 
-   private def updateFrameTitle() {
-      frame.foreach { fr =>
-         val tit = swingGroupVar match {
-            case Some( g ) => frameTitle + " (" + (if( g.id == 0 ) g.server.toString() else g.toString) + ")"
-            case None      => frameTitle
-         }
-         fr.setTitle( tit )
+      //         if( disposeOnClose ) {
+      //            fr.addWindowListener( new WindowAdapter {
+      //               override def windowClosing( e: WindowEvent ) {
+      //                  // setServerNoRefresh( None )
+      //               }
+      //            })
+      //         }
+
+      fr
+    }
+  }
+
+  private[swing] def setFrame(fr: JFrame) {
+    frame = Some(fr)
+    updateFrameTitle()
+  }
+
+  private def isPaused(n: Node): Boolean = map.get(n.id).map(_.getBoolean(COL_PAUSED)).getOrElse(false)
+
+  private class NodeActionsPopupMenu(_confirmDestr: Boolean) extends JPopupMenu {
+    pop =>
+
+    import Ops._
+
+    private var confirmDestr = false
+    private var selectionVar = Option.empty[Node]
+
+    val actionNodeFree = new AbstractAction {
+      def actionPerformed(e: ActionEvent) {
+        selectionVar.foreach(n => confirm(this, "Free node " + n.id + "?")(n.free()))
       }
-   }
+    }
 
-	def makeWindow( disposeOnClose: Boolean = true ): JFrame = {
-      require( EventQueue.isDispatchThread )
-      frame getOrElse {
-         val fr = new JFrame()
-         fr.getRootPane.putClientProperty( "Window.style", "small" )
-         fr.setDefaultCloseOperation(
-            if( disposeOnClose ) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE
-         )
-         fr.getContentPane.add( this )
-         fr.pack()
-         fr.setLocationRelativeTo( null )
-         setFrame( fr )
-
-//         if( disposeOnClose ) {
-//            fr.addWindowListener( new WindowAdapter {
-//               override def windowClosing( e: WindowEvent ) {
-//                  // setServerNoRefresh( None )
-//               }
-//            })
-//         }
-
-         fr
+    val actionNodeRun = new AbstractAction("Run") {
+      def actionPerformed(e: ActionEvent) {
+        selectionVar.foreach(n => n.run(isPaused(n)))
       }
-	}
+    }
 
-   private[swing] def setFrame( fr: JFrame ) {
-      frame = Some( fr )
-      updateFrameTitle()
-   }
-
-   private def isPaused( n: Node ) : Boolean = map.get( n.id ).map( _.getBoolean( COL_PAUSED )).getOrElse( false )
-
-   private class NodeActionsPopupMenu( _confirmDestr : Boolean ) extends JPopupMenu {
-      pop =>
-
-      import Ops._
-
-      private var confirmDestr = false
-      private var selectionVar = Option.empty[ Node ]
-
-      val actionNodeFree = new AbstractAction {
-         def actionPerformed( e: ActionEvent ) {
-            selectionVar.foreach( n => confirm( this, "Free node " + n.id + "?" )( n.free() ))
-         }
+    val actionNodeTrace = new AbstractAction("Trace") {
+      def actionPerformed(e: ActionEvent) {
+        selectionVar.foreach(_.trace())
       }
+    }
 
-      val actionNodeRun = new AbstractAction( "Run" ) {
-         def actionPerformed( e: ActionEvent ) {
-            selectionVar.foreach( n => n.run( isPaused( n )))
-         }
+    val actionGroupFreeAll = new AbstractAction {
+      def actionPerformed(e: ActionEvent) {
+        selectionVar match {
+          case Some(g: Group) => confirm(this, "Free all nodes in group " + g.id + "?")(g.freeAll())
+          case _ =>
+        }
       }
+    }
 
-      val actionNodeTrace = new AbstractAction( "Trace" ) {
-         def actionPerformed( e: ActionEvent ) {
-            selectionVar.foreach( _.trace() )
-         }
+    val actionGroupDeepFree = new AbstractAction {
+      def actionPerformed(e: ActionEvent) {
+        selectionVar match {
+          case Some(g: Group) => confirm(this, "Free all synths in group " + g.id + " and its sub-groups?")(g.deepFree())
+          case _ =>
+        }
       }
+    }
 
-      val actionGroupFreeAll = new AbstractAction {
-         def actionPerformed( e: ActionEvent ) {
-            selectionVar match {
-               case Some( g: Group ) => confirm( this, "Free all nodes in group " + g.id + "?" )( g.freeAll() )
-               case _ =>
-            }
-         }
+    val actionGroupDumpTree = new AbstractAction("Dump tree") {
+      def actionPerformed(e: ActionEvent) {
+        selectionVar match {
+          case Some(g: Group) => g.dumpTree((e.getModifiers & InputEvent.ALT_MASK) != 0)
+          case _ =>
+        }
       }
+    }
 
-      val actionGroupDeepFree = new AbstractAction {
-         def actionPerformed( e: ActionEvent ) {
-            selectionVar match {
-               case Some( g: Group ) => confirm( this, "Free all synths in group " + g.id + " and its sub-groups?" )( g.deepFree() )
-               case _ =>
-            }
-         }
-      }
-
-      val actionGroupDumpTree = new AbstractAction( "Dump tree" ) {
-         def actionPerformed( e: ActionEvent ) {
-            selectionVar match {
-               case Some( g: Group ) => g.dumpTree( (e.getModifiers & InputEvent.ALT_MASK) != 0 )
-               case _ =>
-            }
-         }
-      }
-
-     val popupTrigger = new MouseAdapter {
-       private def process(e: MouseEvent) {
-         if (e.isPopupTrigger) {
-           pop.show(e.getComponent, e.getX, e.getY)
-         }
-       }
-
-       override def mousePressed (e: MouseEvent) { process(e) }
-       override def mouseReleased(e: MouseEvent) { process(e) }
-       override def mouseClicked (e: MouseEvent) { process(e) }
-     }
-
-      private def confirm( action: Action, message: String )( thunk: => Unit ) {
-         if( !confirmDestr || JOptionPane.showConfirmDialog( treePanel, message,
-            action.getValue( Action.NAME ).toString, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE ) ==
-               JOptionPane.YES_OPTION ) {
-
-            thunk
-         }
+    val popupTrigger = new MouseAdapter {
+      private def process(e: MouseEvent) {
+        if (e.isPopupTrigger) {
+          pop.show(e.getComponent, e.getX, e.getY)
+        }
       }
 
-      private def item( action: Action ) = {
-//         val b = new JButton( action )
-         val b = new JMenuItem( action )
-//         b.setFocusable( false )
-//         b.putClientProperty( "JButton.buttonType", "bevel" )
-//         b.putClientProperty( "JComponent.sizeVariant", "small" )
-         pop.add( b )
-         b
+      override def mousePressed(e: MouseEvent) {
+        process(e)
       }
 
-//      private val p = new JPanel( new GridLayout( 2, 3 ))
-//      setLayout( new GridLayout( 2, 3 ))
-      item( actionNodeFree )
-      item( actionNodeRun )
-      item( actionNodeTrace )
-      item( actionGroupFreeAll )
-      item( actionGroupDeepFree )
-      item( actionGroupDumpTree ).setToolTipText( "Hold Alt key to dump controls" )
-//      setLayout( new BorderLayout() )
-//      add( p ) // , BorderLayout.WEST )
-      display.add( this )
-      display.addMouseListener( popupTrigger )
-
-      confirmDestructiveActions = false   // inits labels
-      selection_=( None )                 // inits enabled states
-
-//      treePanel.add( this, BorderLayout.SOUTH )
-//      if( treePanel.isShowing ) treePanel.revalidate()
-
-      def confirmDestructiveActions_=( b: Boolean ) {
-         confirmDestr = b
-         actionNodeFree.putValue(      Action.NAME, if( b ) "Free..." else "Free" )
-         actionGroupFreeAll.putValue(  Action.NAME, if( b ) "Free all..." else "Free all" )
-         actionGroupDeepFree.putValue( Action.NAME, if( b ) "Free deep..." else "Free deep" )
+      override def mouseReleased(e: MouseEvent) {
+        process(e)
       }
 
-     def selection_=(nodeOption: Option[Node]) {
-       selectionVar = nodeOption
-       val (n, g) = nodeOption match {
-         case Some(g: Group)  => (true, true)
-         case Some(_)         => (true, false)
-         case _               => (false, false)
-       }
-       actionNodeFree.setEnabled(n)
-       actionNodeRun.setEnabled(n)
-       actionNodeTrace.setEnabled(n)
-       actionGroupFreeAll.setEnabled(g)
-       actionGroupDeepFree.setEnabled(g)
-       actionGroupDumpTree.setEnabled(g)
-     }
+      override def mouseClicked(e: MouseEvent) {
+        process(e)
+      }
+    }
 
-     def dispose() {
-       // getParent.remove( this )
-       display.remove(this)
-       display.removeMouseListener(popupTrigger)
-       // if( treePanel.isShowing ) treePanel.revalidate()
-     }
-   }
+    private def confirm(action: Action, message: String)(thunk: => Unit) {
+      if (!confirmDestr || JOptionPane.showConfirmDialog(treePanel, message,
+        action.getValue(Action.NAME).toString, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) ==
+        JOptionPane.YES_OPTION) {
+
+        thunk
+      }
+    }
+
+    private def item(action: Action) = {
+      //         val b = new JButton( action )
+      val b = new JMenuItem(action)
+      //         b.setFocusable( false )
+      //         b.putClientProperty( "JButton.buttonType", "bevel" )
+      //         b.putClientProperty( "JComponent.sizeVariant", "small" )
+      pop.add(b)
+      b
+    }
+
+    //      private val p = new JPanel( new GridLayout( 2, 3 ))
+    //      setLayout( new GridLayout( 2, 3 ))
+    item(actionNodeFree)
+    item(actionNodeRun)
+    item(actionNodeTrace)
+    item(actionGroupFreeAll)
+    item(actionGroupDeepFree)
+    item(actionGroupDumpTree).setToolTipText("Hold Alt key to dump controls")
+    //      setLayout( new BorderLayout() )
+    //      add( p ) // , BorderLayout.WEST )
+    display.add(this)
+    display.addMouseListener(popupTrigger)
+
+    confirmDestructiveActions = false // inits labels
+    selection_=(None)
+
+    // inits enabled states
+
+    //      treePanel.add( this, BorderLayout.SOUTH )
+    //      if( treePanel.isShowing ) treePanel.revalidate()
+
+    def confirmDestructiveActions_=(b: Boolean) {
+      confirmDestr = b
+      actionNodeFree.putValue(Action.NAME, if (b) "Free..." else "Free")
+      actionGroupFreeAll.putValue(Action.NAME, if (b) "Free all..." else "Free all")
+      actionGroupDeepFree.putValue(Action.NAME, if (b) "Free deep..." else "Free deep")
+    }
+
+    def selection_=(nodeOption: Option[Node]) {
+      selectionVar = nodeOption
+      val (n, g) = nodeOption match {
+        case Some(g: Group) => (true, true)
+        case Some(_) => (true, false)
+        case _ => (false, false)
+      }
+      actionNodeFree.setEnabled(n)
+      actionNodeRun.setEnabled(n)
+      actionNodeTrace.setEnabled(n)
+      actionGroupFreeAll.setEnabled(g)
+      actionGroupDeepFree.setEnabled(g)
+      actionGroupDumpTree.setEnabled(g)
+    }
+
+    def dispose() {
+      // getParent.remove( this )
+      display.remove(this)
+      display.removeMouseListener(popupTrigger)
+      // if( treePanel.isShowing ) treePanel.revalidate()
+    }
+  }
 }
