@@ -12,7 +12,7 @@ To link to ScalaCollider-Swing:
 
     "de.sciss" %% "scalacolliderswing" % v
 
-The current version `v` is `1.7.+`
+The current version `v` is `1.8.+`
 
 ### running
 

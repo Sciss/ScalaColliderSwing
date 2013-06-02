@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.7.0"
+version        := "1.8.0"
 
 organization   := "de.sciss"
 
@@ -14,7 +14,7 @@ homepage <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
 
 licenses := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
-libraryDependencies <<= version { v =>
+libraryDependencies <++= version { v =>
   val i  = v.lastIndexOf('.') + 1
   val uv = v.substring(0, i) + "+"
   Seq(
@@ -38,9 +38,9 @@ buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq( name, organization, version, scalaVersion, description,
-   BuildInfoKey.map( homepage ) { case (k, opt) => k -> opt.get },
-   BuildInfoKey.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
+buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
+  BuildInfoKey.map(homepage) { case (k, opt)           => k -> opt.get },
+  BuildInfoKey.map(licenses) { case (_, Seq((lic, _))) => "license" -> lic }
 )
 
 buildInfoPackage := "de.sciss.synth.swing"
@@ -49,12 +49,12 @@ buildInfoPackage := "de.sciss.synth.swing"
 
 publishMavenStyle := true
 
-publishTo <<= version { (v: String) =>
-   Some( if( v.endsWith( "-SNAPSHOT" ))
-      "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-   else
-      "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-   )
+publishTo <<= version { v =>
+  Some(if (v endsWith "-SNAPSHOT")
+    "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+  else
+    "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+  )
 }
 
 publishArtifact in Test := false
@@ -67,11 +67,11 @@ pomExtra <<= name { n =>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
 </scm>
 <developers>
-   <developer>
-      <id>sciss</id>
-      <name>Hanns Holger Rutz</name>
-      <url>http://www.sciss.de</url>
-   </developer>
+  <developer>
+    <id>sciss</id>
+    <name>Hanns Holger Rutz</name>
+    <url>http://www.sciss.de</url>
+  </developer>
 </developers>
 }
 
