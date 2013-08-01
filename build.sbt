@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.8.0"
+version        := "1.9.0"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.1"
+scalaVersion   := "2.10.2"
 
 description := "A Swing and REPL front-end for ScalaCollider"
 
@@ -21,7 +21,7 @@ libraryDependencies <++= version { v =>
     "de.sciss" %% "scalacollider"        % uv,
     "de.sciss" %% "scalainterpreterpane" % "1.4.+",
     "de.sciss" %  "prefuse-core"         % "0.21",
-    "de.sciss" %% "audiowidgets-swing"   % "1.2.+"
+    "de.sciss" %% "audiowidgets-swing"   % "1.3.+"
   )
 }
 
