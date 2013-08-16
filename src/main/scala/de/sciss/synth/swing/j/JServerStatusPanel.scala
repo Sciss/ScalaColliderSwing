@@ -52,7 +52,6 @@ object JServerStatusPanel {
     }
 
     override def getMinimumSize: Dimension = getPreferredSize()
-
     override def getMaximumSize: Dimension = getPreferredSize()
   }
 
@@ -72,11 +71,10 @@ object JServerStatusPanel {
     // ---- constructor ----
     {
       addAncestorListener(new AncestorListener {
-        def ancestorAdded(e: AncestorEvent) {}
+        def ancestorAdded(e: AncestorEvent) = ()
+        def ancestorMoved(e: AncestorEvent) = ()
 
-        def ancestorMoved(e: AncestorEvent) {}
-
-        def ancestorRemoved(e: AncestorEvent) {
+        def ancestorRemoved(e: AncestorEvent): Unit = {
           imgGaugeEmpty.flush()
           imgGaugeFull.flush()
         }
@@ -87,7 +85,7 @@ object JServerStatusPanel {
       setMaximumSize(dim)
     }
 
-    def update(newAvgCPU: Float, newPeakCPU: Float) {
+    def update(newAvgCPU: Float, newPeakCPU: Float): Unit = {
       val newPeakPix = math.max(0, math.min(54, (newPeakCPU * 18 + 0.5f).toInt * 3))
 
       if (newPeakPix != peakCPU) {
@@ -100,7 +98,7 @@ object JServerStatusPanel {
     //        private val colrEdge   = new Color( 0, 0, 0, 0x7F )
     private val colrBorder = new Color(0, 0, 0, 0x35)
 
-    override def paintComponent(g: Graphics) {
+    override def paintComponent(g: Graphics): Unit = {
       //			g.setColor( Color.black )
       //			val w = getWidth
       //			val h = getHeight
@@ -123,36 +121,38 @@ object JServerStatusPanel {
   }
 }
 
-class JServerStatusPanel( flags: Int ) extends JPanel {
+class JServerStatusPanel(flags: Int) extends JPanel {
   import JServerStatusPanel._
 
-   def this( s: Server, flags: Int ) {
-      this( flags )
-      server = Some( s )
-   }
+  def this(s: Server, flags: Int) {
+    this(flags)
+    server = Some(s)
+  }
 
-   def this( s: Server ) {
-      this( s, 0x03 ) // XXX weird scala bug... does not see COUNTS and BOOT_BUTTON
-   }
+  def this(s: Server) {
+    this(s, 0x03) // XXX weird scala bug... does not see COUNTS and BOOT_BUTTON
+  }
 
-   def this() { this( 0x03 )}
+  def this() {
+    this(0x03)
+  }
 
-   private val actionBoot   = new ActionBoot()
-   private val ggBoot       = new JButton( actionBoot )
-   private val ggBusy       = new JProgressBar()
+  private val actionBoot  = new ActionBoot()
+  private val ggBoot      = new JButton(actionBoot)
+  private val ggBusy      = new JProgressBar()
 
-   // subclasses may override this
-   protected def txtBoot    = "Boot"  // XXX getResource
-   protected def txtStop    = "Stop"  // XXX getResource
-   protected def frameTitle = "Server Status"
+  // subclasses may override this
+  protected def txtBoot    = "Boot"  // XXX getResource
+  protected def txtStop    = "Stop"  // XXX getResource
+  protected def frameTitle = "Server Status"
 
-	private val lbCPU		   = new CPUIndicator
-	private val lbNumUGens	= new CountLabel
-	private val lbNumSynths	= new CountLabel
-	private val lbNumGroups	= new CountLabel
-	private val lbNumDefs	= new CountLabel
+  private val lbCPU       = new CPUIndicator
+  private val lbNumUGens  = new CountLabel
+  private val lbNumSynths = new CountLabel
+  private val lbNumGroups = new CountLabel
+  private val lbNumDefs   = new CountLabel
 
-   private val sync = new AnyRef
+  private val sync = new AnyRef
 
   private val bootingUpdate: ServerConnection.Listener = {
     case ServerConnection.Running(srv) =>
@@ -168,19 +168,20 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
   private val serverUpdate: Model.Listener[Any] = {
     case Server.Counts(cnt) => if (isShowing) updateCounts(cnt)
-    case msg@Server.Offline => {
+
+    case msg @ Server.Offline =>
       clearCounts()
       actionBoot.serverUpdate(msg)
-    }
+
     case msg => actionBoot.serverUpdate(msg)
   }
 
-  private var _server: Option[Server] = None
+  private var _server = Option.empty[Server]
 
   def server = sync.synchronized {
     _server
   }
-  def server_=(s: Option[Server]) {
+  def server_=(s: Option[Server]): Unit =
     sync.synchronized {
       val wasListening = listening
       if (wasListening) stopListening()
@@ -189,37 +190,34 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
       updateFrameTitle()
       if (wasListening) startListening()
     }
-  }
 
-  private var _booting: Option[ServerConnection] = None
+  private var _booting = Option.empty[ServerConnection]
 
   def booting = sync.synchronized {
     _booting
   }
-  def booting_=(b: Option[ServerConnection]) {
+  def booting_=(b: Option[ServerConnection]): Unit =
     sync.synchronized {
       val wasListening = listening
       if (wasListening) stopListening()
-      _server = None
-      _booting = b
+      _server   = None
+      _booting  = b
       updateFrameTitle()
       if (wasListening) startListening()
     }
-  }
 
-  private var _bootAction: Option[() => Unit] = None
+  private var _bootAction = Option.empty[() => Unit]
 
   def bootAction = sync.synchronized {
     _bootAction
   }
-  def bootAction_=(a: Option[() => Unit]) {
+  def bootAction_=(a: Option[() => Unit]): Unit =
     sync.synchronized {
       val wasListening = listening
       if (wasListening) stopListening()
       _bootAction = a
       if (wasListening) startListening()
     }
-  }
 
   // ---- constructor ----
   {
@@ -238,7 +236,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
       icnDef  .getImage.flush()
     }
 
-    def addS(c: Component, gap: Int = 4) {
+    def addS(c: Component, gap: Int = 4): Unit = {
       add(c)
       add(Box.createHorizontalStrut(gap))
     }
@@ -285,18 +283,15 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
     }
 
     addAncestorListener(new AncestorListener {
-      def ancestorAdded(e: AncestorEvent) {
+      def ancestorAdded(e: AncestorEvent): Unit =
         startListening()
-        //				updateCounts
-      }
 
-      def ancestorRemoved(e: AncestorEvent) {
+      def ancestorRemoved(e: AncestorEvent): Unit = {
         stopListening()
         flushImages()
-        //				updateCounts
       }
 
-      def ancestorMoved(e: AncestorEvent) {}
+      def ancestorMoved(e: AncestorEvent) = ()
     })
   }
 
@@ -306,14 +301,13 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
   private var frame: Option[JFrame] = None
 
-  private def updateFrameTitle() {
+  private def updateFrameTitle(): Unit =
     defer {
       sync.synchronized {
         val name = _server.getOrElse(_booting.orNull)
         frame.foreach(_.setTitle(frameTitle + (if (name == null) "" else " (" + name + ")")))
       }
     }
-  }
 
   def makeWindow: JFrame = makeWindow()
 
@@ -336,7 +330,7 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
   private var listening = false
 
-  private def startListening() {
+  private def startListening(): Unit =
     sync.synchronized {
       if (!listening) {
         listening = true
@@ -348,9 +342,8 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
         _server.foreach(_.addListener(serverUpdate))
       }
     }
-  }
 
-  private def stopListening() {
+  private def stopListening(): Unit =
     sync.synchronized {
       if (listening) {
         _booting.foreach(_.removeListener(bootingUpdate))
@@ -359,35 +352,21 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
         clearCounts()
       }
     }
+
+  private def defer(code: => Unit): Unit = {
+    if  (EventQueue.isDispatchThread) code
+    else EventQueue.invokeLater(new Runnable { def run(): Unit = code })
   }
 
-  //	private var srv: Option[ Server ] = None
-  //	def server = srv
-  //	def server_=( newServer: Option[ Server ]) {
-  //		if( srv == newServer ) return
-  //		val wasAdded = listening
-  //		stopListening
-  //		srv = newServer
-  //		if( isShowing ) {
-  //			updateCounts
-  //			if( srv.isDefined ) startListening
-  //		}
-  //	}
-
-  private def defer(code: => Unit) {
-    if (EventQueue.isDispatchThread) code
-    else EventQueue.invokeLater(new Runnable { def run() { code }})
-  }
-
-  private def updateCounts(cnt: message.StatusReply) {
+  private def updateCounts(cnt: message.StatusReply): Unit = {
     lbCPU.update(cnt.avgCPU / 100, cnt.peakCPU / 100)
-    lbNumUGens  .setText(cnt.numUGens.toString)
+    lbNumUGens  .setText(cnt.numUGens .toString)
     lbNumSynths .setText(cnt.numSynths.toString)
     lbNumGroups .setText(cnt.numGroups.toString)
-    lbNumDefs   .setText(cnt.numDefs.toString)
+    lbNumDefs   .setText(cnt.numDefs  .toString)
   }
 
-  private def clearCounts() {
+  private def clearCounts(): Unit = {
     lbCPU.update(0, 0)
     lbNumUGens  .setText(null)
     lbNumSynths .setText(null)
@@ -395,27 +374,17 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
     lbNumDefs   .setText(null)
   }
 
-  //	private def setDeepFont( c: Component, fnt: Font ) {
-  //		c.setFont( fnt )
-  //		c match {
-  //			case con: Container => con.getComponents.foreach( setDeepFont( _, fnt ))
-  //			case _ =>
-  //		}
-  //	}
-
   // subclasses may override this
-  protected def bootServer() {
+  protected def bootServer(): Unit =
     sync.synchronized {
       bootAction.foreach(_.apply())
     }
-  }
 
   // subclasses may override this
-  protected def stopServer() {
+  protected def stopServer(): Unit =
     sync.synchronized {
       server.foreach(_.quit())
     }
-  }
 
   private class ActionBoot extends AbstractAction {
 
@@ -423,15 +392,14 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
 
     private var cond: Any = Offline
 
-    def actionPerformed(e: ActionEvent) {
+    def actionPerformed(e: ActionEvent): Unit =
       if (cond == Offline) {
         bootServer()
       } else if (cond == Running) {
         stopServer()
       }
-    }
 
-    def serverUpdate(msg: Any) {
+    def serverUpdate(msg: Any): Unit =
       defer {
         msg match {
           case Server.Running =>
@@ -460,7 +428,6 @@ class JServerStatusPanel( flags: Int ) extends JPanel {
           //          }
         }
       }
-    }
   }
   // class actionBootClass
 }

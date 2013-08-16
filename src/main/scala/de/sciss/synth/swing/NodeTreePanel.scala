@@ -38,32 +38,34 @@ class NodeTreePanel extends Component with NodeTreePanelLike {
 
    private var frame = Option.empty[ Frame ]
 
-//   def server: Option[ Server ]        = peer.server
-//   def server_=( s: Option[ Server ]) { peer.server_=( s )}
-   def group: Option[ Group ]        = peer.group
-   def group_=( value: Option[ Group ]) { peer.group = value }
+  //   def server: Option[ Server ]        = peer.server
+  //   def server_=( s: Option[ Server ]) { peer.server_=( s )}
 
-   def makeWindow( disposeOnClose: Boolean = true ): Frame = {
-      require( EventQueue.isDispatchThread )
-      frame getOrElse {
-         val fr = new Frame() {
-            override def toString() = "NodeTreeFrame@" + hashCode().toHexString
-         }
-         fr.peer.setDefaultCloseOperation(
-            if( disposeOnClose ) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE
-         )
-         fr.peer.getRootPane.putClientProperty( "Window.style", "small" )
-         fr.contents = treePanel
-         fr.pack()
-         fr.centerOnScreen()
-         peer.setFrame( fr.peer )
-         frame = Some( fr )
-         fr
+  def group        : Option[Group]        = peer.group
+  def group_=(value: Option[Group]): Unit = peer.group = value
+
+  def makeWindow(disposeOnClose: Boolean = true): Frame = {
+    require( EventQueue.isDispatchThread )
+    frame getOrElse {
+      val fr = new Frame() {
+        override def toString() = "NodeTreeFrame@" + hashCode().toHexString
       }
-   }
+      fr.peer.setDefaultCloseOperation(
+        if (disposeOnClose) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE
+      )
+      fr.peer.getRootPane.putClientProperty("Window.style", "small")
+      fr.contents = treePanel
+      fr.pack()
+      fr.centerOnScreen()
+      peer.setFrame(fr.peer)
+      frame = Some(fr)
+      fr
+    }
+  }
 
-   def nodeActionMenu = peer.nodeActionMenu
-   def nodeActionMenu_=( b: Boolean ) { peer.nodeActionMenu = b }
-   def confirmDestructiveActions = peer.confirmDestructiveActions
-   def confirmDestructiveActions_=( b : Boolean ) { peer.confirmDestructiveActions = b }
+  def nodeActionMenu               : Boolean        = peer.nodeActionMenu
+  def nodeActionMenu_=           (b: Boolean): Unit = peer.nodeActionMenu = b
+
+  def confirmDestructiveActions    : Boolean        = peer.confirmDestructiveActions
+  def confirmDestructiveActions_=(b: Boolean): Unit = peer.confirmDestructiveActions = b
 }

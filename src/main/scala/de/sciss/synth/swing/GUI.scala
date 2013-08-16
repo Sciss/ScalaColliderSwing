@@ -33,50 +33,52 @@ import de.sciss.synth.{GraphFunction => SGraphFunction, Group => SGroup, Server 
 import scala.swing.{Swing, BoxPanel, Orientation, Frame}
 import de.sciss.{synth, osc}
 import collection.breakOut
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 import java.io.File
 import de.sciss.audiowidgets.j.WavePainter
 import javax.swing.JComponent
 import java.awt.{Font, Point, RenderingHints, Color, Dimension, Graphics2D, Graphics}
 
 object GUI {
-   final class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
+  final class Factory[T] private[swing] (target: => T) {
+    def gui: T = target
+  }
 
-   final class Group private[swing] ( val group: SGroup ) {
-      def tree() : Frame = {
-         val ntp                       = new NodeTreePanel()
-         ntp.nodeActionMenu            = true
-         ntp.confirmDestructiveActions = true
-         ntp.group                     = Some( group )
-         val ntpw                      = ntp.makeWindow()
-         ntpw.open()
-         ntpw
-      }
-   }
+  final class Group private[swing](val group: SGroup) {
+    def tree() : Frame = {
+      val ntp                       = new NodeTreePanel()
+      ntp.nodeActionMenu            = true
+      ntp.confirmDestructiveActions = true
+      ntp.group                     = Some(group)
+      val ntpw                      = ntp.makeWindow()
+      ntpw.open()
+      ntpw
+    }
+  }
 
-   final class AudioBus private[swing] ( val bus: SAudioBus ) {
-      def meter( target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail ) : Frame = {
-         makeAudioBusMeter( bus.server, bus.toString, AudioBusMeterConfig( bus, target, addAction ) :: Nil )
-      }
+  final class AudioBus private[swing](val bus: SAudioBus) {
+    def meter(target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail): Frame =
+      makeAudioBusMeter(bus.server, bus.toString, AudioBusMeterConfig(bus, target, addAction) :: Nil)
 
-      def waveform( duration: Double = 0.1, target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail ) : Frame = {
-         val gf = new GraphFunction( target = target, fadeTime = None, outBus = 0, addAction = addAction,
-                                     args = ("$inbus" -> bus.index) :: Nil, thunk = {
-            import ugen._
-            In.ar( "$inbus".ir, bus.numChannels )
-         })
-         gf.waveform( duration )
-      }
-   }
+    def waveform(duration: Double = 0.1, target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail): Frame = {
+      val gf = new GraphFunction(target = target, fadeTime = None, outBus = 0, addAction = addAction,
+        args = ("$inbus" -> bus.index) :: Nil, thunk = {
+          import ugen._
+          In.ar("$inbus".ir, bus.numChannels)
+        })
+      gf.waveform(duration)
+    }
+  }
 
   private final case class GUIRecordOut(in: GE)(chanFun: Int => Unit)
     extends UGenSource.ZeroOut with WritesBus {
     // XXX TODO should not be UGenSource
+
     protected def makeUGens {
       unwrap(in.expand.outputs)
     }
 
-    protected def makeUGen(ins: IIdxSeq[UGenIn]) {
+    protected def makeUGen(ins: Vec[UGenIn]): Unit = {
       if (ins.isEmpty) return
 
       import synth._
@@ -97,7 +99,8 @@ object GUI {
     }
   }
 
-  final class GraphFunction[T] private[swing](target: SNode, outBus: Int, fadeTime: Option[Double], addAction: AddAction,
+  final class GraphFunction[T] private[swing](target: SNode, outBus: Int, fadeTime: Option[Double],
+                                              addAction: AddAction,
                                               args: Seq[ControlSetMap], thunk: => T)
                                              (implicit result: SGraphFunction.Result.In[T]) {
     def waveform(duration: Double = 0.1): Frame = {
@@ -146,7 +149,7 @@ object GUI {
         setFocusable(true)
         setPreferredSize(new Dimension(400, 400))
 
-        override def paintComponent(g: Graphics) {
+        override def paintComponent(g: Graphics): Unit = {
           val g2 = g.asInstanceOf[Graphics2D]
           g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
           g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE)
@@ -161,8 +164,7 @@ object GUI {
         path.delete()
       }
 
-      def openBuffer() {
-        // println( "JO CHUCK " + path )
+      def openBuffer(): Unit = {
         val af = io.AudioFile.openRead(path)
         try {
           val num   = math.min(numFr, af.numFrames).toInt
@@ -175,17 +177,15 @@ object GUI {
             def numChannels = numCh
             def numFrames   = numFr
 
-            def refreshAllChannels() {
-              component.repaint()
-            }
+            def refreshAllChannels(): Unit = component.repaint()
 
-            def channelDimension(result: Dimension) {
+            def channelDimension(result: Dimension): Unit = {
               result.width  = component.getWidth
               val h         = component.getHeight
               result.height = (h - ((numCh - 1) * 4)) / numCh
             }
 
-            def channelLocation(ch: Int, result: Point) {
+            def channelLocation(ch: Int, result: Point): Unit = {
               result.x        = 0
               val h           = component.getHeight
               val viewHeight  = (h - ((numCh - 1) * 4)) / numCh
@@ -336,7 +336,7 @@ object GUI {
 
       override def toString() = string + "@" + hashCode().toHexString
 
-      override def closeOperation() {
+      override def closeOperation(): Unit = {
         onClose
         this.dispose()
       }

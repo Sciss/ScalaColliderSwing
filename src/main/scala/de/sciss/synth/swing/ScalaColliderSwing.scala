@@ -49,7 +49,7 @@ object ScalaColliderSwing extends App {
     sys.addShutdownHook(shutDown())
     ssp.bootAction = Some(() => boot())
 
-    def boot() {
+    def boot(): Unit =
       sync.synchronized {
         shutDown()
         booting = Server.boot(config = config) {
@@ -66,9 +66,8 @@ object ScalaColliderSwing extends App {
         }
         ssp.booting = Some(booting)
       }
-    }
 
-    private def shutDown() {
+    private def shutDown(): Unit =
       sync.synchronized {
         val srv = try { s } catch { case NonFatal(_) => null }
         if ((srv != null) && (srv.condition != Server.Offline)) {
@@ -80,10 +79,9 @@ object ScalaColliderSwing extends App {
           booting = null
         }
       }
-    }
   }
 
-  def buildGUI() {
+  def buildGUI(): Unit = {
     val ssp = new ServerStatusPanel()
     val sspw = ssp.peer.makeWindow
     val ntp = new NodeTreePanel()

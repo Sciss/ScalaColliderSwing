@@ -110,12 +110,12 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
     //      setVisible( true )
   }
 
-  def withInterpreter( fun: InterpreterPane => Unit ) {
-//      sync.synchronized {
-         fun( pane )
-//         getOrElse {
-//            inCode = Some( fun )
-//         }
-//      }
-   }
+  def withInterpreter(fun: InterpreterPane => Unit): Unit = {
+    //      sync.synchronized {
+    fun(pane)
+    //         getOrElse {
+    //            inCode = Some( fun )
+    //         }
+    //      }
+  }
 }
