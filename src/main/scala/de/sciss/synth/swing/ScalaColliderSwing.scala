@@ -2,7 +2,7 @@
  *  ScalaColliderSwing.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -54,13 +54,11 @@ object ScalaColliderSwing extends App {
         shutDown()
         booting = Server.boot(config = config) {
           case ServerConnection.Preparing(srv) => {
-            //               ntp.server = Some( srv )
             ntp.group = Some(srv.rootNode)
           }
           case ServerConnection.Running(srv) => {
             sync.synchronized {
               booting = null
-              //              s = srv
             }
           }
         }
@@ -72,7 +70,6 @@ object ScalaColliderSwing extends App {
         val srv = try { s } catch { case NonFatal(_) => null }
         if ((srv != null) && (srv.condition != Server.Offline)) {
           srv.quit()
-          //          s = null
         }
         if (booting != null) {
           booting.abort()
@@ -82,14 +79,14 @@ object ScalaColliderSwing extends App {
   }
 
   def buildGUI(): Unit = {
-    val ssp = new ServerStatusPanel()
-    val sspw = ssp.peer.makeWindow
-    val ntp = new NodeTreePanel()
+    val ssp   = new ServerStatusPanel()
+    val sspw  = ssp.peer.makeWindow
+    val ntp   = new NodeTreePanel()
     ntp.nodeActionMenu = true
     ntp.confirmDestructiveActions = true
-    val ntpw = ntp.peer.makeWindow()
-    val repl = new REPLSupport(ssp, ntp)
-    val sif = new ScalaInterpreterFrame(repl)
+    val ntpw  = ntp.peer.makeWindow()
+    val repl  = new REPLSupport(ssp, ntp)
+    val sif   = new ScalaInterpreterFrame(repl)
     ntpw.setLocation(sspw.getX, sspw.getY + sspw.getHeight + 32)
     sspw.setVisible(true)
     ntpw.setVisible(true)

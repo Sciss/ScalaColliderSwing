@@ -2,7 +2,7 @@
  *  Implicits.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -29,9 +29,9 @@ package swing
 import language.implicitConversions
 
 object Implicits {
-  implicit def enableGUI(group: Group)    = new GUI.Factory(new GUI.Group(group))
-  implicit def enableGUI(server: Server)  = new GUI.Factory(new GUI.Server(server))
-  implicit def enableGUI(bus: AudioBus)   = new GUI.Factory(new GUI.AudioBus(bus))
+  implicit def enableGUI(group : Group   ): GUI.Factory[GUI.Group   ]  = new GUI.Factory(new GUI.Group   (group ))
+  implicit def enableGUI(server: Server  ): GUI.Factory[GUI.Server  ]  = new GUI.Factory(new GUI.Server  (server))
+  implicit def enableGUI(bus   : AudioBus): GUI.Factory[GUI.AudioBus]  = new GUI.Factory(new GUI.AudioBus(bus   ))
 
   object gui {
     def apply[T: GraphFunction.Result.In](thunk: => T): GUI.GraphFunction[T] = apply()(thunk)
@@ -41,6 +41,4 @@ object Implicits {
                                          (thunk: => T): GUI.GraphFunction[T] =
       new GUI.GraphFunction(target, outBus, fadeTime.option, addAction, Nil, thunk)
   }
-
-  //   def any2stringadd( x: Any ) {}
 }

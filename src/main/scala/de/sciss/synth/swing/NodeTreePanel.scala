@@ -2,7 +2,7 @@
  *  NodeTreePanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -27,19 +27,16 @@ package de.sciss.synth.swing
 
 import j.{NodeTreePanelLike, JNodeTreePanel}
 import swing.{Frame, Component}
-import de.sciss.synth.{Group, Server}
+import de.sciss.synth.Group
 import java.awt.EventQueue
 import javax.swing.WindowConstants
 
 class NodeTreePanel extends Component with NodeTreePanelLike {
    treePanel =>
 
-   override lazy val peer: JNodeTreePanel = new JNodeTreePanel with SuperMixin
+  override lazy val peer: JNodeTreePanel = new JNodeTreePanel with SuperMixin
 
-   private var frame = Option.empty[ Frame ]
-
-  //   def server: Option[ Server ]        = peer.server
-  //   def server_=( s: Option[ Server ]) { peer.server_=( s )}
+  private var frame = Option.empty[Frame]
 
   def group        : Option[Group]        = peer.group
   def group_=(value: Option[Group]): Unit = peer.group = value

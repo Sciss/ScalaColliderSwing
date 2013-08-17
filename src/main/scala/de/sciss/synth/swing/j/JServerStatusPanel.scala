@@ -2,7 +2,7 @@
  *  JServerStatusPanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -278,8 +278,8 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       }
       addCount(icnGroup, lbNumGroups)
       addCount(icnSynth, lbNumSynths)
-      addCount(icnUGen, lbNumUGens)
-      addCount(icnDef, lbNumDefs, 0)
+      addCount(icnUGen , lbNumUGens )
+      addCount(icnDef  , lbNumDefs  , 0)
     }
 
     addAncestorListener(new AncestorListener {
@@ -317,6 +317,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       if (undecorated) fr.setUndecorated(true)
       val rp = fr.getRootPane
       rp.putClientProperty("Window.style", "small")
+      rp.putClientProperty("apple.awt.brushMetalLook", true)
       fr.setResizable(false)
       fr.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
       fr.getContentPane.add(this)

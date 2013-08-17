@@ -2,7 +2,7 @@
  *  GUI.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -26,14 +26,11 @@
 package de.sciss.synth
 package swing
 
-import de.sciss.audiowidgets.PeakMeter
-import de.sciss.osc.Message
 import de.sciss.synth.{GraphFunction => SGraphFunction, Group => SGroup, Server => SServer, Node => SNode,
-   AudioBus => SAudioBus, Synth => SSynth, message, SynthDef => SSynthDef, SynthGraph => SSynthGraph}
-import scala.swing.{Swing, BoxPanel, Orientation, Frame}
+   AudioBus => SAudioBus, Synth => SSynth, message, SynthGraph => SSynthGraph}
+import scala.swing.Frame
 import de.sciss.{synth, osc}
-import collection.breakOut
-import collection.immutable.{IndexedSeq => Vec}
+import collection.immutable.{IndexedSeq => Vec, Seq => ISeq}
 import java.io.File
 import de.sciss.audiowidgets.j.WavePainter
 import javax.swing.JComponent
@@ -58,7 +55,7 @@ object GUI {
 
   final class AudioBus private[swing](val bus: SAudioBus) {
     def meter(target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail): Frame =
-      makeAudioBusMeter(bus.server, bus.toString, AudioBusMeterConfig(bus, target, addAction) :: Nil)
+      makeAudioBusMeter(bus.toString, AudioBusMeter.Strip(bus, target, addAction) :: Nil)
 
     def waveform(duration: Double = 0.1, target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail): Frame = {
       val gf = new GraphFunction(target = target, fadeTime = None, outBus = 0, addAction = addAction,
@@ -238,88 +235,9 @@ object GUI {
     }
   }
 
-  private final case class AudioBusMeterConfig(bus: SAudioBus, target: SGroup, addAction: AddAction)
-
-  private def makeAudioBusMeter(server: SServer, name: String, configs: Seq[AudioBusMeterConfig]): Frame = {
-    val chans: Set[Int] = configs.map(_.bus.numChannels)(breakOut)
-    val synthDefs: Map[Int, SSynthDef] = chans.map({ numChannels =>
-      import synth._
-      import ugen._
-      val d = SSynthDef("$swing_meter" + numChannels) {
-        val sig   = In.ar("bus".ir, numChannels)
-        val tr    = Impulse.kr(20)
-        val peak  = Peak.kr(sig, tr)
-        val rms   = A2K.kr(Lag.ar(sig.squared, 0.1))
-        SendReply.kr(tr, Flatten(Zip(peak, rms)), "/$meter")
-      }
-      numChannels -> d
-    })(breakOut)
-
-    var newMsgs   = Map.empty[Int, List[osc.Message]]
-    var resps     = List.empty[message.Responder]
-    var synths    = List.empty[SSynth]
-    var meters    = Vector.empty[PeakMeter]
-    var wasClosed = false
-
-    configs.foreach { cfg =>
-      import cfg._
-      val numChannels     = bus.numChannels
-      val synth           = SSynth(target.server)
-      val d               = synthDefs(numChannels)
-      val newMsg          = synth.newMsg(d.name, target, Seq("bus" -> bus.index), addAction)
-      val meter           = new PeakMeter
-      meter.numChannels   = numChannels
-      meter.hasCaption    = true
-      meter.borderVisible = true
-
-      val resp = message.Responder.add(server) {
-        case Message("/$meter", synth.id, _, vals@_*) =>
-          val pairs = vals.asInstanceOf[Seq[Float]].toIndexedSeq
-          val time  = System.currentTimeMillis()
-          Swing.onEDT(meter.update(pairs, 0, time))
-      }
-
-      synth.onGo {
-        Swing.onEDT {
-          if (wasClosed) {
-            import Ops._
-            synth.free()
-          } else {
-            synths ::= synth
-          }
-        }
-      }
-
-      newMsgs += numChannels -> (newMsg :: newMsgs.getOrElse(numChannels, d.freeMsg :: Nil))
-       resps ::= resp
-       // synths ::= synth
-       meters :+= meter
-    }
-
-    val recvMsgs: List[osc.Message] = synthDefs.map({
-      case (numChannels, d) =>
-        d.recvMsg(completion = Some(osc.Bundle.now(newMsgs(numChannels): _*)))
-    })(breakOut)
-
-    server ! (recvMsgs match {
-      case single :: Nil => single
-      case _ => osc.Bundle.now(recvMsgs: _*)
-    })
-
-    val box = new BoxPanel(Orientation.Horizontal) {
-      contents ++= meters
-    }
-    makeFrame("Meter (" + name + ")", "MeterFrame", box) {
-      resps.foreach(_.remove())
-      meters.foreach(_.dispose())
-      wasClosed = true
-      val freeMsgs = synths.map(_.freeMsg)
-      freeMsgs match {
-        case single :: Nil => server ! single
-        case Nil =>
-        case _ => server ! osc.Bundle.now(freeMsgs: _*)
-      }
-    }
+  private def makeAudioBusMeter(name: String, strips: ISeq[AudioBusMeter.Strip]): Frame = {
+    val meter = AudioBusMeter(strips)
+    makeFrame(s"Meter ($name)", "MeterFrame", meter.component)(meter.dispose())
   }
 
   private def makeFrame(name: String, string: String, component: scala.swing.Component, smallBar: Boolean = true)
@@ -351,11 +269,11 @@ object GUI {
       val numInputs   = opt.inputBusChannels
       val numOutputs  = opt.outputBusChannels
       val target      = server.rootNode
-      val inBus       = SAudioBus(server, index = numOutputs, numChannels = numInputs)
-      val outBus      = SAudioBus(server, index = 0, numChannels = numOutputs)
-      val inCfg       = AudioBusMeterConfig(inBus, target, addToHead)
-      val outCfg      = AudioBusMeterConfig(outBus, target, addToTail)
-      makeAudioBusMeter(server, server.toString(), inCfg :: outCfg :: Nil)
+      val inBus       = SAudioBus(server, index = numOutputs, numChannels = numInputs )
+      val outBus      = SAudioBus(server, index = 0         , numChannels = numOutputs)
+      val inCfg       = AudioBusMeter.Strip(inBus , target, addToHead)
+      val outCfg      = AudioBusMeter.Strip(outBus, target, addToTail)
+      makeAudioBusMeter(server.toString(), inCfg :: outCfg :: Nil)
     }
   }
 }
