@@ -2,26 +2,27 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.9.1"
+version        := "1.10.0"
 
 organization   := "de.sciss"
 
 scalaVersion   := "2.10.2"
 
-description := "A Swing and REPL front-end for ScalaCollider"
+description    := "A Swing and REPL front-end for ScalaCollider"
 
-homepage <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
+homepage       := Some(url("https://github.com/Sciss/" + name.value))
 
-licenses := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
+licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
-libraryDependencies <++= version { v =>
+libraryDependencies ++= {
+  val v  = version.value
   val i  = v.lastIndexOf('.') + 1
   val uv = v.substring(0, i) + "+"
   Seq(
     "de.sciss" %% "scalacollider"        % uv,
-    "de.sciss" %% "scalainterpreterpane" % "1.4.+",
+    "de.sciss" %% "scalainterpreterpane" % "1.4.1+",
     "de.sciss" %  "prefuse-core"         % "0.21",
-    "de.sciss" %% "audiowidgets-swing"   % "1.3.+"
+    "de.sciss" %% "audiowidgets-swing"   % "1.3.1+"
   )
 }
 
@@ -49,19 +50,18 @@ buildInfoPackage := "de.sciss.synth.swing"
 
 publishMavenStyle := true
 
-publishTo <<= version { v =>
-  Some(if (v endsWith "-SNAPSHOT")
+publishTo :=
+  Some(if (version.value endsWith "-SNAPSHOT")
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
   )
-}
 
 publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-pomExtra <<= name { n =>
+pomExtra := { val n = name.value
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
@@ -79,21 +79,21 @@ pomExtra <<= name { n =>
 
 seq(assemblySettings: _*)
 
-test in assembly := {}
+test in assembly := ()
 
 seq(appbundle.settings: _*)
 
 appbundle.icon := Some(file("application.icns"))
 
-appbundle.target <<= baseDirectory
+appbundle.target := baseDirectory.value
 
 // ---- ls.implicit.ly ----
 
 seq(lsSettings :_*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq("sound-synthesis", "sound", "music", "supercollider")
+(LsKeys.tags   in LsKeys.lsync) := Seq("sound-synthesis", "sound", "music", "supercollider")
 
 (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
 
-(LsKeys.ghRepo in LsKeys.lsync) <<= name(Some(_))
+(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
 
