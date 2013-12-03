@@ -38,12 +38,12 @@ object ScalaColliderSwing extends App {
     override def toString = "repl-support"
 
     // var s : Server = null
-    def s: Server = Server.default
+    def s: Server       = Server.default
 
-    val config = Server.Config()
-    config.transport = TCP
-    private val sync = new AnyRef
-    private var booting: ServerConnection = null
+    val config          = Server.Config()
+    config.transport    = TCP
+    private val sync    = new AnyRef
+    private var booting = null: ServerConnection
 
     // ---- constructor ----
     sys.addShutdownHook(shutDown())
