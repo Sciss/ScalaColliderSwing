@@ -66,15 +66,23 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
     }
 
     val intpCfg = Interpreter.Config()
-    intpCfg.imports = Seq(
+    intpCfg.imports = List(
       //         "Predef.{any2stringadd => _}",
-      "math._",
-      "de.sciss.synth._", "de.sciss.osc", "osc.Implicits._",
-      "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
-      "Ops._", "swing.Implicits._", /* "io._", */ "ugen._", "replSupport._"
+      "scala.math._",
+      "de.sciss.osc",
+      "de.sciss.osc.{TCP, UDP}",
+      "de.sciss.osc.Dump.{Off, Both, Text}",
+      "de.sciss.osc.Implicits._",
+      "de.sciss.synth._",
+      "de.sciss.synth.Ops._",
+      "de.sciss.synth.swing.SynthGraphPanel._",
+      "de.sciss.synth.swing.Implicits._",
+      "de.sciss.synth.ugen._",
+      "replSupport._"
     )
+    // intpCfg.quietImports = false
 
-    intpCfg.bindings = Seq(NamedParam("replSupport", replSupport))
+    intpCfg.bindings = List(NamedParam("replSupport", replSupport))
     //         in.bind( "s", classOf[ Server ].getName, ntp )
     //         in.bind( "in", classOf[ Interpreter ].getName, in )
     intpCfg.out = Some(lp.writer)

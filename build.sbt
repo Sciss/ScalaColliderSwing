@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.10.0"
+version        := "1.11.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.2"
+scalaVersion   := "2.10.3"
 
 description    := "A Swing and REPL front-end for ScalaCollider"
 
@@ -15,12 +15,12 @@ homepage       := Some(url("https://github.com/Sciss/" + name.value))
 licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= {
-  val v  = version.value
-  val i  = v.lastIndexOf('.') + 1
-  val uv = v.substring(0, i) + "+"
+  // val v  = version.value
+  // val i  = v.lastIndexOf('.') + 1
+  val uv = "1.10.+" // v.substring(0, i) + "+"
   Seq(
     "de.sciss" %% "scalacollider"        % uv,
-    "de.sciss" %% "scalainterpreterpane" % "1.4.1+",
+    "de.sciss" %% "scalainterpreterpane" % "1.5.+",
     "de.sciss" %  "prefuse-core"         % "0.21",
     "de.sciss" %% "audiowidgets-swing"   % "1.3.1+"
   )
