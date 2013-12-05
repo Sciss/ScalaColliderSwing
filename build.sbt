@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.11.0"
+version        := "1.12.0"
 
 organization   := "de.sciss"
 
@@ -20,7 +20,7 @@ libraryDependencies ++= {
   // val uv = v.substring(0, i) + "+"
   Seq(
     "de.sciss" %% "scalacollider"        % "1.10.+",
-    "de.sciss" %% "scalainterpreterpane" % "1.5.+",
+    "de.sciss" %% "scalainterpreterpane" % "1.6.+",
     "de.sciss" %  "prefuse-core"         % "0.21",
     "de.sciss" %% "audiowidgets-swing"   % "1.3.1+"
   )
