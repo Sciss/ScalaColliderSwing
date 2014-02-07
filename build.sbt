@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "ScalaColliderSwing"
 
-version        := "1.12.0"
+version        := "1.13.0"
 
 organization   := "de.sciss"
 
@@ -19,10 +19,11 @@ libraryDependencies ++= {
   // val i  = v.lastIndexOf('.') + 1
   // val uv = v.substring(0, i) + "+"
   Seq(
-    "de.sciss" %% "scalacollider"        % "1.10.+",
+    "de.sciss" %% "scalacollider"        % "1.10.1+",
     "de.sciss" %% "scalainterpreterpane" % "1.6.+",
     "de.sciss" %  "prefuse-core"         % "0.21",
-    "de.sciss" %% "audiowidgets-swing"   % "1.3.1+"
+    "de.sciss" %% "audiowidgets-swing"   % "1.4.+",
+    "de.sciss" %  "syntaxpane"           % "1.1.1"   // .1 is bugfix
   )
 }
 
@@ -79,13 +80,17 @@ pomExtra := { val n = name.value
 
 seq(assemblySettings: _*)
 
-test in assembly := ()
-
 seq(appbundle.settings: _*)
 
-appbundle.icon := Some(file("application.icns"))
+appbundle.icon      := Some(file("application.icns"))
 
-appbundle.target := baseDirectory.value
+appbundle.target    := baseDirectory.value
+
+test in assembly    := ()
+
+target  in assembly := baseDirectory.value
+
+jarName in assembly := s"${name.value}.jar"
 
 // ---- ls.implicit.ly ----
 
