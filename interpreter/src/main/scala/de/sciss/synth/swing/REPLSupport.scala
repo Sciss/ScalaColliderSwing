@@ -23,14 +23,13 @@ class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
     sync.synchronized {
       shutDown()
       booting = Server.boot(config = config) {
-        case ServerConnection.Preparing(srv) => {
-          ntp.group = Some(srv.rootNode)
-        }
-        case ServerConnection.Running(srv) => {
+        case ServerConnection.Preparing(srv) =>
+          if (ntp != null) ntp.group = Some(srv.rootNode)
+
+        case ServerConnection.Running(srv) =>
           sync.synchronized {
             booting = null
           }
-        }
       }
       ssp.booting = Some(booting)
     }

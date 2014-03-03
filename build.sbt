@@ -96,7 +96,9 @@ lazy val app = Project(
   settings = commonSettings ++ Seq(
     description    := "Standalone application for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss" %% "desktop" % desktopVersion
+      "de.sciss"          %% "desktop"               % desktopVersion,
+      "org.dockingframes" %  "docking-frames-common" % "1.1.1",
+      "net.sf.cssbox"     %  "swingbox"              % "1.0"
     )
   )
 )
