@@ -15,7 +15,6 @@ package de.sciss.synth.swing
 
 import de.sciss.scalainterpreter.{CodePane, LogPane, InterpreterPane, NamedParam, Interpreter}
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
-import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
 import java.io.{IOException, File, FileInputStream}
 import java.awt.GraphicsEnvironment
 

@@ -11,7 +11,8 @@
  *  contact@sciss.de
  */
 
-package de.sciss.synth.swing.j
+package de.sciss.synth.swing
+package j
 
 import java.awt.{Color, Component, Dimension, EventQueue, Graphics, Image, Toolkit}
 import java.awt.event.ActionEvent
@@ -21,7 +22,6 @@ import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JB
 import javax.swing.event.{AncestorEvent, AncestorListener}
 
 import de.sciss.synth.{ServerConnection, Server, message}
-import de.sciss.synth.swing.ScalaColliderSwing
 import de.sciss.model.Model
 
 object JServerStatusPanel {
@@ -51,7 +51,7 @@ object JServerStatusPanel {
     private var peakCPU = 0 // 0...17
 
     private def getImageResource(name: String): Image =
-      Toolkit.getDefaultToolkit.createImage(ScalaColliderSwing.getClass.getResource(name))
+      Toolkit.getDefaultToolkit.createImage(GUI.getClass.getResource(name))
 
     private val imgGaugeEmpty = getImageResource("gauge_empty.png")
     private val imgGaugeFull  = getImageResource("gauge_full.png")
@@ -211,7 +211,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
   {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS))
 
-    val clz       = ScalaColliderSwing.getClass // classOf[ ServerStatusPanel ]
+    val clz       = GUI.getClass  // ScalaColliderSwing.getClass // classOf[ ServerStatusPanel ]
     val icnGroup  = new ImageIcon(clz.getResource("path_group_16.png"))
     val icnSynth  = new ImageIcon(clz.getResource("path_synth_16.png"))
     val icnUGen   = new ImageIcon(clz.getResource("path_ugen_16.png"))

@@ -11,7 +11,8 @@
  *  contact@sciss.de
  */
 
-package de.sciss.synth.swing.j
+package de.sciss.synth.swing
+package j
 
 import java.awt.geom.Point2D
 import collection.immutable.IntMap
@@ -23,7 +24,6 @@ import prefuse.visual.sort.TreeDepthItemSorter
 import de.sciss.synth.{message, Node, Group, Synth, NodeManager, Ops}
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
-import de.sciss.synth.swing.ScalaColliderSwing
 import de.sciss.synth.swing.impl.DynamicTreeLayout
 import prefuse.data.expression.AbstractPredicate
 import prefuse.data.{Tuple, Graph, Node => PNode}
@@ -67,8 +67,12 @@ object JNodeTreePanel {
   private val ACTION_ANIM   = "anim"
   private val FADE_TIME     = 333
   private val COL_ICON      = "icon"
-  private val imgGroup      = Toolkit.getDefaultToolkit.createImage(ScalaColliderSwing.getClass.getResource("path_group_16.png"))
-  private val imgSynth      = Toolkit.getDefaultToolkit.createImage(ScalaColliderSwing.getClass.getResource("path_synth_16.png"))
+
+  private def getImageResource(name: String): Image =
+    Toolkit.getDefaultToolkit.createImage(GUI.getClass.getResource(name))
+
+  private val imgGroup      = getImageResource("path_group_16.png")
+  private val imgSynth      = getImageResource("path_synth_16.png")
 
   private final val ICON_SYNTH = "synth"
   private final val ICON_GROUP = "group"

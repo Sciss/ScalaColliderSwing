@@ -1,68 +1,36 @@
 import AssemblyKeys._
 
-name           := "ScalaColliderSwing"
+lazy val baseName               = "ScalaColliderSwing"
 
-version        := "1.13.0"
+def baseNameL                   = baseName.toLowerCase
 
-organization   := "de.sciss"
+lazy val projectVersion         = "1.14.0-SNAPSHOT"
 
-scalaVersion   := "2.10.3"
+lazy val scalaColliderVersion   = "1.10.1+"
 
-description    := "A Swing and REPL front-end for ScalaCollider"
+lazy val interpreterPaneVersion = "1.6.+"
 
-homepage       := Some(url("https://github.com/Sciss/" + name.value))
+lazy val desktopVersion         = "0.4.2+"
 
-licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
-
-libraryDependencies ++= {
-  // val v  = version.value
-  // val i  = v.lastIndexOf('.') + 1
-  // val uv = v.substring(0, i) + "+"
-  Seq(
-    "de.sciss" %% "scalacollider"        % "1.10.1+",
-    "de.sciss" %% "scalainterpreterpane" % "1.6.+",
-    "de.sciss" %  "prefuse-core"         % "0.21",
-    "de.sciss" %% "audiowidgets-swing"   % "1.4.+",
-    "de.sciss" %  "syntaxpane"           % "1.1.1"   // .1 is bugfix
-  )
-}
-
-retrieveManaged := true
-
-// this should make it possible to launch from sbt, but there is still a class path issue?
-// fork in run := true
-
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
-
-// ---- build info ----
-
-buildInfoSettings
-
-sourceGenerators in Compile <+= buildInfo
-
-buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
-  BuildInfoKey.map(homepage) { case (k, opt)           => k -> opt.get },
-  BuildInfoKey.map(licenses) { case (_, Seq((lic, _))) => "license" -> lic }
-)
-
-buildInfoPackage := "de.sciss.synth.swing"
-
-// ---- publishing ----
-
-publishMavenStyle := true
-
-publishTo :=
-  Some(if (version.value endsWith "-SNAPSHOT")
-    "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-  else
-    "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-  )
-
-publishArtifact in Test := false
-
-pomIncludeRepository := { _ => false }
-
-pomExtra := { val n = name.value
+lazy val commonSettings = Project.defaultSettings ++ Seq(
+  version            := projectVersion,
+  organization       := "de.sciss",
+  scalaVersion       := "2.10.3",
+  crossScalaVersions := Seq("2.11.0-RC1", "2.10.3"),
+  homepage           := Some(url("https://github.com/Sciss/" + baseName)),
+  licenses           := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt")),
+  scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature"),
+  // ---- publishing ----
+  publishMavenStyle := true,
+  publishTo :=
+    Some(if (version.value endsWith "-SNAPSHOT")
+      "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+    else
+      "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+    ),
+  publishArtifact in Test := false,
+  pomIncludeRepository := { _ => false },
+  pomExtra := { val n = baseName
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
@@ -75,6 +43,63 @@ pomExtra := { val n = name.value
   </developer>
 </developers>
 }
+)
+
+lazy val root = Project(
+  id        = baseNameL,
+  base      = file("."),
+  aggregate = Seq(core, interpreter, app),
+  settings  = commonSettings ++ Seq(
+    publishArtifact in (Compile, packageBin) := false, // there are no binaries
+    publishArtifact in (Compile, packageDoc) := false, // there are no javadocs
+    publishArtifact in (Compile, packageSrc) := false  // there are no sources
+  )
+)
+
+lazy val core = Project(
+  id   = s"$baseNameL-core",
+  base = file("core"),
+  settings = commonSettings ++ buildInfoSettings ++ Seq(
+    name           := s"$baseName-core",
+    description    := "Swing components for ScalaCollider",
+    libraryDependencies ++= Seq(
+      "de.sciss" %% "scalacollider"        % scalaColliderVersion,
+      "de.sciss" %  "prefuse-core"         % "0.21",
+      "de.sciss" %% "audiowidgets-swing"   % "1.4.+"
+    ),
+    // ---- build info ----
+    sourceGenerators in Compile <+= buildInfo,
+    buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
+      BuildInfoKey.map(homepage) { case (k, opt)           => k -> opt.get },
+      BuildInfoKey.map(licenses) { case (_, Seq((lic, _))) => "license" -> lic }
+    ),
+    buildInfoPackage := "de.sciss.synth.swing"
+  )
+)
+
+lazy val interpreter = Project(
+  id  = s"$baseNameL-interpreter",
+  base = file("interpreter"),
+  dependencies = Seq(core),
+  settings = commonSettings ++ Seq(
+    description    := "REPL for ScalaCollider",
+    libraryDependencies ++= Seq(
+      "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion
+    )
+  )
+)
+
+lazy val app = Project(
+  id  = s"$baseNameL-app",
+  base = file("app"),
+  dependencies = Seq(core, interpreter),
+  settings = commonSettings ++ Seq(
+    description    := "Standalone application for ScalaCollider",
+    libraryDependencies ++= Seq(
+      "de.sciss" %% "desktop" % desktopVersion
+    )
+  )
+)
 
 // ---- packaging ----
 
