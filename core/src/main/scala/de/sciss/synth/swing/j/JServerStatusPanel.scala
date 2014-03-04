@@ -242,6 +242,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       ggBusy.setIndeterminate(true)
       val busyDim = new Dimension(24, 24)
       ggBusy.setPreferredSize(busyDim)
+      ggBusy.setMaximumSize  (busyDim)
       ggBusy.putClientProperty("JProgressBar.style", "circular")
 
       addS(ggBoot, 2)
@@ -419,4 +420,6 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       }
   }
   // class actionBootClass
+
+  def boot(): Unit = bootServer()
 }
