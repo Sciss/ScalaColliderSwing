@@ -7,10 +7,10 @@ import bibliothek.gui.dock.common.{CLocation, DefaultSingleCDockable, CControl}
 import scala.swing.Swing._
 import java.awt.GraphicsEnvironment
 import scala.swing.{Swing, Orientation, BoxPanel, Component, BorderPanel, ScrollPane, EditorPane}
-import org.fit.cssbox.swingbox.SwingBoxEditorKit
+import org.fit.cssbox.swingbox.{BrowserPane, SwingBoxEditorKit}
 import org.fusesource.scalamd.Markdown
 import bibliothek.gui.dock.common.theme.ThemeMap
-import de.sciss.scalainterpreter.{InterpreterPane, Interpreter, CodePane}
+import de.sciss.scalainterpreter.{Style, InterpreterPane, Interpreter, CodePane}
 import scala.tools.nsc.interpreter.NamedParam
 import java.awt.event.KeyEvent
 import java.awt.geom.AffineTransform
@@ -42,6 +42,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     // in de.sciss.osc is hidden
 
     val codeCfg = CodePane.Config()
+    codeCfg.style = Style.Light
 
     val intpCfg = Interpreter.Config()
     intpCfg.imports = List(
@@ -82,7 +83,28 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private lazy val frame = new MainWindow
 
+  private lazy val hp: EditorPane = {
+    val md    = readURL(bodyUrl)
+    val css   = readURL(cssUrl )
+    val html  = Markdown(md)
+
+    val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
+    new EditorPane("text/html", "") {
+      editable  = false
+      editorKit = new SwingBoxEditorKit()
+      text      = html1
+    }
+
+    //    new EditorPane("text/html", "") {
+    //      override lazy val peer: javax.swing.JEditorPane = new BrowserPane with SuperMixin
+    //      text = html1
+    //    }
+  }
+
   override protected def init(): Unit = {
+    // val _test = getClass.getResourceAsStream("""/de/sciss/synth/Server.html""")
+    // println(s"stream: '${_test}'")
+
     if (Desktop.isLinux) {
       // UIManager.getInstalledLookAndFeels.foreach(println)
       UIManager.getInstalledLookAndFeels.find(_.getName.contains("GTK+")).foreach { info =>
@@ -124,16 +146,6 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val lgd   = new DefaultSingleCDockable("log", "Log", lg.component.peer)
     lgd.setLocation(CLocation.base().normalSouth(0.25))
 
-    val md    = readURL(bodyUrl)
-    val css   = readURL(cssUrl )
-    val html  = Markdown(md)
-
-    val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
-    val hp    = new EditorPane("text/html", "") {
-      editable  = false
-      editorKit = new SwingBoxEditorKit()
-      text      = html1
-    }
     // hp.peer.setPage("http://www.sciss.de/scalaCollider")
     val hps   = new ScrollPane(hp)
     val hpd   = new DefaultSingleCDockable("help", "Help", hps.peer)
@@ -199,7 +211,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val ed    = codePane.editor
     val fnt   = ed.getFont
     val scale = math.pow(1.08334, fntSizeAmt)
-    // note: deriveFont _replaces_ the affine transform, does not catenate it
+    // note: deriveFont _replaces_ the affine transform, does not concatenate it
     ed.setFont(fnt.deriveFont(AffineTransform.getScaleInstance(scale, scale)))
   }
 
@@ -211,6 +223,16 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   private lazy val _recent = RecentFiles(Main.userPrefs("recent-docs")) { folder =>
     println("TODO: Open")
     // perform(folder)
+  }
+
+  private def lookUpHelp(): Unit = {
+    println("(TODO: lookUpHelp()")
+    val url = getClass.getResource("""/de/sciss/synth/Server.html""")
+    if (url != null) {
+      hp.peer.setPage(url)
+      // hp.text = io.Source.fromURL(url, "UTF-8").mkString
+    }
+    else println("!Help sources not found!")
   }
 
   protected lazy val menuFactory: Menu.Root = {
@@ -266,7 +288,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       .add(Item("clear-log")("Clear Log Window" -> (menu1 + shift + VK_P))(clearLog()))
 
     val gHelp = Group("help", "Help")
-      .add(Item("help-for-cursor", proxy("Look up Documentation for Cursor" -> (menu1 + VK_D))))
+      .add(Item("help-for-cursor")("Look up Documentation for Cursor" -> (menu1 + VK_D))(lookUpHelp()))
 
     if (itAbout.visible) gHelp.addLine().add(itAbout)
 

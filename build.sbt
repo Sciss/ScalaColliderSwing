@@ -93,14 +93,30 @@ lazy val app = Project(
   id  = s"$baseNameL-app",
   base = file("app"),
   dependencies = Seq(core, interpreter),
-  settings = commonSettings ++ Seq(
+  settings = commonSettings ++ assemblySettings ++ Seq(
     description    := "Standalone application for ScalaCollider",
     libraryDependencies ++= Seq(
+      // experiment with making sources and docs available.
+      // cf. http://stackoverflow.com/questions/22160701
+      "de.sciss" %% "scalacollider" % scalaColliderVersion,
+      "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "javadoc",
+      "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
       "de.sciss"               %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
       "org.dockingframes"      %  "docking-frames-common" % "1.1.1",
       "net.sf.cssbox"          %  "swingbox"              % "1.0",
       "org.fusesource.scalamd" %% "scalamd"               % "1.6"
-    )
+    ),
+    // ---- assembly ----
+    test      in assembly := (),
+    mainClass in assembly := Some("de.sciss.synth.swing.Main"),
+    target    in assembly := baseDirectory.value,
+    jarName   in assembly := s"$baseName.jar",
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
+      {
+        case "logback.xml" => MergeStrategy.last
+        case x => old(x)
+      }
+    }
   )
 )
 
@@ -113,12 +129,6 @@ seq(appbundle.settings: _*)
 appbundle.icon      := Some(file("application.icns"))
 
 appbundle.target    := baseDirectory.value
-
-test in assembly    := ()
-
-target  in assembly := baseDirectory.value
-
-jarName in assembly := s"${name.value}.jar"
 
 // ---- ls.implicit.ly ----
 
