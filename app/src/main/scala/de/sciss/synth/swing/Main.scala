@@ -229,8 +229,16 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     println("(TODO: lookUpHelp()")
     val url = getClass.getResource("""/de/sciss/synth/Server.html""")
     if (url != null) {
-      hp.peer.setPage(url)
+      // --- version 1: shows as plain text ---
+      // hp.peer.setPage(url)
+
+      // --- version 2: kind of works (doesn't find css and scripts though) ---
       // hp.text = io.Source.fromURL(url, "UTF-8").mkString
+
+      // --- version 3: creates new document (again doesn't find css and scripts) ---
+      val doc = hp.editorKit.createDefaultDocument()
+      hp.editorKit.read(url.openStream(), doc, 0)
+      hp.peer.setDocument(doc)
     }
     else println("!Help sources not found!")
   }
