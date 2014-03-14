@@ -12,6 +12,8 @@ lazy val interpreterPaneVersion = "1.6.+"
 
 lazy val desktopVersion         = "0.4.2+"
 
+lazy val audioWidgetsVersion    = "1.5.+"
+
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
   organization       := "de.sciss",
@@ -46,10 +48,11 @@ lazy val commonSettings = Project.defaultSettings ++ Seq(
 )
 
 lazy val root = Project(
-  id        = baseNameL,
-  base      = file("."),
-  aggregate = Seq(core, interpreter, app),
-  settings  = commonSettings ++ Seq(
+  id           = baseNameL,
+  base         = file("."),
+  aggregate    = Seq(core, interpreter, app),
+  dependencies = Seq(core, interpreter, app),
+  settings     = commonSettings ++ Seq(
     publishArtifact in (Compile, packageBin) := false, // there are no binaries
     publishArtifact in (Compile, packageDoc) := false, // there are no javadocs
     publishArtifact in (Compile, packageSrc) := false  // there are no sources
@@ -65,7 +68,7 @@ lazy val core = Project(
     libraryDependencies ++= Seq(
       "de.sciss" %% "scalacollider"        % scalaColliderVersion,
       "de.sciss" %  "prefuse-core"         % "0.21",
-      "de.sciss" %% "audiowidgets-swing"   % "1.4.+"
+      "de.sciss" %% "audiowidgets-swing"   % audioWidgetsVersion
     ),
     // ---- build info ----
     sourceGenerators in Compile <+= buildInfo,
