@@ -22,6 +22,7 @@ lazy val commonSettings = Project.defaultSettings ++ Seq(
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature"),
+  retrieveManaged    := true,
   // ---- publishing ----
   publishMavenStyle := true,
   publishTo :=
@@ -104,10 +105,12 @@ lazy val app = Project(
       "de.sciss" %% "scalacollider" % scalaColliderVersion,
       "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "javadoc",
       "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
-      "de.sciss"               %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
-      "org.dockingframes"      %  "docking-frames-common" % "1.1.1",
-      "net.sf.cssbox"          %  "swingbox"              % "1.0",
-      "org.fusesource.scalamd" %% "scalamd"               % "1.6"
+      "de.sciss"                 %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
+      "de.sciss"                 %% "fileutil"              % "1.1.+",
+      "org.dockingframes"        %  "docking-frames-common" % "1.1.1",
+      "net.sf.cssbox"            %  "swingbox"              % "1.0",
+      "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
+      "com.github.wookietreiber" %% "scala-chart"           % "0.3.0"
     ),
     // ---- assembly ----
     test      in assembly := (),

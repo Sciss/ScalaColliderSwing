@@ -14,6 +14,9 @@ import de.sciss.scalainterpreter.{Style, InterpreterPane, Interpreter, CodePane}
 import scala.tools.nsc.interpreter.NamedParam
 import java.awt.event.KeyEvent
 import java.awt.geom.AffineTransform
+import scala.util.control.NonFatal
+import de.sciss.file._
+import de.sciss.synth.Server
 
 object Main extends SwingApplicationImpl("ScalaCollider") {
   type Document = Unit
@@ -34,6 +37,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private lazy val codePane = sip.codePane
 
+  private lazy val repl: REPLSupport = new REPLSupport(sp, null)
+
   private lazy val sip: InterpreterPane = {
     //      val paneCfg = InterpreterPane.Config()
     // note: for the auto-completion in the pane to work, we must
@@ -47,25 +52,54 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val intpCfg = Interpreter.Config()
     intpCfg.imports = List(
       //         "Predef.{any2stringadd => _}",
-      "scala.math._",
-      "de.sciss.osc",
+      "scala.math._",                     // functions such as cos(), random, constants such as Pi
+      "de.sciss.file._",                  // simple file path construction, constants such as userHome
+      // "scalax.chart.api._",               // simple plotting
+    // "scalax.chart._","scalax.chart.Charting._",  // for version 0.3.0
+      "de.sciss.osc",                     // import osc namespace, e.g. osc.Message
       "de.sciss.osc.{TCP, UDP}",
       "de.sciss.osc.Dump.{Off, Both, Text}",
       "de.sciss.osc.Implicits._",
-      "de.sciss.synth._",
-      "de.sciss.synth.Ops._",
+      "de.sciss.synth._",                     // main ScalaCollider stuff
+      "de.sciss.synth.Ops._",                 // imperative resource commands
       "de.sciss.synth.swing.SynthGraphPanel._",
-      "de.sciss.synth.swing.Implicits._",
-      "de.sciss.synth.ugen._",
-      "replSupport._"
+      "de.sciss.synth.swing.Implicits._",     // ScalaCollider swing extensions
+      "de.sciss.synth.swing.AppFunctions._",  // ScalaCollider swing app extensions
+      "de.sciss.synth.swing.Plotting._",      // ScalaCollider swing app extensions
+      "de.sciss.synth.ugen._",                // UGens
+      "replSupport._"                         // REPL bindings
     )
     // intpCfg.quietImports = false
 
-    val repl  = new REPLSupport(sp, null)
     intpCfg.bindings = List(NamedParam("replSupport", repl))
     // intpCfg.out = Some(lp.writer)
 
     InterpreterPane(interpreterConfig = intpCfg, codePaneConfig = codeCfg)
+  }
+
+  private def initPrefs(): Unit = {
+    def updateProgramPath(): Unit = {
+      val file = Prefs.superCollider.getOrElse(Prefs.defaultSuperCollider)
+      val path = if (file == Prefs.defaultSuperCollider) Server.defaultProgramPath else file.path
+      repl.config.programPath = path
+    }
+
+    def updateAudioDevice(): Unit = {
+      val audioDevice = Prefs.audioDevice.getOrElse(Prefs.defaultAudioDevice)
+      val opt = if (audioDevice == Prefs.defaultAudioDevice) None else Some(audioDevice)
+      repl.config.deviceName = opt
+    }
+
+    def updateNumOutputs(): Unit =
+      repl.config.outputBusChannels = Prefs.audioNumOutputs.getOrElse(Prefs.defaultAudioNumOutputs)
+
+    Prefs.superCollider   .addListener { case _ => updateProgramPath() }
+    Prefs.audioDevice     .addListener { case _ => updateAudioDevice() }
+    Prefs.audioNumOutputs .addListener { case _ => updateNumOutputs () }
+
+    updateProgramPath()
+    updateAudioDevice()
+    updateNumOutputs ()
   }
 
   private class MainWindow extends WindowImpl {
@@ -105,11 +139,16 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     // val _test = getClass.getResourceAsStream("""/de/sciss/synth/Server.html""")
     // println(s"stream: '${_test}'")
 
-    if (Desktop.isLinux) {
-      // UIManager.getInstalledLookAndFeels.foreach(println)
-      UIManager.getInstalledLookAndFeels.find(_.getName.contains("GTK+")).foreach { info =>
-        UIManager.setLookAndFeel(info.getClassName)
-      }
+    //    if (Desktop.isLinux) {
+    //      // UIManager.getInstalledLookAndFeels.foreach(println)
+    //      UIManager.getInstalledLookAndFeels.find(_.getName.contains("GTK+")).foreach { info =>
+    //        UIManager.setLookAndFeel(info.getClassName)
+    //      }
+    //    }
+    try {
+      UIManager.setLookAndFeel(Prefs.lookAndFeel.getOrElse(Prefs.defaultLookAndFeel).getClassName)
+    } catch {
+      case NonFatal(e) => e.printStackTrace()
     }
 
     super.init()
@@ -161,6 +200,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     sid.setVisible(true)
 
     frame.init(bp)
+
+    initPrefs()
   }
 
   private def newFile(): Unit = {
@@ -247,8 +288,9 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     import Menu._
     import KeyStrokes._
     import KeyEvent._
+    import de.sciss.synth.swing.{Main => App}
 
-    val itAbout = Item.About(Main) {
+    val itAbout = Item.About(App) {
       val html =
         s"""<html><center>
            |<font size=+1><b>About $name</b></font><p>
@@ -257,10 +299,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
            |""".stripMargin
       OptionPane.message(message = new javax.swing.JLabel(html)).show(Some(frame))
     }
-    val itPrefs = Item.Preferences(Main) {
-      println("TODO: Prefs")
-    }
-    val itQuit = Item.Quit(Main)
+    val itPrefs = Item.Preferences(App)(ActionPreferences())
+    val itQuit  = Item.Quit(App)
 
     val gFile = Group("file", "File")
       .add(Item("new" )("New"     -> (menu1 + VK_N))(newFile ()))
