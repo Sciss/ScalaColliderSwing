@@ -123,16 +123,16 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val html  = Markdown(md)
 
     val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
-    new EditorPane("text/html", "") {
-      editable  = false
-      editorKit = new SwingBoxEditorKit()
-      text      = html1
-    }
-
     //    new EditorPane("text/html", "") {
-    //      override lazy val peer: javax.swing.JEditorPane = new BrowserPane with SuperMixin
-    //      text = html1
+    //      editable  = false
+    //      editorKit = new SwingBoxEditorKit()
+    //      text      = html1
     //    }
+
+    new EditorPane("text/html", "") {
+      override lazy val peer: BrowserPane = new BrowserPane with SuperMixin
+      // text = html1
+    }
   }
 
   override protected def init(): Unit = {
@@ -265,6 +265,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     println("TODO: Open")
     // perform(folder)
   }
+
+  def openURL(url: String): Unit = hp.peer.setPage(url)
 
   private def lookUpHelp(): Unit = {
     println("(TODO: lookUpHelp()")

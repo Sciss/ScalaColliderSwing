@@ -3,13 +3,13 @@ package swing
 
 import java.awt.event.KeyEvent
 import de.sciss.desktop.{FileDialog, Preferences, OptionPane, KeyStrokes}
-import scalaswingcontrib.group.GroupPanel
 import de.sciss.swingplus.{Separator, Spinner}
 import javax.swing.{JPanel, SpinnerNumberModel, UIManager}
 import de.sciss.file._
-import scala.swing.{Action, Label, Alignment, Component, Swing, TextField, Button, FlowPanel, ComboBox}
+import scala.swing.{GridBagPanel, Action, Label, Alignment, Component, Swing, TextField, Button, FlowPanel, ComboBox}
 import scala.swing.event.{EditDone, SelectionChanged, ValueChanged}
 import Swing.EmptyIcon
+import java.awt.Insets
 
 object ActionPreferences extends Action("Preferences...") {
   import KeyStrokes._
@@ -92,7 +92,15 @@ object ActionPreferences extends Action("Preferences...") {
       gg
     }
 
-    val box = new GroupPanel {
+    val box = new GridBagPanel {
+      import GridBagPanel.{Anchor, Fill}
+      val cLb = new Constraints()
+      cLb.gridx = 0; cLb.gridy = 0; cLb.anchor = Anchor.LineStart
+      cLb.ipadx = 2; /* cLb.ipady = 2; */ cLb.insets = new Insets(2, 2, 2, 2)
+      val cGG = new Constraints()
+      cGG.gridx = 1; cGG.gridy = 0; cGG.anchor = Anchor.LineStart; cGG.fill = Fill.Horizontal
+      cGG.ipadx = 2; /* cGG.ipady = 2; */ cGG.insets = new Insets(2, 2, 2, 2)
+
       val lbLookAndFeel   = label("Look-and-Feel")
       val ggLookAndFeel   = combo(Prefs.lookAndFeel, Prefs.defaultLookAndFeel,
         UIManager.getInstalledLookAndFeels)(_.getName)
@@ -111,19 +119,34 @@ object ActionPreferences extends Action("Preferences...") {
 
       val sep1 = Separator()
 
-      // val lbValue = new Label("Value:", EmptyIcon, Alignment.Right)
-      theHorizontalLayout is Parallel(sep1, Sequential(
-        Parallel(lbLookAndFeel, lbSuperCollider, lbAudioDevice, lbNumOutputs, lbHeadphones),
-        Parallel(ggLookAndFeel, ggSuperCollider, ggAudioDevice, ggNumOutputs, ggHeadphones)
-      ))
-      theVerticalLayout is Sequential(
-        Parallel(Baseline)(lbLookAndFeel  , ggLookAndFeel  ),
-        sep1,
-        Parallel(Baseline)(lbSuperCollider, ggSuperCollider),
-        Parallel(Baseline)(lbAudioDevice  , ggAudioDevice  ),
-        Parallel(Baseline)(lbNumOutputs   , ggNumOutputs   ),
-        Parallel(Baseline)(lbHeadphones   , ggHeadphones   )
-      )
+      def add(lb: Component, gg: Component): Unit = {
+        layout(lb) = cLb
+        layout(gg) = cGG
+        cLb.gridy += 1
+        cGG.gridy += 1
+      }
+
+      add(lbLookAndFeel  , ggLookAndFeel  )
+      cLb.gridwidth = 2
+      layout(sep1) = cLb
+      cLb.gridy += 1; cGG.gridy += 1; cLb.gridwidth = 1
+      add(lbSuperCollider, ggSuperCollider)
+      add(lbAudioDevice  , ggAudioDevice  )
+      add(lbNumOutputs   , ggNumOutputs   )
+      add(lbHeadphones   , ggHeadphones   )
+
+      //      theHorizontalLayout is Parallel(sep1, Sequential(
+      //        Parallel(lbLookAndFeel, lbSuperCollider, lbAudioDevice, lbNumOutputs, lbHeadphones),
+      //        Parallel(ggLookAndFeel, ggSuperCollider, ggAudioDevice, ggNumOutputs, ggHeadphones)
+      //      ))
+      //      theVerticalLayout is Sequential(
+      //        Parallel(Baseline)(lbLookAndFeel  , ggLookAndFeel  ),
+      //        sep1,
+      //        Parallel(Baseline)(lbSuperCollider, ggSuperCollider),
+      //        Parallel(Baseline)(lbAudioDevice  , ggAudioDevice  ),
+      //        Parallel(Baseline)(lbNumOutputs   , ggNumOutputs   ),
+      //        Parallel(Baseline)(lbHeadphones   , ggHeadphones   )
+      //      )
     }
 
     val opt   = OptionPane.message(message = box, messageType = OptionPane.Message.Plain)

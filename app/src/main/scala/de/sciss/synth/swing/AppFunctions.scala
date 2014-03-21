@@ -35,4 +35,6 @@ object AppFunctions {
       raf.close()
     }
   }
+
+  def openURL(url: String): Unit = Main.openURL(url)
 }

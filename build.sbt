@@ -6,19 +6,21 @@ def baseNameL                   = baseName.toLowerCase
 
 lazy val projectVersion         = "1.14.0-SNAPSHOT"
 
-lazy val scalaColliderVersion   = "1.10.1+"
+lazy val scalaColliderVersion   = "1.11.+"
 
 lazy val interpreterPaneVersion = "1.6.+"
 
-lazy val desktopVersion         = "0.4.2+"
+lazy val desktopVersion         = "0.5.+"
 
 lazy val audioWidgetsVersion    = "1.5.+"
+
+lazy val fileUtilVersion        = "1.1.1+"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.10.3",
-  crossScalaVersions := Seq("2.11.0-RC1", "2.10.3"),
+  scalaVersion       := "2.11.0-RC3",
+  crossScalaVersions := Seq("2.11.0-RC3", "2.10.3"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature"),
@@ -102,11 +104,11 @@ lazy val app = Project(
     libraryDependencies ++= Seq(
       // experiment with making sources and docs available.
       // cf. http://stackoverflow.com/questions/22160701
-      "de.sciss" %% "scalacollider" % scalaColliderVersion,
-      "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "javadoc",
-      "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
+ //     "de.sciss" %% "scalacollider" % scalaColliderVersion,
+ //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "javadoc",
+ //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
       "de.sciss"                 %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
-      "de.sciss"                 %% "fileutil"              % "1.1.+",
+      "de.sciss"                 %% "fileutil"              % fileUtilVersion,
       "org.dockingframes"        %  "docking-frames-common" % "1.1.1",
       "net.sf.cssbox"            %  "swingbox"              % "1.0",
       "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
