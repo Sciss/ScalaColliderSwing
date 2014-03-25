@@ -10,13 +10,14 @@ import scala.swing.{Swing, Orientation, BoxPanel, Component, BorderPanel, Scroll
 import org.fit.cssbox.swingbox.{BrowserPane, SwingBoxEditorKit}
 import org.fusesource.scalamd.Markdown
 import bibliothek.gui.dock.common.theme.ThemeMap
-import de.sciss.scalainterpreter.{Style, InterpreterPane, Interpreter, CodePane}
+import de.sciss.{scalainterpreter => si}
 import scala.tools.nsc.interpreter.NamedParam
 import java.awt.event.KeyEvent
 import java.awt.geom.AffineTransform
 import scala.util.control.NonFatal
 import de.sciss.file._
 import de.sciss.synth.Server
+import scala.concurrent.Future
 
 object Main extends SwingApplicationImpl("ScalaCollider") {
   type Document = Unit
@@ -35,21 +36,12 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private lazy val lg = LogPane(rows = 12)
 
-  private lazy val codePane = sip.codePane
+  // private lazy val codePane = sip.codePane
 
   private lazy val repl: REPLSupport = new REPLSupport(sp, null)
 
-  private lazy val sip: InterpreterPane = {
-    //      val paneCfg = InterpreterPane.Config()
-    // note: for the auto-completion in the pane to work, we must
-    // import de.sciss.synth.ugen._ instead of ugen._
-    // ; also name aliasing seems to be broken, thus the stuff
-    // in de.sciss.osc is hidden
-
-    val codeCfg = CodePane.Config()
-    codeCfg.style = Style.Light
-
-    val intpCfg = Interpreter.Config()
+  private lazy val intpFut: Future[Interpreter] = {
+    val intpCfg = si.Interpreter.Config()
     intpCfg.imports = List(
       //         "Predef.{any2stringadd => _}",
       "scala.math._",                     // functions such as cos(), random, constants such as Pi
@@ -74,7 +66,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     intpCfg.bindings = List(NamedParam("replSupport", repl))
     // intpCfg.out = Some(lp.writer)
 
-    InterpreterPane(interpreterConfig = intpCfg, codePaneConfig = codeCfg)
+    Interpreter(intpCfg)
   }
 
   private def initPrefs(): Unit = {
@@ -173,7 +165,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
     // val sif   = new ScalaInterpreterFrame(repl)
 
-    val sid = new DefaultSingleCDockable("interpreter", "Interpreter", sip.component)
+    val sip = TextView(intpFut)
+    val sid = new DefaultSingleCDockable("interpreter", "Interpreter", sip.component.peer)
     sid.setLocation(CLocation.base().normalWest(0.6))
 
     lg.makeDefault()
@@ -249,11 +242,11 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   }
 
   private def updateFontSize(): Unit = {
-    val ed    = codePane.editor
-    val fnt   = ed.getFont
-    val scale = math.pow(1.08334, fntSizeAmt)
-    // note: deriveFont _replaces_ the affine transform, does not concatenate it
-    ed.setFont(fnt.deriveFont(AffineTransform.getScaleInstance(scale, scale)))
+    //    val ed    = codePane.editor
+    //    val fnt   = ed.getFont
+    //    val scale = math.pow(1.08334, fntSizeAmt)
+    //    // note: deriveFont _replaces_ the affine transform, does not concatenate it
+    //    ed.setFont(fnt.deriveFont(AffineTransform.getScaleInstance(scale, scale)))
   }
 
   private def fontSizeReset(): Unit = {
