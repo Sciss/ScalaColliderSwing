@@ -6,15 +6,15 @@ def baseNameL                   = baseName.toLowerCase
 
 lazy val projectVersion         = "1.14.0-SNAPSHOT"
 
-lazy val scalaColliderVersion   = "1.11.+"
+lazy val scalaColliderVersion   = "1.10.1"
 
-lazy val interpreterPaneVersion = "1.6.+"
+lazy val interpreterPaneVersion = "1.6.0"
 
-lazy val desktopVersion         = "0.5.+"
+lazy val desktopVersion         = "0.4.2"
 
-lazy val audioWidgetsVersion    = "1.5.+"
+lazy val audioWidgetsVersion    = "1.5.0"
 
-lazy val fileUtilVersion        = "1.1.1+"
+lazy val fileUtilVersion        = "1.1.0"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
