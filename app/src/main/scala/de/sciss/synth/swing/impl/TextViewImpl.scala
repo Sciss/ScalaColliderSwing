@@ -1,3 +1,16 @@
+/*
+ *  TextViewImpl.scala
+ *  (ScalaCollider-Swing)
+ *
+ *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
+ *
+ *  This software is published under the GNU General Public License v2+
+ *
+ *
+ *  For further information, please contact Hanns Holger Rutz at
+ *  contact@sciss.de
+ */
+
 package de.sciss.synth.swing
 package impl
 
@@ -12,34 +25,41 @@ import de.sciss.desktop.UndoManager
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 import javax.swing.{KeyStroke, AbstractAction, JComponent}
 import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
+import de.sciss.model.impl.ModelImpl
+import de.sciss.model.Change
+import de.sciss.file.File
 
 object TextViewImpl {
-  def apply(intp: Future[si.Interpreter]): TextView = {
-
-    val res = new Impl(intp)
+  def apply(intp: Future[si.Interpreter], config: si.CodePane.Config): TextView = {
+    val res = new Impl(intp, config)
     res.guiInit()
     res
   }
 
-  private final class Impl(/* val undoManager: UndoManager, */ interpreter: Future[si.Interpreter]) extends TextView {
+  private final class Impl(/* val undoManager: UndoManager, */ interpreter: Future[si.Interpreter],
+                            codeConfig: si.CodePane.Config)
+    extends TextView with ModelImpl[TextView.Update] {
+
+    private var _file = Option.empty[File]
+    def file = _file
+    def file_=(value: Option[File]): Unit = if (_file != value) {
+      val old = _file
+      _file = value
+      dispatch(TextView.FileChange(Change(old, value)))
+    }
 
     private var _dirty = false
     def dirty = _dirty
     def dirty_=(value: Boolean): Unit = if (_dirty != value) {
       _dirty = value
-      // actionApply.enabled = value
-      // dispatch(PatchCodeView.DirtyChange(value))
-    }
-
-    private val codeCfg = {
-      val b = si.CodePane.Config()
-      // b.text = code.source
-      b.build
+      dispatch(TextView.DirtyChange(value))
     }
 
     private var codePane: si.CodePane = _
     private var futCompile = Option.empty[Future[Any]]
     // private var actionApply: Action = _
+
+    def editor: si.CodePane = codePane
 
     protected def currentText: String = codePane.editor.getText
 
@@ -52,6 +72,8 @@ object TextViewImpl {
     //      // so let's clear the undo history now...
     //      codePane.editor.getDocument.asInstanceOf[SyntaxDocument].clearUndos()
     //    }
+
+    def undoManager: UndoManager = ???
 
     private def requireEDT(): Unit =
       if (!EventQueue.isDispatchThread) throw new IllegalStateException("Must be executed on the EDT")
@@ -87,7 +109,7 @@ object TextViewImpl {
     }
 
     def guiInit(): Unit = {
-      codePane = si.CodePane(codeCfg)
+      codePane = si.CodePane(codeConfig)
 
       import ExecutionContext.Implicits.global
       interpreter.onSuccess { case intp =>
