@@ -18,7 +18,9 @@ object TextView {
 trait TextView extends Model[TextView.Update] {
   def editor: CodePane
   def component: Component
-  def undoManager: UndoManager
+  // def undoManager: UndoManager
   var file: Option[File]
   def dirty: Boolean
+
+  def clearUndoBuffer(): Unit
 }

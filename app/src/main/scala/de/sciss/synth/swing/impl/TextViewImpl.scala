@@ -28,6 +28,7 @@ import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
 import de.sciss.model.impl.ModelImpl
 import de.sciss.model.Change
 import de.sciss.file.File
+import de.sciss.desktop.impl.UndoManagerImpl
 
 object TextViewImpl {
   def apply(intp: Future[si.Interpreter], config: si.CodePane.Config): TextView = {
@@ -73,7 +74,21 @@ object TextViewImpl {
     //      codePane.editor.getDocument.asInstanceOf[SyntaxDocument].clearUndos()
     //    }
 
-    def undoManager: UndoManager = ???
+    //    def undoManager: UndoManager = new UndoManagerImpl {
+    //      override lazy val peer = {
+    //        val doc = codePane.editor.getDocument.asInstanceOf[SyntaxDocument]
+    //        val f = doc.getClass.getDeclaredField("undo")   // XXX TODO: not cool
+    //        f.setAccessible(true)
+    //        f.get(doc).asInstanceOf[javax.swing.undo.UndoManager]
+    //      }
+    //
+    //      protected var dirty: Boolean = peer.canUndo
+    //    }
+
+    def clearUndoBuffer(): Unit = {
+      codePane.editor.getDocument.asInstanceOf[SyntaxDocument].clearUndos()
+      dirty = false
+    }
 
     private def requireEDT(): Unit =
       if (!EventQueue.isDispatchThread) throw new IllegalStateException("Must be executed on the EDT")

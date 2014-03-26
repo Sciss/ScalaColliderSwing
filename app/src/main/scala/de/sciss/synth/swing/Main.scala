@@ -291,6 +291,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val text  = TextView(intpFut, cc)
     text.file = file
     // val sid = docFact.create() new DefaultSingleCDockable("interpreter", "Interpreter", sip.component.peer)
+    text.editor.editor.setCaretPosition(0)  // XXX TODO: that should be done by the codePane itself automatically
 
     def mkTitle() = {
       val name = text.file.fold {
@@ -316,6 +317,10 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     dockCtrl.addDockable(dock)
     dock.setVisible(true)
     documentHandler.addDocument(dock)
+
+    // tricky business to ensure initial focus
+    dock.setFocusComponent(text.editor.editor)
+    dockCtrl.getController.setFocusedDockable(dock.intern(), true)
     dock
   }
 
@@ -469,6 +474,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       }
       _recent.add(file)
       text.file = Some(file)
+      text.clearUndoBuffer()
       SaveResult(Success(file))
     } catch {
       case NonFatal(e) =>
