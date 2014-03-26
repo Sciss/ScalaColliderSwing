@@ -132,6 +132,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private lazy val frame = new MainWindow
 
+  def mainWindow: Window = frame
+
   private lazy val hp: EditorPane = {
     val md    = readURL(bodyUrl)
     val css   = readURL(cssUrl )
