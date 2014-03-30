@@ -4,9 +4,9 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.15.0"
+lazy val projectVersion         = "1.15.1"
 
-lazy val scalaColliderVersion   = "1.11.+"
+lazy val scalaColliderVersion   = "1.11.1+"
 
 lazy val interpreterPaneVersion = "1.6.+"
 
