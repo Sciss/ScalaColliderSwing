@@ -14,20 +14,19 @@
 package de.sciss.synth
 package swing
 
-import java.awt.event.KeyEvent
 import de.sciss.desktop.{FileDialog, Preferences, OptionPane, KeyStrokes}
 import de.sciss.swingplus.{Separator, Spinner}
 import javax.swing.{JPanel, SpinnerNumberModel, UIManager}
 import de.sciss.file._
 import scala.swing.{GridBagPanel, Action, Label, Alignment, Component, Swing, TextField, Button, FlowPanel, ComboBox}
-import scala.swing.event.{EditDone, SelectionChanged, ValueChanged}
+import scala.swing.event.{Key, EditDone, SelectionChanged, ValueChanged}
 import Swing.EmptyIcon
 import java.awt.Insets
 
 object ActionPreferences extends Action("Preferences...") {
   import KeyStrokes._
 
-  accelerator = Some(menu1 + KeyEvent.VK_COMMA)
+  accelerator = Some(menu1 + Key.Comma)
 
   def apply(): Unit = {
     import language.reflectiveCalls

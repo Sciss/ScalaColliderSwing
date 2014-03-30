@@ -4,17 +4,17 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.14.0-SNAPSHOT"
+lazy val projectVersion         = "1.14.0"
 
-lazy val scalaColliderVersion   = "1.10.1"
+lazy val scalaColliderVersion   = "1.10.1+"
 
-lazy val interpreterPaneVersion = "1.6.0"
+lazy val interpreterPaneVersion = "1.6.+"
 
-lazy val desktopVersion         = "0.4.2"
+lazy val desktopVersion         = "0.5.+"
 
-lazy val audioWidgetsVersion    = "1.5.0"
+lazy val audioWidgetsVersion    = "1.6.+"
 
-lazy val fileUtilVersion        = "1.1.0"
+lazy val fileUtilVersion        = "1.1.+"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
@@ -111,7 +111,7 @@ lazy val app = Project(
       "de.sciss"                 %% "fileutil"              % fileUtilVersion,
       "org.dockingframes"        %  "docking-frames-common" % "1.1.1",
       "net.sf.cssbox"            %  "swingbox"              % "1.0",
-      "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
+      // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
       "com.github.wookietreiber" %% "scala-chart"           % "0.3.0"
     ),
     // ---- assembly ----

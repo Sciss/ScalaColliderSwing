@@ -20,7 +20,6 @@ import bibliothek.gui.dock.common.{MultipleCDockableLayout, MultipleCDockable, M
 import java.awt.GraphicsEnvironment
 import scala.swing.{Action, Swing, Orientation, BoxPanel, Component, BorderPanel, ScrollPane, EditorPane}
 import org.fit.cssbox.swingbox.BrowserPane
-import org.fusesource.scalamd.Markdown
 import bibliothek.gui.dock.common.theme.ThemeMap
 import de.sciss.{scalainterpreter => si}
 import scala.tools.nsc.interpreter.NamedParam
@@ -36,7 +35,8 @@ import bibliothek.gui.dock.common.event.CFocusListener
 import bibliothek.gui.dock.common.intern.CDockable
 import java.io.{OutputStreamWriter, FileOutputStream}
 import scala.util.{Success, Failure, Try}
-import scala.swing.event.{WindowClosing, WindowClosed}
+import scala.swing.event.{Key, WindowClosing, WindowClosed}
+import bibliothek.gui.dock.common.mode.ExtendedMode
 
 object Main extends SwingApplicationImpl("ScalaCollider") {
   type Document = TextViewDockable
@@ -135,16 +135,16 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   def mainWindow: Window = frame
 
   private lazy val hp: EditorPane = {
-    val md    = readURL(bodyUrl)
-    val css   = readURL(cssUrl )
-    val html  = Markdown(md)
+    // val md    = readURL(bodyUrl)
+    // val css   = readURL(cssUrl )
+    // val html  = Markdown(md)
 
-    val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
-    //    new EditorPane("text/html", "") {
-    //      editable  = false
-    //      editorKit = new SwingBoxEditorKit()
-    //      text      = html1
-    //    }
+    //    val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
+    //    //    new EditorPane("text/html", "") {
+    //    //      editable  = false
+    //    //      editorKit = new SwingBoxEditorKit()
+    //    //      text      = html1
+    //    //    }
 
     new EditorPane("text/html", "") {
       override lazy val peer: BrowserPane = new BrowserPane with SuperMixin
@@ -271,6 +271,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     dockCtrl.addDockable(hpd)
     lgd.setVisible(true)
     // spd.setVisible(true)
+    hpd.setExtendedMode(ExtendedMode.MINIMIZED)
     hpd.setVisible(true)
 
     frame.init(bp)
@@ -458,7 +459,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   }
 
   private object ActionFileClose extends Action("Close") with FileAction {
-    accelerator = Some(KeyStrokes.menu1 + KeyEvent.VK_W)
+    accelerator = Some(KeyStrokes.menu1 + Key.W)
 
     protected def perform(dock: TextViewDockable): Unit =
       if (checkUnsaved(dock)) dock.close()
@@ -512,20 +513,20 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   }
 
   private object ActionFileSave extends Action("Save") with FileAction {
-    accelerator = Some(KeyStrokes.menu1 + KeyEvent.VK_S)
+    accelerator = Some(KeyStrokes.menu1 + Key.S)
 
     protected def perform(dock: TextViewDockable): Unit = saveOrSaveAs(dock)
   }
 
   private object ActionFileSaveAs extends Action("Save As...") with FileAction {
-    accelerator = Some(KeyStrokes.menu1 + KeyStrokes.shift + KeyEvent.VK_S)
+    accelerator = Some(KeyStrokes.menu1 + KeyStrokes.shift + Key.S)
 
     protected def perform(dock: TextViewDockable): Unit = saveAs(dock)
   }
 
-  private lazy val actionEnlargeFont = new ActionFontSize("Enlarge Font"    , KeyStrokes.menu1 + KeyEvent.VK_PLUS ,  1)
-  private lazy val actionShrinkFont  = new ActionFontSize("Shrink Font"     , KeyStrokes.menu1 + KeyEvent.VK_MINUS, -1)
-  private lazy val actionResetFont   = new ActionFontSize("Reset Font Size" , KeyStrokes.menu1 + KeyEvent.VK_0    ,  0)
+  private lazy val actionEnlargeFont = new ActionFontSize("Enlarge Font"    , KeyStrokes.menu1 + Key.Plus ,  1)
+  private lazy val actionShrinkFont  = new ActionFontSize("Shrink Font"     , KeyStrokes.menu1 + Key.Minus, -1)
+  private lazy val actionResetFont   = new ActionFontSize("Reset Font Size" , KeyStrokes.menu1 + Key.Key0 ,  0)
 
   private class ActionFontSize(text: String, shortcut: KeyStroke, amount: Int )
     extends Action(text) with FileAction {
@@ -559,20 +560,20 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     Desktop.addQuitAcceptor(closeAll())
 
     val gFile = Group("file", "File")
-      .add(Item("new" )("New"     -> (menu1 + VK_N))(newFile()))
-      .add(Item("open")("Open..." -> (menu1 + VK_O))(queryOpenFile()))
+      .add(Item("new" )("New"     -> (menu1 + Key.N))(newFile()))
+      .add(Item("open")("Open..." -> (menu1 + Key.O))(queryOpenFile()))
       .add(_recent.menu)
       .addLine()
       .add(Item("close"  , ActionFileClose ))
-      .add(Item("close-all")("Close All" -> (menu1 + shift + VK_W))(closeAll()))
+      .add(Item("close-all")("Close All" -> (menu1 + shift + Key.W))(closeAll()))
       .add(Item("save"   , ActionFileSave  ))
       .add(Item("save-as", ActionFileSaveAs))
 
     if (itQuit.visible) gFile.addLine().add(itQuit)
 
     val gEdit = Group("edit", "Edit")
-      .add(Item("undo", proxy("Undo" -> (menu1 + VK_Z))))
-      .add(Item("redo", proxy("Redo" -> (menu1 + shift + VK_Z))))
+      .add(Item("undo", proxy("Undo" -> (menu1 + Key.Z))))
+      .add(Item("redo", proxy("Redo" -> (menu1 + shift + Key.Z))))
 
     if (itPrefs.visible /* && Desktop.isLinux */) gEdit.addLine().add(itPrefs)
 
@@ -582,18 +583,18 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       .add(Item("reset-font", actionResetFont  ))
 
     val gActions = Group("actions", "Actions")
-      .add(Item("boot-server"   )("Boot Server"       -> (menu1 + VK_B))(bootServer()))
+      .add(Item("boot-server"   )("Boot Server"       -> (menu1 + Key.B))(bootServer()))
       .add(Item("reboot-server" )("Reboot Server"                      )(rebootServer()))
-      .add(Item("server-meters" )("Show Server Meter" -> (menu1 + VK_M))(serverMeters()))
-      .add(Item("dump-tree"     )("Dump Node Tree"               -> (menu1         + VK_T))(dumpNodes(controls = false)))
-      .add(Item("dump-tree-ctrl")("Dump Node Tree with Controls" -> (menu1 + shift + VK_T))(dumpNodes(controls = true )))
+      .add(Item("server-meters" )("Show Server Meter" -> (menu1 + Key.M))(serverMeters()))
+      .add(Item("dump-tree"     )("Dump Node Tree"               -> (menu1         + Key.T))(dumpNodes(controls = false)))
+      .add(Item("dump-tree-ctrl")("Dump Node Tree with Controls" -> (menu1 + shift + Key.T))(dumpNodes(controls = true )))
       .addLine()
-      .add(Item("stop")("Stop" -> (menu1 + VK_PERIOD))(stop()))
+      .add(Item("stop")("Stop" -> (menu1 + Key.Period))(stop()))
       .addLine()
-      .add(Item("clear-log")("Clear Log Window" -> (menu1 + shift + VK_P))(clearLog()))
+      .add(Item("clear-log")("Clear Log Window" -> (menu1 + shift + Key.P))(clearLog()))
 
     val gHelp = Group("help", "Help")
-      .add(Item("help-for-cursor")("Look up Documentation for Cursor" -> (menu1 + VK_D))(lookUpHelp()))
+      .add(Item("help-for-cursor")("Look up Documentation for Cursor" -> (menu1 + Key.D))(lookUpHelp()))
 
     if (itAbout.visible) gHelp.addLine().add(itAbout)
 
