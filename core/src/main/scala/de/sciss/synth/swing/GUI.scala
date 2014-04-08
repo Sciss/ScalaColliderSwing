@@ -136,8 +136,8 @@ object GUI {
 
         override def paintComponent(g: Graphics): Unit = {
           val g2 = g.asInstanceOf[Graphics2D]
-          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-          g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE)
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING  , RenderingHints.VALUE_ANTIALIAS_ON)
+          g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE )
           g2.setColor(Color.black)
           g2.fillRect(0, 0, getWidth, getHeight)
           paintFun(g2) // painter.paint( g2 )
@@ -240,7 +240,7 @@ object GUI {
       pack().centerOnScreen()
       visible = true
 
-      override def toString() = string + "@" + hashCode().toHexString
+      override def toString() = s"$string@${hashCode().toHexString}"
 
       override def closeOperation(): Unit = {
         onClose

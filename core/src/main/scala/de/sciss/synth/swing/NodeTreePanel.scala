@@ -30,7 +30,7 @@ class NodeTreePanel extends Component with NodeTreePanelLike {
   def group_=(value: Option[Group]): Unit = peer.group = value
 
   def makeWindow(disposeOnClose: Boolean = true): Frame = {
-    require( EventQueue.isDispatchThread )
+    require(EventQueue.isDispatchThread)
     frame getOrElse {
       val fr = new Frame() {
         override def toString() = "NodeTreeFrame@" + hashCode().toHexString

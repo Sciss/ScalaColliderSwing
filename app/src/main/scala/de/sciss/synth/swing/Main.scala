@@ -232,6 +232,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   override protected def init(): Unit = {
     try {
+      // val web = "com.alee.laf.WebLookAndFeel"
+      // UIManager.installLookAndFeel("Web Look And Feel", web)
       UIManager.setLookAndFeel(Prefs.lookAndFeel.getOrElse(Prefs.defaultLookAndFeel).getClassName)
     } catch {
       case NonFatal(e) => e.printStackTrace()
@@ -291,6 +293,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val cnt   = newFileCount
     val cc    = CodePane.Config()
     cc.text   = text0
+    val cn    = Prefs.colorScheme.getOrElse(Prefs.ColorSchemeNames.default)
+    cc.style  = Prefs.ColorSchemeNames(cn)
     val text  = TextView(intpFut, cc)
     text.file = file
     // val sid = docFact.create() new DefaultSingleCDockable("interpreter", "Interpreter", sip.component.peer)

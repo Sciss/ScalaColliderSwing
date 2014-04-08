@@ -19,6 +19,7 @@ import de.sciss.file._
 import javax.swing.UIManager
 import UIManager.LookAndFeelInfo
 import de.sciss.synth.swing.{Main => App}
+import de.sciss.scalainterpreter.{Style => ColorScheme}
 
 object Prefs {
   import App.userPrefs
@@ -37,6 +38,27 @@ object Prefs {
   }
 
   def lookAndFeel: Entry[LookAndFeelInfo] = userPrefs("look-and-feel")
+
+  object ColorSchemeNames {
+    private val blueForest  = "blue-forest"
+    private val light       = "light"
+
+    def all = Seq(blueForest, light)
+
+    def default = light // blueForest
+
+    def apply(name: String): ColorScheme = name match {
+      case `blueForest` => ColorScheme.BlueForest
+      case `light`      => ColorScheme.Light
+    }
+
+    def apply(scheme: ColorScheme): String = scheme match {
+      case ColorScheme.BlueForest => blueForest
+      case ColorScheme.Light      => light
+    }
+  }
+
+  def colorScheme: Entry[String] = userPrefs("color-scheme")
 
   // ---- audio ----
 

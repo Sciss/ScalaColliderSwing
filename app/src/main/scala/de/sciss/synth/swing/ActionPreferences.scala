@@ -31,7 +31,7 @@ object ActionPreferences extends Action("Preferences...") {
   def apply(): Unit = {
     import language.reflectiveCalls
 
-    def label(text: String) = new Label(text + ":", EmptyIcon, Alignment.Right)
+    def label(text: String) = new Label(s"$text:", EmptyIcon, Alignment.Right)
 
     def intField(prefs: Preferences.Entry[Int], default: => Int, min: Int = 0, max: Int = 65536,
                  step: Int = 1): Component = {
@@ -117,6 +117,9 @@ object ActionPreferences extends Action("Preferences...") {
       val ggLookAndFeel   = combo(Prefs.lookAndFeel, Prefs.defaultLookAndFeel,
         UIManager.getInstalledLookAndFeels)(_.getName)
 
+      val lbColorScheme   = label("Color Scheme")
+      val ggColorScheme   = combo(Prefs.colorScheme, Prefs.ColorSchemeNames.default, Prefs.ColorSchemeNames.all)
+
       val lbSuperCollider = label("SuperCollider (scsynth)")
       val ggSuperCollider = pathField(Prefs.superCollider, Prefs.defaultSuperCollider,
         title = "SuperCollider Server Location (scsynth)")
@@ -139,6 +142,7 @@ object ActionPreferences extends Action("Preferences...") {
       }
 
       add(lbLookAndFeel  , ggLookAndFeel  )
+      add(lbColorScheme  , ggColorScheme  )
       cLb.gridwidth = 2
       layout(sep1) = cLb
       cLb.gridy += 1; cGG.gridy += 1; cLb.gridwidth = 1
@@ -146,19 +150,6 @@ object ActionPreferences extends Action("Preferences...") {
       add(lbAudioDevice  , ggAudioDevice  )
       add(lbNumOutputs   , ggNumOutputs   )
       add(lbHeadphones   , ggHeadphones   )
-
-      //      theHorizontalLayout is Parallel(sep1, Sequential(
-      //        Parallel(lbLookAndFeel, lbSuperCollider, lbAudioDevice, lbNumOutputs, lbHeadphones),
-      //        Parallel(ggLookAndFeel, ggSuperCollider, ggAudioDevice, ggNumOutputs, ggHeadphones)
-      //      ))
-      //      theVerticalLayout is Sequential(
-      //        Parallel(Baseline)(lbLookAndFeel  , ggLookAndFeel  ),
-      //        sep1,
-      //        Parallel(Baseline)(lbSuperCollider, ggSuperCollider),
-      //        Parallel(Baseline)(lbAudioDevice  , ggAudioDevice  ),
-      //        Parallel(Baseline)(lbNumOutputs   , ggNumOutputs   ),
-      //        Parallel(Baseline)(lbHeadphones   , ggHeadphones   )
-      //      )
     }
 
     val opt   = OptionPane.message(message = box, messageType = OptionPane.Message.Plain)

@@ -4,17 +4,29 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.15.1"
+lazy val projectVersion         = "1.15.2"
 
 lazy val scalaColliderVersion   = "1.11.1+"
 
 lazy val interpreterPaneVersion = "1.6.+"
+
+lazy val syntaxPaneVersion      = "1.1.2+"
 
 lazy val desktopVersion         = "0.5.+"
 
 lazy val audioWidgetsVersion    = "1.6.+"
 
 lazy val fileUtilVersion        = "1.1.+"
+
+lazy val webLaFVersion          = "1.27"
+
+lazy val dockingVersion         = "1.1.1"
+
+lazy val swingBoxVersion        = "1.0"
+
+lazy val chartVersion           = "0.4.0"
+
+lazy val prefuseVersion         = "0.21"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
@@ -70,7 +82,7 @@ lazy val core = Project(
     description    := "Swing components for ScalaCollider",
     libraryDependencies ++= Seq(
       "de.sciss" %% "scalacollider"        % scalaColliderVersion,
-      "de.sciss" %  "prefuse-core"         % "0.21",
+      "de.sciss" %  "prefuse-core"         % prefuseVersion,
       "de.sciss" %% "audiowidgets-swing"   % audioWidgetsVersion
     ),
     // ---- build info ----
@@ -90,7 +102,8 @@ lazy val interpreter = Project(
   settings = commonSettings ++ Seq(
     description    := "REPL for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion
+      "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion,
+      "de.sciss" %  "syntaxpane"           % syntaxPaneVersion
     )
   )
 )
@@ -109,10 +122,11 @@ lazy val app = Project(
  //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
       "de.sciss"                 %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
       "de.sciss"                 %% "fileutil"              % fileUtilVersion,
-      "org.dockingframes"        %  "docking-frames-common" % "1.1.1",
-      "net.sf.cssbox"            %  "swingbox"              % "1.0",
+ //     "de.sciss"                 %  "weblaf"                % webLaFVersion,
+      "org.dockingframes"        %  "docking-frames-common" % dockingVersion,
+      "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
       // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
-      "com.github.wookietreiber" %% "scala-chart"           % "0.3.0"
+      "com.github.wookietreiber" %% "scala-chart"           % chartVersion
     ),
     // ---- assembly ----
     test      in assembly := (),
