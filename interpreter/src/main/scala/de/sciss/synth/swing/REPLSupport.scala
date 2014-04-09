@@ -12,6 +12,7 @@ class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
 
   val config          = Server.Config()
   config.transport    = TCP
+  config.port         = 0
   private val sync    = new AnyRef
   private var booting = null: ServerConnection
 
@@ -22,7 +23,12 @@ class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
   def boot(): Unit =
     sync.synchronized {
       shutDown()
-      booting = Server.boot(config = config) {
+      val pick = config.port == 0
+      if (pick) config.pickPort()
+      val c = config.build
+      if (pick) config.port = 0   // XXX TODO horrible
+
+      booting = Server.boot(config = c) {
         case ServerConnection.Preparing(srv) =>
           if (ntp != null) ntp.group = Some(srv.rootNode)
 

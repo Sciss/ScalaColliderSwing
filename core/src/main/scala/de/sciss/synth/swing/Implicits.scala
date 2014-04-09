@@ -22,11 +22,14 @@ object Implicits {
   implicit def enableGUI(bus   : AudioBus): GUI.Factory[GUI.AudioBus]  = new GUI.Factory(new GUI.AudioBus(bus   ))
 
   object gui {
-    def apply[T: GraphFunction.Result.In](thunk: => T): GUI.GraphFunction[T] = apply()(thunk)
+    def apply[A: GraphFunction.Result.In](thunk: => A): GUI.GraphFunction[A] = apply()(thunk)
 
-    def apply[T: GraphFunction.Result.In](target: Node = Server.default, outBus: Int = 0,
+    def apply[A: GraphFunction.Result.In](target: Node = Server.default, outBus: Int = 0,
                                           fadeTime: Optional[Double] = None, addAction: AddAction = addToHead)
-                                         (thunk: => T): GUI.GraphFunction[T] =
-      new GUI.GraphFunction(target, outBus, fadeTime.option, addAction, Nil, thunk)
+                                         (thunk: => A): GUI.GraphFunction[A] = {
+      val data = new GUI.GraphFunctionData(target = target, outBus = outBus, fadeTime = fadeTime.option,
+        addAction = addAction, args = Nil, thunk = thunk)
+      new GUI.GraphFunction(data)
+    }
   }
 }
