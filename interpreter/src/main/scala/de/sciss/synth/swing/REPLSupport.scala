@@ -3,6 +3,9 @@ package de.sciss.synth.swing
 import de.sciss.synth.{ServerConnection, Server}
 import de.sciss.osc.TCP
 import scala.util.control.NonFatal
+import scala.concurrent.ExecutionContext
+import java.awt.EventQueue
+import scala.swing.Swing
 
 class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
   override def toString = "repl-support"
@@ -40,6 +43,9 @@ class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
       ssp.booting = Some(booting)
     }
 
+  def defer(body: => Unit): Unit =
+    if (EventQueue.isDispatchThread) body else Swing.onEDT(body)
+
   private def shutDown(): Unit =
     sync.synchronized {
       val srv = try { s } catch { case NonFatal(_) => null }
@@ -51,4 +57,11 @@ class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
         booting = null
       }
     }
+
+  implicit def executionContext: ExecutionContext = try {
+    s.clientConfig.executionContext
+  } catch {
+    case NonFatal(_) =>  // no server created yet
+      ExecutionContext.global
+  }
 }

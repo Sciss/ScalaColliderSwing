@@ -67,7 +67,7 @@ object WaveformViewImpl {
     //         val numFramesC = roundUp( numFrames )
     //         val durC       = numFramesC / server.sampleRate
     val buf         = Buffer(server)
-    val myArgs: List[ControlSetMap] = List("$buf" -> buf.id, "$dur" -> duration)
+    val myArgs: List[ControlSet] = List("$buf" -> buf.id, "$dur" -> duration)
     val synthMsg    = syn.newMsg(defName, target, myArgs ++ args, addAction)
     val defFreeMsg  = sd.freeMsg
     val compl       = osc.Bundle.now(synthMsg, defFreeMsg)
@@ -238,11 +238,11 @@ object WaveformViewImpl {
     syn.onEnd {
       // println(s"----onEnd...")
       val syncMsg   = server.syncMsg()
-      val syncID    = syncMsg.id
+      val syncReply = syncMsg.reply
       // println(s"----onEnd $syncID")
       val writeMsg  = buf.writeMsg(path.getAbsolutePath, completion = osc.Bundle.now(buf.freeMsg, syncMsg))
       val fut       = server.!!(writeMsg) {
-        case message.Synced(`syncID`) =>
+        case `syncReply` =>
           // println("openBuffer")
           openBuffer()
       }

@@ -51,7 +51,7 @@ object GUI {
 
   final class GraphFunctionData[A] private[swing](val target: SNode, val outBus: Int, val fadeTime: Option[Double],
                                                   val addAction: AddAction,
-                                                  val args: Seq[ControlSetMap], thunk: => A)
+                                                  val args: Seq[ControlSet], thunk: => A)
                                                  (implicit result: SGraphFunction.Result.In[A]) {
 
     def apply(): GE = result.view(thunk)

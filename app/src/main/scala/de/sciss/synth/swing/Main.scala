@@ -91,8 +91,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   private def initPrefs(): Unit = {
     def updateProgramPath(): Unit = {
       val file = Prefs.superCollider.getOrElse(Prefs.defaultSuperCollider)
-      val path = if (file == Prefs.defaultSuperCollider) Server.defaultProgramPath else file.path
-      repl.config.programPath = path
+      val path = if (file == Prefs.defaultSuperCollider) Server.defaultProgram else file.path
+      repl.config.program = path
     }
 
     def updateAudioDevice(): Unit = {

@@ -14,21 +14,18 @@
 package de.sciss.synth.swing
 package impl
 
-import scala.swing.{Swing, BorderPanel, Action, Component}
+import scala.swing.{Swing, Action, Component}
 import de.sciss.{scalainterpreter => si}
 import de.sciss.swingplus.Implicits._
 import scala.concurrent.{ExecutionContext, Future}
 import java.awt.EventQueue
 import de.sciss.syntaxpane.SyntaxDocument
-import javax.swing.undo.UndoableEdit
-import de.sciss.desktop.UndoManager
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 import javax.swing.{KeyStroke, AbstractAction, JComponent}
 import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
 import de.sciss.model.impl.ModelImpl
 import de.sciss.model.Change
 import de.sciss.file.File
-import de.sciss.desktop.impl.UndoManagerImpl
 
 object TextViewImpl {
   def apply(intp: Future[si.Interpreter], config: si.CodePane.Config): TextView = {
@@ -37,8 +34,7 @@ object TextViewImpl {
     res
   }
 
-  private final class Impl(/* val undoManager: UndoManager, */ interpreter: Future[si.Interpreter],
-                            codeConfig: si.CodePane.Config)
+  private final class Impl(interpreter: Future[si.Interpreter], codeConfig: si.CodePane.Config)
     extends TextView with ModelImpl[TextView.Update] {
 
     private var _file = Option.empty[File]
@@ -57,7 +53,7 @@ object TextViewImpl {
     }
 
     private var codePane: si.CodePane = _
-    private var futCompile = Option.empty[Future[Any]]
+    // private var futCompile = Option.empty[Future[Any]]
     // private var actionApply: Action = _
 
     def editor: si.CodePane = codePane
@@ -86,20 +82,24 @@ object TextViewImpl {
     //    }
 
     def clearUndoBuffer(): Unit = {
-      codePane.editor.getDocument.asInstanceOf[SyntaxDocument].clearUndos()
+      // chasing an odd problem where the runtime classes for SyntaxDocument do not match...
+      codePane.editor.getDocument match {
+        case doc: SyntaxDocument => doc.clearUndos()
+        case other => Console.err.println(s"Expected SyntaxDocument but found ${other.getClass.getName}")
+      }
       dirty = false
     }
 
-    private def requireEDT(): Unit =
-      if (!EventQueue.isDispatchThread) throw new IllegalStateException("Must be executed on the EDT")
+    //    private def requireEDT(): Unit =
+    //      if (!EventQueue.isDispatchThread) throw new IllegalStateException("Must be executed on the EDT")
 
     private def defer(body: => Unit): Unit =
       if (EventQueue.isDispatchThread) body else Swing.onEDT(body)
 
-    def isCompiling: Boolean = {
-      requireEDT()
-      futCompile.isDefined
-    }
+    //    def isCompiling: Boolean = {
+    //      requireEDT()
+    //      futCompile.isDefined
+    //    }
 
     def undoAction: Action = Action.wrap(codePane.editor.getActionMap.get("undo"))
     def redoAction: Action = Action.wrap(codePane.editor.getActionMap.get("redo"))
@@ -119,12 +119,21 @@ object TextViewImpl {
       iMap.put(executeKey, "de.sciss.exec")
       aMap.put("de.sciss.exec", new AbstractAction {
         def actionPerformed(e: ActionEvent): Unit =
-          codePane.getSelectedTextOrCurrentLine.foreach(intp.interpret(_))
+          codePane.getSelectedTextOrCurrentLine.foreach { ln =>
+            intp.interpret(ln)
+          }
       })
     }
 
     def guiInit(): Unit = {
       codePane = si.CodePane(codeConfig)
+      //      locally {
+      //        val ch = codePane.getClass.getClassLoader.hashCode().toHexString
+      //        val dh = codePane.editor.getDocument.getClass.getClassLoader.hashCode().toHexString
+      //        val th = Thread.currentThread().hashCode().toHexString
+      //        val xh = Thread.currentThread().getContextClassLoader.hashCode().toHexString
+      //        println(s"codePane.classLoader = $ch; doc.classLoader = $dh; context = $xh; EDT = $th")
+      //      }
 
       import ExecutionContext.Implicits.global
       interpreter.onSuccess { case intp =>
@@ -142,21 +151,25 @@ object TextViewImpl {
       //      actionApply = Action("Apply")(save())
       //      actionApply.enabled = false
 
-      lazy val doc = codePane.editor.getDocument.asInstanceOf[SyntaxDocument]
-      //      doc.addUndoableEditListener(
-      //        new UndoableEditListener {
-      //          def undoableEditHappened(e: UndoableEditEvent): Unit =
-      //            if (clearGreen) {
-      //              clearGreen = false
-      //              ggCompile.icon = compileIcon(None)
-      //            }
-      //        }
-      //      )
+      codePane.editor.getDocument match {
+        // chasing an odd problem where the runtime classes for SyntaxDocument do not match...
+        case doc: SyntaxDocument =>
+          //      doc.addUndoableEditListener(
+          //        new UndoableEditListener {
+          //          def undoableEditHappened(e: UndoableEditEvent): Unit =
+          //            if (clearGreen) {
+          //              clearGreen = false
+          //              ggCompile.icon = compileIcon(None)
+          //            }
+          //        }
+          //      )
 
-      doc.addPropertyChangeListener(SyntaxDocument.CAN_UNDO, new PropertyChangeListener {
-        def propertyChange(e: PropertyChangeEvent): Unit = dirty = doc.canUndo
-      })
+          doc.addPropertyChangeListener(SyntaxDocument.CAN_UNDO, new PropertyChangeListener {
+            def propertyChange(e: PropertyChangeEvent): Unit = dirty = doc.canUndo
+          })
 
+        case other => Console.err.println(s"Expected SyntaxDocument but found ${other.getClass.getName}")
+      }
       // lazy val ggApply  : Button = GUI.toolButton(actionApply  , raphael.Shapes.Check , tooltip = "Save text changes")
 
       //      val panelBottom = new FlowPanel(FlowPanel.Alignment.Trailing)(

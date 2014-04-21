@@ -4,19 +4,19 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.15.2"
+lazy val projectVersion         = "1.16.0-SNAPSHOT"
 
-lazy val scalaColliderVersion   = "1.11.1+"
+lazy val scalaColliderVersion   = "1.12.0"
 
-lazy val interpreterPaneVersion = "1.6.+"
+lazy val interpreterPaneVersion = "1.6.2"
 
-lazy val syntaxPaneVersion      = "1.1.2+"
+// lazy val syntaxPaneVersion      = "1.1.2"
 
-lazy val desktopVersion         = "0.5.+"
+lazy val desktopVersion         = "0.5.1"
 
-lazy val audioWidgetsVersion    = "1.6.+"
+lazy val audioWidgetsVersion    = "1.6.1"
 
-lazy val fileUtilVersion        = "1.1.+"
+lazy val fileUtilVersion        = "1.1.1"
 
 lazy val webLaFVersion          = "1.27"
 
@@ -24,15 +24,15 @@ lazy val dockingVersion         = "1.1.1"
 
 lazy val swingBoxVersion        = "1.0"
 
-lazy val chartVersion           = "0.4.0"
+lazy val chartVersion           = "0.4.2"
 
 lazy val prefuseVersion         = "0.21"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.10.4",
-  crossScalaVersions := Seq("2.11.0-RC3", "2.10.4"),
+  scalaVersion       := "2.11.0",
+  crossScalaVersions := Seq("2.11.0", "2.10.4"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature"),
@@ -102,8 +102,8 @@ lazy val interpreter = Project(
   settings = commonSettings ++ Seq(
     description    := "REPL for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion,
-      "de.sciss" %  "syntaxpane"           % syntaxPaneVersion
+      "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion
+      // "de.sciss" %  "syntaxpane"           % syntaxPaneVersion
     )
   )
 )
@@ -132,25 +132,20 @@ lazy val app = Project(
     test      in assembly := (),
     mainClass in assembly := Some("de.sciss.synth.swing.Main"),
     target    in assembly := baseDirectory.value,
-    jarName   in assembly := s"$baseName.jar",
+    jarName   in assembly := "ScalaCollider.jar",
     mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
       {
         case "logback.xml" => MergeStrategy.last
         case x => old(x)
       }
-    }
+    },
+    // ---- appbundle ----
+    appbundle.mainClass := Some("de.sciss.synth.swing.Main"),
+    appbundle.target := baseDirectory.value,
+    appbundle.name   := "ScalaCollider",
+    appbundle.icon   := Some(file("icons/application.png"))
   )
 )
-
-// ---- packaging ----
-
-seq(assemblySettings: _*)
-
-seq(appbundle.settings: _*)
-
-appbundle.icon      := Some(file("application.icns"))
-
-appbundle.target    := baseDirectory.value
 
 // ---- ls.implicit.ly ----
 
