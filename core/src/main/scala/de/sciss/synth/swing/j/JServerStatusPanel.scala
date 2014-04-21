@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v2+
+ *  This software is published under the GNU General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -217,7 +217,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     val icnUGen   = new ImageIcon(clz.getResource("path_ugen_16.png"))
     val icnDef    = new ImageIcon(clz.getResource("path_def_16.png"))
 
-    def flushImages() {
+    def flushImages(): Unit = {
       icnGroup.getImage.flush()
       icnSynth.getImage.flush()
       icnUGen .getImage.flush()
@@ -259,7 +259,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
     if ((flags & COUNTS) != 0) {
       addS(lbCPU, 8)
-      def addCount(icn: ImageIcon, lb: JLabel, s: Int = 4) {
+      def addCount(icn: ImageIcon, lb: JLabel, s: Int = 4): Unit = {
         val lb2 = new JLabel(icn)
         lb2.putClientProperty("JComponent.sizeVariant", "small")
         addS(lb2)

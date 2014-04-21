@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v2+
+ *  This software is published under the GNU General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -126,11 +126,13 @@ object ActionPreferences extends Action("Preferences...") {
 
       val lbAudioDevice   = label("Audio Device")
       val ggAudioDevice   = textField(Prefs.audioDevice   , Prefs.defaultAudioDevice    )
+      val lbNumInputs     = label("Input Channels")
+      val ggNumInputs     = intField(Prefs.audioNumInputs , Prefs.defaultAudioNumInputs )
       val lbNumOutputs    = label("Output Channels")
       val ggNumOutputs    = intField(Prefs.audioNumOutputs, Prefs.defaultAudioNumOutputs)
 
-      val lbHeadphones    = label("Headphones Bus")
-      val ggHeadphones    = intField(Prefs.headphonesBus  , Prefs.defaultHeadphonesBus  )
+      // val lbHeadphones    = label("Headphones Bus")
+      // val ggHeadphones    = intField(Prefs.headphonesBus  , Prefs.defaultHeadphonesBus  )
 
       val sep1 = Separator()
 
@@ -148,8 +150,9 @@ object ActionPreferences extends Action("Preferences...") {
       cLb.gridy += 1; cGG.gridy += 1; cLb.gridwidth = 1
       add(lbSuperCollider, ggSuperCollider)
       add(lbAudioDevice  , ggAudioDevice  )
+      add(lbNumInputs    , ggNumInputs    )
       add(lbNumOutputs   , ggNumOutputs   )
-      add(lbHeadphones   , ggHeadphones   )
+      // add(lbHeadphones   , ggHeadphones   )
     }
 
     val opt   = OptionPane.message(message = box, messageType = OptionPane.Message.Plain)

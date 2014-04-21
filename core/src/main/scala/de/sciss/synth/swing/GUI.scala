@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v2+
+ *  This software is published under the GNU General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -19,6 +19,13 @@ import scala.swing.Frame
 import collection.immutable.{Seq => ISeq}
 
 object GUI {
+  var windowOnTop = false
+
+  private def configure(f: Frame): f.type = {
+    if (windowOnTop) f.peer.setAlwaysOnTop(true)
+    f
+  }
+
   final class Factory[A] private[swing] (target: => A) {
     def gui: A = target
   }
@@ -30,6 +37,7 @@ object GUI {
       ntp.confirmDestructiveActions = true
       ntp.group                     = Some(group)
       val ntpw                      = ntp.makeWindow()
+      configure(ntpw)
       ntpw.open()
       ntpw
     }
@@ -45,7 +53,8 @@ object GUI {
           import ugen._
           In.ar("$inbus".ir, bus.numChannels)
         })
-      impl.WaveformViewImpl(data, duration = duration)
+      val w = impl.WaveformViewImpl(data, duration = duration)
+      configure(w)
     }
   }
 
@@ -58,12 +67,17 @@ object GUI {
   }
 
   final class GraphFunction[A] private[swing](data: GraphFunctionData[A]) {
-    def waveform(duration: Double = 0.1): Frame = impl.WaveformViewImpl(data, duration = duration)
+    def waveform(duration: Double = 0.1): Frame = {
+      val w = impl.WaveformViewImpl(data, duration = duration)
+      configure(w)
+    }
   }
 
   private def makeAudioBusMeter(name: String, strips: ISeq[AudioBusMeter.Strip]): Frame = {
     val meter = AudioBusMeter(strips)
-    makeFrame(s"Meter ($name)", "MeterFrame", meter.component)(meter.dispose())
+    val w     = makeFrame(s"Meter ($name)", "MeterFrame", meter.component)(meter.dispose())
+    configure(w)
+    w
   }
 
   private[swing] def makeFrame(name: String, string: String, component: scala.swing.Component, smallBar: Boolean = true)
@@ -88,7 +102,10 @@ object GUI {
   }
 
   final class Server private[swing](val server: SServer) {
-    def tree(): Frame = new Group(server.rootNode).tree()
+    def tree(): Frame = {
+      val w = new Group(server.rootNode).tree()
+      configure(w)
+    }
 
     def meter(): Frame = {
       val opt         = server.config

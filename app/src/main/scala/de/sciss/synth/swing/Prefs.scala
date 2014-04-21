@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v2+
+ *  This software is published under the GNU General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -64,11 +64,13 @@ object Prefs {
 
   final val defaultSuperCollider    = file("<SC_HOME>")
   final val defaultAudioDevice      = "<default>"
+  final val defaultAudioNumInputs   = 8
   final val defaultAudioNumOutputs  = 8
   final val defaultHeadphonesBus    = 0
 
   def superCollider  : Entry[File  ] = userPrefs("supercollider"    )
   def audioDevice    : Entry[String] = userPrefs("audio-device"     )
+  def audioNumInputs : Entry[Int   ] = userPrefs("audio-num-inputs ")
   def audioNumOutputs: Entry[Int   ] = userPrefs("audio-num-outputs")
   def headphonesBus  : Entry[Int   ] = userPrefs("headphones-bus"   )
 }

@@ -4,7 +4,7 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.16.0-SNAPSHOT"
+lazy val projectVersion         = "1.16.0"
 
 lazy val scalaColliderVersion   = "1.12.0"
 
@@ -18,11 +18,15 @@ lazy val audioWidgetsVersion    = "1.6.1"
 
 lazy val fileUtilVersion        = "1.1.1"
 
+lazy val kollFlitzVersion       = "0.2.0"
+
 lazy val webLaFVersion          = "1.27"
 
 lazy val dockingVersion         = "1.1.1"
 
 // lazy val swingBoxVersion        = "1.0"
+
+lazy val pdflitzVersion         = "1.1.0"
 
 lazy val chartVersion           = "0.4.2"
 
@@ -34,8 +38,8 @@ lazy val commonSettings = Project.defaultSettings ++ Seq(
   scalaVersion       := "2.11.0",
   crossScalaVersions := Seq("2.11.0", "2.10.4"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
-  licenses           := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt")),
-  scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature"),
+  licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
+  scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture"),
   retrieveManaged    := true,
   // ---- publishing ----
   publishMavenStyle := true,
@@ -62,15 +66,33 @@ lazy val commonSettings = Project.defaultSettings ++ Seq(
 }
 )
 
+def appMainClass = Some("de.sciss.synth.swing.Main")
+
 lazy val root = Project(
   id           = baseNameL,
   base         = file("."),
   aggregate    = Seq(core, interpreter, app),
   dependencies = Seq(core, interpreter, app),
-  settings     = commonSettings ++ Seq(
+  settings     = commonSettings ++ assemblySettings ++ Seq(
     publishArtifact in (Compile, packageBin) := false, // there are no binaries
     publishArtifact in (Compile, packageDoc) := false, // there are no javadocs
-    publishArtifact in (Compile, packageSrc) := false  // there are no sources
+    publishArtifact in (Compile, packageSrc) := false, // there are no sources
+    // ---- assembly ----
+    test      in assembly := (),
+    mainClass in assembly := appMainClass,
+    target    in assembly := baseDirectory.value,
+    jarName   in assembly := "ScalaCollider.jar",
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
+      {
+        case "logback.xml" => MergeStrategy.last
+        case x => old(x)
+      }
+    },
+    // ---- appbundle ----
+    appbundle.mainClass := appMainClass,
+    appbundle.target := baseDirectory.value,
+    appbundle.name   := "ScalaCollider",
+    appbundle.icon   := Some(file("icons/application.png"))
   )
 )
 
@@ -112,7 +134,7 @@ lazy val app = Project(
   id  = s"$baseNameL-app",
   base = file("app"),
   dependencies = Seq(core, interpreter),
-  settings = commonSettings ++ assemblySettings ++ Seq(
+  settings = commonSettings ++ Seq(
     description    := "Standalone application for ScalaCollider",
     libraryDependencies ++= Seq(
       // experiment with making sources and docs available.
@@ -122,28 +144,14 @@ lazy val app = Project(
  //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
       "de.sciss"                 %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
       "de.sciss"                 %% "fileutil"              % fileUtilVersion,
+      "de.sciss"                 %% "kollflitz"             % kollFlitzVersion,
+      "de.sciss"                 %% "pdflitz"               % pdflitzVersion,
  //     "de.sciss"                 %  "weblaf"                % webLaFVersion,
       "org.dockingframes"        %  "docking-frames-common" % dockingVersion,
  //     "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
       // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
       "com.github.wookietreiber" %% "scala-chart"           % chartVersion
-    ),
-    // ---- assembly ----
-    test      in assembly := (),
-    mainClass in assembly := Some("de.sciss.synth.swing.Main"),
-    target    in assembly := baseDirectory.value,
-    jarName   in assembly := "ScalaCollider.jar",
-    mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
-      {
-        case "logback.xml" => MergeStrategy.last
-        case x => old(x)
-      }
-    },
-    // ---- appbundle ----
-    appbundle.mainClass := Some("de.sciss.synth.swing.Main"),
-    appbundle.target := baseDirectory.value,
-    appbundle.name   := "ScalaCollider",
-    appbundle.icon   := Some(file("icons/application.png"))
+    )
   )
 )
 

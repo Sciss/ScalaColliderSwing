@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v2+
+ *  This software is published under the GNU General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -65,12 +65,12 @@ object DynamicTreeLayout {
     var ancestor: NodeItem = null
     var thread  : NodeItem = null
 
-    def init(item: NodeItem) {
+    def init(item: NodeItem): Unit = {
       ancestor  = item
       number    = -1
     }
 
-    def clear() {
+    def clear(): Unit = {
       number    = -2
       prelim    = 0.0
       mod       = 0.0
@@ -166,7 +166,7 @@ final class DynamicTreeLayout private(group: String, private var orientationVar:
      * @throws IllegalArgumentException if the provided root is not a member of
      * this layout's data group.
      */
-   def layoutRoot_=(value: NodeItem) {
+   def layoutRoot_=(value: NodeItem): Unit = {
      if (!value.isInGroup(m_group)) {
        throw new IllegalArgumentException("Input node is not a member of this layout's data group")
      }

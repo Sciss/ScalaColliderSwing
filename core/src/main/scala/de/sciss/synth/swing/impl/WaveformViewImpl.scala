@@ -18,9 +18,7 @@ object WaveformViewImpl {
     extends UGenSource.ZeroOut with WritesBus {
     // XXX TODO should not be UGenSource
 
-    protected def makeUGens {
-      unwrap(in.expand.outputs)
-    }
+    protected def makeUGens: Unit = unwrap(in.expand.outputs)
 
     protected def makeUGen(ins: Vec[UGenIn]): Unit = {
       if (ins.isEmpty) return

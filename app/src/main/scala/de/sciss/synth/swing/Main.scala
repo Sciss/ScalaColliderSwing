@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v2+
+ *  This software is published under the GNU General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -49,7 +49,15 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private lazy val sp = new ServerStatusPanel
 
-  private lazy val lg = LogPane(rows = 12)
+  private lazy val lg = {
+    val cn    = Prefs.colorScheme.getOrElse(Prefs.ColorSchemeNames.default)
+    val style = Prefs.ColorSchemeNames(cn)
+    val res   = LogPane(rows = 12)
+    // res.font  = style.font
+    res.background = style.background
+    res.foreground = style.foreground
+    res
+  }
 
   // private lazy val codePane = sip.codePane
 
@@ -67,6 +75,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       "de.sciss.osc.{TCP, UDP}",
       "de.sciss.osc.Dump.{Off, Both, Text}",
       "de.sciss.osc.Implicits._",
+      "de.sciss.kollflitz.Ops._",
+      "de.sciss.kollflitz.RandomOps._",
       "de.sciss.synth._",                     // main ScalaCollider stuff
       "de.sciss.synth.Ops._",                 // imperative resource commands
       "de.sciss.synth.swing.SynthGraphPanel._",
@@ -99,15 +109,20 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       repl.config.deviceName = opt
     }
 
+    def updateNumInputs(): Unit =
+      repl.config.inputBusChannels  = Prefs.audioNumInputs .getOrElse(Prefs.defaultAudioNumInputs )
+
     def updateNumOutputs(): Unit =
       repl.config.outputBusChannels = Prefs.audioNumOutputs.getOrElse(Prefs.defaultAudioNumOutputs)
 
     Prefs.superCollider   .addListener { case _ => updateProgramPath() }
     Prefs.audioDevice     .addListener { case _ => updateAudioDevice() }
+    Prefs.audioNumInputs  .addListener { case _ => updateNumInputs  () }
     Prefs.audioNumOutputs .addListener { case _ => updateNumOutputs () }
 
     updateProgramPath()
     updateAudioDevice()
+    updateNumInputs  ()
     updateNumOutputs ()
   }
 
@@ -197,6 +212,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   }
 
   override protected def init(): Unit = {
+    GUI.windowOnTop = true
+
     try {
       // val web = "com.alee.laf.WebLookAndFeel"
       // UIManager.installLookAndFeel("Web Look And Feel", web)
@@ -207,7 +224,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
     super.init()
 
-    val bot   = new BoxPanel(Orientation.Horizontal)
+    val bot = new BoxPanel(Orientation.Horizontal)
     bot.contents += Swing.HGlue
     bot.contents += sp
 
@@ -481,7 +498,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
         s"""<html><center>
            |<font size=+1><b>About $name</b></font><p>
            |Copyright (c) 2008&ndash;2014 Hanns Holger Rutz. All rights reserved.<p>
-           |This software is published under the GNU General Public License v2+
+           |This software is published under the GNU General Public License v3+
            |""".stripMargin
       OptionPane.message(message = new javax.swing.JLabel(html)).show(Some(frame))
     }
