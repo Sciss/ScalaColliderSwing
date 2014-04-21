@@ -16,27 +16,23 @@ package de.sciss.synth.swing
 import de.sciss.desktop.impl.{WindowHandlerImpl, SwingApplicationImpl, WindowImpl}
 import de.sciss.desktop.{DialogSource, OptionPane, FileDialog, RecentFiles, KeyStrokes, LogPane, Desktop, Window, WindowHandler, Menu}
 import javax.swing.{KeyStroke, UIManager, SwingUtilities}
-import bibliothek.gui.dock.common.{MultipleCDockableLayout, MultipleCDockable, MultipleCDockableFactory, DefaultMultipleCDockable, EmptyMultipleCDockableFactory, CLocation, DefaultSingleCDockable, CControl}
+import bibliothek.gui.dock.common.{CLocation, DefaultSingleCDockable, CControl}
 import java.awt.GraphicsEnvironment
-import scala.swing.{Action, Swing, Orientation, BoxPanel, Component, BorderPanel, ScrollPane, EditorPane}
-import org.fit.cssbox.swingbox.BrowserPane
+import scala.swing.{Action, Swing, Orientation, BoxPanel, Component, BorderPanel}
 import bibliothek.gui.dock.common.theme.ThemeMap
 import de.sciss.{scalainterpreter => si}
 import scala.tools.nsc.interpreter.NamedParam
-import java.awt.event.KeyEvent
-import java.awt.geom.AffineTransform
 import scala.util.control.NonFatal
 import de.sciss.file._
 import de.sciss.synth.Server
 import scala.concurrent.Future
 import bibliothek.gui.dock.dockable.IconHandling
-import de.sciss.scalainterpreter.CodePane
 import bibliothek.gui.dock.common.event.CFocusListener
 import bibliothek.gui.dock.common.intern.CDockable
 import java.io.{OutputStreamWriter, FileOutputStream}
 import scala.util.{Success, Failure, Try}
-import scala.swing.event.{Key, WindowClosing, WindowClosed}
-import bibliothek.gui.dock.common.mode.ExtendedMode
+import scala.swing.event.Key
+import java.net.URL
 
 object Main extends SwingApplicationImpl("ScalaCollider") {
   type Document = TextViewDockable
@@ -45,11 +41,11 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     override def usesInternalFrames: Boolean = false
   }
 
-  private val bodyUrl = "https://raw2.github.com/Sciss/ScalaCollider/master/README.md"
-  private val cssUrl  = "https://gist.github.com/andyferra/2554919/raw/2e66cabdafe1c9a7f354aa2ebf5bc38265e638e5/github.css"
+  //  private val bodyUrl = "https://raw2.github.com/Sciss/ScalaCollider/master/README.md"
+  //  private val cssUrl  = "https://gist.github.com/andyferra/2554919/raw/2e66cabdafe1c9a7f354aa2ebf5bc38265e638e5/github.css"
 
-  // is this the best way?
-  private def readURL(url: String): String = io.Source.fromURL(url, "UTF-8").getLines().mkString("\n")
+  //  // is this the best way?
+  //  private def readURL(url: String): String = io.Source.fromURL(url, "UTF-8").getLines().mkString("\n")
 
   private lazy val sp = new ServerStatusPanel
 
@@ -87,6 +83,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
     Interpreter(intpCfg)
   }
+
+  def interpreter: Future[Interpreter] = intpFut
 
   private def initPrefs(): Unit = {
     def updateProgramPath(): Unit = {
@@ -134,65 +132,33 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   def mainWindow: Window = frame
 
-  private lazy val hp: EditorPane = {
-    // val md    = readURL(bodyUrl)
-    // val css   = readURL(cssUrl )
-    // val html  = Markdown(md)
+  //  private lazy val hp: EditorPane = {
+  //    // val md    = readURL(bodyUrl)
+  //    // val css   = readURL(cssUrl )
+  //    // val html  = Markdown(md)
+  //
+  //    //    val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
+  //    //    //    new EditorPane("text/html", "") {
+  //    //    //      editable  = false
+  //    //    //      editorKit = new SwingBoxEditorKit()
+  //    //    //      text      = html1
+  //    //    //    }
+  //
+  //    new EditorPane("text/html", "") {
+  //      override lazy val peer: BrowserPane = new BrowserPane with SuperMixin
+  //      // text = html1
+  //    }
+  //  }
 
-    //    val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
-    //    //    new EditorPane("text/html", "") {
-    //    //      editable  = false
-    //    //      editorKit = new SwingBoxEditorKit()
-    //    //      text      = html1
-    //    //    }
 
-    new EditorPane("text/html", "") {
-      override lazy val peer: BrowserPane = new BrowserPane with SuperMixin
-      // text = html1
-    }
-  }
-
-  class TextViewDockable(val view: TextView) extends
-    DefaultMultipleCDockable(docFact, view.component.peer) {
-
-    private var fntSizeAmt = 0
-
-    private def updateFontSize(): Unit = {
-      val ed    = view.editor.editor
-      val fnt   = ed.getFont
-      val scale = math.pow(1.08334, fntSizeAmt)
-      // note: deriveFont _replaces_ the affine transform, does not concatenate it
-      ed.setFont(fnt.deriveFont(AffineTransform.getScaleInstance(scale, scale)))
-    }
-
-    private def fontSizeReset(): Unit = {
-      fntSizeAmt = 0
-      updateFontSize()
-    }
-
-    def fontSizeChange(rel: Int): Unit =
-      if (rel == 0) fontSizeReset() else {
-        fntSizeAmt += rel
-        updateFontSize()
-      }
-
-    def close(): Unit = {
-      dockCtrl.removeDockable(this)
-      documentHandler.removeDocument(this)
-    }
-  }
-
-  private lazy val docFact: MultipleCDockableFactory[MultipleCDockable, MultipleCDockableLayout] =
-    new EmptyMultipleCDockableFactory[MultipleCDockable] {
-      def createDockable(): MultipleCDockable = newFile()
-    }
+  def dockControl: CControl = dockCtrl
 
   private lazy val dockCtrl: CControl = {
     val jf  = SwingUtilities.getWindowAncestor(frame.component.peer.getRootPane).asInstanceOf[javax.swing.JFrame]
     val res = new CControl(jf)
     val th  = res.getThemes
     th.select(ThemeMap.KEY_FLAT_THEME)
-    res.addMultipleDockableFactory("de.sciss.synth.swing.TextView", docFact)
+    res.addMultipleDockableFactory("de.sciss.synth.swing.TextView", TextViewDockable.factory)
     //    res.addControlListener(new CControlListener {
     //      def opened (control: CControl, dockable: CDockable): Unit =
     //        println(s"CControlListener.opened ($control, $dockable")
@@ -261,74 +227,25 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     lgd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
     lgd.setTitleIcon(null)
 
-    // hp.peer.setPage("http://www.sciss.de/scalaCollider")
-    val hps   = new ScrollPane(hp)
-    val hpd   = new DefaultSingleCDockable("help", "Help", hps.peer)
-    hpd.setLocation(CLocation.base().normalNorth(0.65))
-    hpd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
-    hpd.setTitleIcon(null)
+    //    // hp.peer.setPage("http://www.sciss.de/scalaCollider")
+    //    val hps   = new ScrollPane(hp)
+    //    val hpd   = new DefaultSingleCDockable("help", "Help", hps.peer)
+    //    hpd.setLocation(CLocation.base().normalNorth(0.65))
+    //    hpd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
+    //    hpd.setTitleIcon(null)
 
     dockCtrl.addDockable(lgd)
     // ctl.addDockable(spd)
-    dockCtrl.addDockable(hpd)
+    // dockCtrl.addDockable(hpd)
     lgd.setVisible(true)
     // spd.setVisible(true)
-    hpd.setExtendedMode(ExtendedMode.MINIMIZED)
-    hpd.setVisible(true)
+    // hpd.setExtendedMode(ExtendedMode.MINIMIZED)
+    // hpd.setVisible(true)
 
     frame.init(bp)
 
     initPrefs()
-    newFile()
-  }
-
-  private var newFileCount = 0
-
-  private def newFile(): MultipleCDockable = {
-    newFileCount += 1
-    createText(text0 = "", file = None)
-  }
-
-  private def createText(text0: String, file: Option[File]): MultipleCDockable = {
-    val cnt   = newFileCount
-    val cc    = CodePane.Config()
-    cc.text   = text0
-    val cn    = Prefs.colorScheme.getOrElse(Prefs.ColorSchemeNames.default)
-    cc.style  = Prefs.ColorSchemeNames(cn)
-    val text  = TextView(intpFut, cc)
-    text.file = file
-    // val sid = docFact.create() new DefaultSingleCDockable("interpreter", "Interpreter", sip.component.peer)
-    text.editor.editor.setCaretPosition(0)  // XXX TODO: that should be done by the codePane itself automatically
-
-    def mkTitle() = {
-      val name = text.file.fold {
-        if (cnt == 1) "Untitled" else s"Untitled $cnt"
-      } { f =>
-        f.base
-      }
-      if (text.dirty) s"*$name" else name
-    }
-
-    // val content   = text.component.peer
-    val dock      = new TextViewDockable(text)
-    dock.setLocation(CLocation.base().normalWest(0.6))
-
-    def updateTitle(): Unit = dock.setTitleText(mkTitle())
-
-    updateTitle()
-
-    text.addListener {
-      case TextView.DirtyChange(_) => updateTitle()
-      case TextView.FileChange (_) => updateTitle()
-    }
-    dockCtrl.addDockable(dock)
-    dock.setVisible(true)
-    documentHandler.addDocument(dock)
-
-    // tricky business to ensure initial focus
-    dock.setFocusComponent(text.editor.editor)
-    dockCtrl.getController.setFocusedDockable(dock.intern(), true)
-    dock
+    TextViewDockable.empty()
   }
 
   private sealed trait UnsavedResult
@@ -387,7 +304,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
         val text0 = src.mkString
         // XXX TODO: if the current window is empty and untitled, simply replace its content
         // (or close it)
-        createText(text0, Some(file))
+        TextViewDockable.apply(text0, Some(file))
         _recent.add(file)
       } finally {
         src.close()
@@ -402,10 +319,18 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   private def rebootServer() :Unit =
     sp.peer.boot()
 
-  private def serverMeters() :Unit = {
+  private def serverMeters(): Unit = {
     import de.sciss.synth.swing.Implicits._
     sp.server.foreach { s =>
       val f = s.gui.meter()
+      f.peer.setAlwaysOnTop(true)
+    }
+  }
+
+  private def showNodes(): Unit = {
+    import de.sciss.synth.swing.Implicits._
+    sp.server.foreach { s =>
+      val f = s.gui.tree()
       f.peer.setAlwaysOnTop(true)
     }
   }
@@ -424,24 +349,27 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private lazy val _recent = RecentFiles(Main.userPrefs("recent-docs"))(checkOpenFile)
 
-  def openURL(url: String): Unit = hp.peer.setPage(url)
+  def openURL(url: String): Unit = {
+    // hp.peer.setPage(url)
+    Desktop.browseURI(new URL(url).toURI)
+  }
 
   private def lookUpHelp(): Unit = {
     println("(TODO: lookUpHelp()")
-    val url = getClass.getResource("""/de/sciss/synth/Server.html""")
-    if (url != null) {
-      // --- version 1: shows as plain text ---
-      // hp.peer.setPage(url)
-
-      // --- version 2: kind of works (doesn't find css and scripts though) ---
-      // hp.text = io.Source.fromURL(url, "UTF-8").mkString
-
-      // --- version 3: creates new document (again doesn't find css and scripts) ---
-      val doc = hp.editorKit.createDefaultDocument()
-      hp.editorKit.read(url.openStream(), doc, 0)
-      hp.peer.setDocument(doc)
-    }
-    else println("!Help sources not found!")
+    //    val url = getClass.getResource("""/de/sciss/synth/Server.html""")
+    //    if (url != null) {
+    //      // --- version 1: shows as plain text ---
+    //      // hp.peer.setPage(url)
+    //
+    //      // --- version 2: kind of works (doesn't find css and scripts though) ---
+    //      // hp.text = io.Source.fromURL(url, "UTF-8").mkString
+    //
+    //      // --- version 3: creates new document (again doesn't find css and scripts) ---
+    //      val doc = hp.editorKit.createDefaultDocument()
+    //      hp.editorKit.read(url.openStream(), doc, 0)
+    //      hp.peer.setDocument(doc)
+    //    }
+    //    else println("!Help sources not found!")
   }
 
   private trait FileAction {
@@ -546,7 +474,6 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   protected lazy val menuFactory: Menu.Root = {
     import Menu._
     import KeyStrokes._
-    import KeyEvent._
     import de.sciss.synth.swing.{Main => App}
 
     val itAbout = Item.About(App) {
@@ -564,7 +491,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     Desktop.addQuitAcceptor(closeAll())
 
     val gFile = Group("file", "File")
-      .add(Item("new" )("New"     -> (menu1 + Key.N))(newFile()))
+      .add(Item("new" )("New"     -> (menu1 + Key.N))(TextViewDockable.empty()))
       .add(Item("open")("Open..." -> (menu1 + Key.O))(queryOpenFile()))
       .add(_recent.menu)
       .addLine()
@@ -590,6 +517,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       .add(Item("boot-server"   )("Boot Server"       -> (menu1 + Key.B))(bootServer()))
       .add(Item("reboot-server" )("Reboot Server"                      )(rebootServer()))
       .add(Item("server-meters" )("Show Server Meter" -> (menu1 + Key.M))(serverMeters()))
+      .add(Item("show-tree"     )("Show Node Tree")(showNodes()))
       .add(Item("dump-tree"     )("Dump Node Tree"               -> (menu1         + Key.T))(dumpNodes(controls = false)))
       .add(Item("dump-tree-ctrl")("Dump Node Tree with Controls" -> (menu1 + shift + Key.T))(dumpNodes(controls = true )))
       .addLine()

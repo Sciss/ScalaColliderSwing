@@ -104,6 +104,7 @@ object Plotting {
       pack()
       centerOnScreen()
     }
+    fr.peer.setAlwaysOnTop(true)
     fr.open()
     // val f = chart.toFrame(title = title)
   }

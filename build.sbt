@@ -22,7 +22,7 @@ lazy val webLaFVersion          = "1.27"
 
 lazy val dockingVersion         = "1.1.1"
 
-lazy val swingBoxVersion        = "1.0"
+// lazy val swingBoxVersion        = "1.0"
 
 lazy val chartVersion           = "0.4.2"
 
@@ -124,7 +124,7 @@ lazy val app = Project(
       "de.sciss"                 %% "fileutil"              % fileUtilVersion,
  //     "de.sciss"                 %  "weblaf"                % webLaFVersion,
       "org.dockingframes"        %  "docking-frames-common" % dockingVersion,
-      "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
+ //     "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
       // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
       "com.github.wookietreiber" %% "scala-chart"           % chartVersion
     ),
