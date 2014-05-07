@@ -4,7 +4,7 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.16.0"
+lazy val projectVersion         = "1.17.0-SNAPSHOT"
 
 lazy val scalaColliderVersion   = "1.12.0"
 
@@ -31,6 +31,8 @@ lazy val pdflitzVersion         = "1.1.0"
 lazy val chartVersion           = "0.4.2"
 
 lazy val prefuseVersion         = "0.21"
+
+lazy val dspVersion             = "1.2.1"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
@@ -147,6 +149,7 @@ lazy val app = Project(
       "de.sciss"                 %% "kollflitz"             % kollFlitzVersion,
       "de.sciss"                 %% "pdflitz"               % pdflitzVersion,
  //     "de.sciss"                 %  "weblaf"                % webLaFVersion,
+      "de.sciss"                 %% "scissdsp"              % dspVersion,
       "org.dockingframes"        %  "docking-frames-common" % dockingVersion,
  //     "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
       // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
