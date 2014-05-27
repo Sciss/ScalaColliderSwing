@@ -15,14 +15,17 @@ package de.sciss.synth.swing
 
 import scalax.chart.api._
 import java.awt.{BasicStroke, Color}
-import java.awt.geom.{AffineTransform, Rectangle2D, Ellipse2D}
+import java.awt.geom.{Point2D, AffineTransform, Rectangle2D, Ellipse2D}
 import de.sciss.pdflitz
-import org.jfree.chart.{ChartFactory, ChartPanel}
-import scala.swing.{Action, Component, Frame}
+import org.jfree.chart.{ChartMouseEvent, ChartMouseListener, ChartFactory, ChartPanel}
+import scala.swing.{Point, Action, Component, Frame}
 import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
 import collection.immutable.{Seq => ISeq}
 import org.jfree.chart.plot.PlotOrientation
 import javax.swing.JMenu
+import scalax.chart.Chart
+import scalax.chart.event.{ChartMouseMoved, ChartMouseClicked}
+import scala.swing.event.{MouseMoved, MouseClicked}
 
 private[swing] trait PlottingLowPri {
   _: Plotting.type =>
@@ -39,7 +42,7 @@ private[swing] trait PlottingLowPri {
 }
 
 object Plotting extends PlottingLowPri{
-  type Plot = Unit  // XXX TODO
+  // type Plot = Unit  // XXX TODO
 
   protected sealed trait Type
   protected case object TypeLine    extends Type
@@ -93,13 +96,13 @@ object Plotting extends PlottingLowPri{
   }
 
   protected def plotXY(series: ISeq[XYSeries], legends: ISeq[String],
-                     title: String, xlabel: String, ylabel: String, tpe: Type): Unit = {
+                     title: String, xlabel: String, ylabel: String, tpe: Type): Plot = {
     // val sz = datasets.size
 
     val dataset = new XYSeriesCollection
     series.foreach(dataset.addSeries)
 
-    val chart = tpe match {
+    val _chartJ = tpe match {
       case TypeStep =>
         ChartFactory.createXYStepChart(
           if (title  == "") null else title,
@@ -136,8 +139,9 @@ object Plotting extends PlottingLowPri{
           false // urls
         )
     }
+    val _chart = Chart.fromPeer(_chartJ)
 
-    val plot      = chart.getXYPlot
+    val plot      = _chartJ.getXYPlot
     val renderer  = plot.getRenderer
     // renderer.setBasePaint(Color.black)
     // renderer.setBaseOutlinePaint(Color.black)
@@ -153,30 +157,71 @@ object Plotting extends PlottingLowPri{
     plot.setDomainGridlinePaint(Color.gray )
     plot.setRangeGridlinePaint (Color.gray )
 
-    val panel = new ChartPanel(chart, false)
-    panel.setBackground(Color.white)
+    val _panelJ = new ChartPanel(_chartJ, false)
+    _panelJ.setBackground(Color.white)
+
+    // recover some of the private functionality of scala-chart,
+    // while preserving our non-buffered panel creation.
+    // also publish axis translated values
+    val _panel = Component.wrap(_panelJ)
+    _panelJ.addChartMouseListener(new ChartMouseListener {
+      override final def chartMouseClicked(event: ChartMouseEvent): Unit =
+        _panel.publish(ChartMouseClicked(new MouseClicked(event.getTrigger), Option(event.getEntity)))
+      override final def chartMouseMoved(event: ChartMouseEvent): Unit =
+        _panel.publish(ChartMouseMoved(new MouseMoved(event.getTrigger), Option(event.getEntity)))
+    })
 
     val _title = title
-    val fr = new Frame {
+    val _frame = new Frame {
       title     = _title
-      contents  = Component.wrap(panel)
+      contents  = Component.wrap(_panelJ)
       pack()
       centerOnScreen()
     }
-    if (GUI.windowOnTop) fr.peer.setAlwaysOnTop(true)
+    if (GUI.windowOnTop) _frame.peer.setAlwaysOnTop(true)
 
-    panel.getPopupMenu.getComponents.collectFirst {
+    _panelJ.getPopupMenu.getComponents.collectFirst {
       case m: JMenu if m.getText.toLowerCase.startsWith("save as") => m
     } .foreach { m =>
-      val pdfAction = pdflitz.SaveAction(panel :: Nil)
+      val pdfAction = pdflitz.SaveAction(_panelJ :: Nil)
       m.add(Action("PDF...") {
         // file dialog is hidden if plot window is always on top!
-        fr.peer.setAlwaysOnTop(false)
+        _frame.peer.setAlwaysOnTop(false)
         pdfAction()
-        if (GUI.windowOnTop) fr.peer.setAlwaysOnTop(true)
+        if (GUI.windowOnTop) _frame.peer.setAlwaysOnTop(true)
       }.peer)
     }
 
-    fr.open()
+    _frame.open()
+
+    val res: Plot = new Plot {
+      override def toString = s"Plot($title)@${hashCode().toHexString}"
+
+      val frame     = _frame
+      val chart     = _chart
+      val component = _panel
+    }
+
+    res.listenTo(_panel)
+    res.reactions += {
+      case ChartMouseClicked(trig, opt) =>
+        // println(s"clicked x=$chartX, y = $chartY")
+        res.publish(Plot.Clicked(res, trig, mkChartPoint(plot, _panelJ, trig.point)))
+
+      case ChartMouseMoved(trig, opt) =>
+        // println("moved")
+        res.publish(Plot.Moved(res, trig, mkChartPoint(plot, _panelJ, trig.point)))
+    }
+
+    res
+  }
+
+  // cf. http://stackoverflow.com/questions/1512112/jfreechart-get-mouse-coordinates
+  private def mkChartPoint(plot: XYPlot, panel: ChartPanel, screen: Point): Point2D = {
+    val p2d       = panel.translateScreenToJava2D(screen)
+    val plotArea  = panel.getScreenDataArea
+    val chartX    = plot.getDomainAxis.java2DToValue(p2d.getX, plotArea, plot.getDomainAxisEdge)
+    val chartY    = plot.getRangeAxis .java2DToValue(p2d.getY, plotArea, plot.getRangeAxisEdge )
+    new Point2D.Double(chartX, chartY)
   }
 }
