@@ -20,7 +20,7 @@ lazy val fileUtilVersion        = "1.1.1"
 
 lazy val kollFlitzVersion       = "0.2.0"
 
-lazy val webLaFVersion          = "1.27"
+lazy val webLaFVersion          = "1.28-SNAPSHOT"
 
 lazy val dockingVersion         = "1.1.1"
 
@@ -37,8 +37,8 @@ lazy val dspVersion             = "1.2.1"
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.11.0",
-  crossScalaVersions := Seq("2.11.0", "2.10.4"),
+  scalaVersion       := "2.11.1",
+  crossScalaVersions := Seq("2.11.1", "2.10.4"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture"),
@@ -148,7 +148,7 @@ lazy val app = Project(
       "de.sciss"                 %% "fileutil"              % fileUtilVersion,
       "de.sciss"                 %% "kollflitz"             % kollFlitzVersion,
       "de.sciss"                 %% "pdflitz"               % pdflitzVersion,
- //     "de.sciss"                 %  "weblaf"                % webLaFVersion,
+      "de.sciss"                 %  "weblaf"                % webLaFVersion,
       "de.sciss"                 %% "scissdsp"              % dspVersion,
       "org.dockingframes"        %  "docking-frames-common" % dockingVersion,
  //     "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,

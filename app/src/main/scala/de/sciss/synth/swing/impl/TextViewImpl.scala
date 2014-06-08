@@ -120,7 +120,14 @@ object TextViewImpl {
       aMap.put("de.sciss.exec", new AbstractAction {
         def actionPerformed(e: ActionEvent): Unit =
           codePane.getSelectedTextOrCurrentLine.foreach { ln =>
-            intp.interpret(ln)
+            intp.interpret(ln) match {
+              case si.Interpreter.Incomplete =>
+                println("Interpreter: Code incomplete!")
+              // case si.Interpreter.Success(_, _) =>
+              // case si.Interpreter.Error(message) =>
+              //   println(s"Interpreter error: $message!")
+              case _ =>
+            }
           }
       })
     }

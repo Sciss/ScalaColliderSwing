@@ -33,8 +33,10 @@ object Prefs {
   // ---- gui ----
 
   def defaultLookAndFeel: LookAndFeelInfo = {
-    val clazzName = UIManager.getSystemLookAndFeelClassName
-    LookAndFeelType.valueOf(clazzName).getOrElse(new LookAndFeelInfo("<system>", clazzName))
+    //    val clazzName = UIManager.getSystemLookAndFeelClassName
+    //    LookAndFeelType.valueOf(clazzName)
+    //      .getOrElse(new LookAndFeelInfo("<system>", clazzName))
+    new LookAndFeelInfo("Web Look And Feel", "com.alee.laf.WebLookAndFeel")
   }
 
   def lookAndFeel: Entry[LookAndFeelInfo] = userPrefs("look-and-feel")

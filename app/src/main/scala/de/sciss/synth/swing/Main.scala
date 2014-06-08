@@ -17,7 +17,7 @@ import de.sciss.desktop.impl.{WindowHandlerImpl, SwingApplicationImpl, WindowImp
 import de.sciss.desktop.{DialogSource, OptionPane, FileDialog, RecentFiles, KeyStrokes, LogPane, Desktop, Window, WindowHandler, Menu}
 import javax.swing.{KeyStroke, UIManager, SwingUtilities}
 import bibliothek.gui.dock.common.{CLocation, DefaultSingleCDockable, CControl}
-import java.awt.GraphicsEnvironment
+import java.awt.{Font, GraphicsEnvironment}
 import scala.swing.{Action, Swing, Orientation, BoxPanel, Component, BorderPanel}
 import bibliothek.gui.dock.common.theme.ThemeMap
 import de.sciss.{scalainterpreter => si}
@@ -25,7 +25,7 @@ import scala.tools.nsc.interpreter.NamedParam
 import scala.util.control.NonFatal
 import de.sciss.file._
 import de.sciss.synth.Server
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import bibliothek.gui.dock.dockable.IconHandling
 import bibliothek.gui.dock.common.event.CFocusListener
 import bibliothek.gui.dock.common.intern.CDockable
@@ -54,8 +54,9 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val style = Prefs.ColorSchemeNames(cn)
     val res   = LogPane(rows = 12)
     // res.font  = style.font
-    res.background = style.background
-    res.foreground = style.foreground
+    res.background  = style.background
+    res.foreground  = style.foreground
+    res.font        = new Font("Monospaced", Font.PLAIN, 12)  // XXX TODO: should be preferences setting
     res
   }
 
@@ -91,7 +92,15 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     intpCfg.bindings = List(NamedParam("replSupport", repl))
     // intpCfg.out = Some(lp.writer)
 
-    Interpreter(intpCfg)
+    val res = Interpreter(intpCfg)
+    import ExecutionContext.Implicits.global
+    res.onComplete {
+      case Success(_) => println("Interpreter ready.")
+      case Failure(e) =>
+        System.err.println("Interpreter could not be initialized:")
+        e.printStackTrace()
+    }
+    res
   }
 
   def interpreter: Future[Interpreter] = intpFut
@@ -215,9 +224,14 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     GUI.windowOnTop = true
 
     try {
-      // val web = "com.alee.laf.WebLookAndFeel"
-      // UIManager.installLookAndFeel("Web Look And Feel", web)
-      UIManager.setLookAndFeel(Prefs.lookAndFeel.getOrElse(Prefs.defaultLookAndFeel).getClassName)
+      val web = "com.alee.laf.WebLookAndFeel"
+      UIManager.installLookAndFeel("Web Look And Feel", web)
+      val lafInfo = Prefs.lookAndFeel.getOrElse {
+        val res = Prefs.defaultLookAndFeel
+        Prefs.lookAndFeel.put(res)
+        res
+      }
+      UIManager.setLookAndFeel(lafInfo.getClassName)
     } catch {
       case NonFatal(e) => e.printStackTrace()
     }
@@ -352,7 +366,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     }
   }
 
-  private def stop(): Unit = {
+  private def stopSynths(): Unit = {
     import de.sciss.synth.Ops._
     sp.server.foreach(_.defaultGroup.freeAll())
   }
@@ -538,7 +552,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       .add(Item("dump-tree"     )("Dump Node Tree"               -> (menu1         + Key.T))(dumpNodes(controls = false)))
       .add(Item("dump-tree-ctrl")("Dump Node Tree with Controls" -> (menu1 + shift + Key.T))(dumpNodes(controls = true )))
       .addLine()
-      .add(Item("stop")("Stop" -> (menu1 + Key.Period))(stop()))
+      .add(Item("stop-synths")("Stop Synths" -> (menu1 + Key.Period))(stopSynths()))
       .addLine()
       .add(Item("clear-log")("Clear Log Window" -> (menu1 + shift + Key.P))(clearLog()))
 
