@@ -25,7 +25,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-interpreter" % v  // plus the Scala REPL
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current version `v` is `"1.16.+"`.
+The current version `v` is `"1.17.+"`.
 
 ## running
 

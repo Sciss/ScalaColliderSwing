@@ -17,6 +17,7 @@ import java.io.RandomAccessFile
 import de.sciss.file._
 import de.sciss.desktop.FileDialog
 import de.sciss.synth.swing.{Main => App}
+import de.sciss.synth.Optional
 
 object AppFunctions {
   // def plot(data: Plot.Source, title: String = "title"): Unit = Plot(data)
@@ -54,7 +55,7 @@ object AppFunctions {
 
   def openURL(url: String): Unit = Main.openURL(url)
 
-  def openFileDialog(init: Option[File] = None): File = {
+  def openFileDialog(init: Optional[File] = None): File = {
     val dlg = FileDialog.open(init)
     dlg.show(Some(App.mainWindow)).getOrElse(file("<undefined>"))
   }

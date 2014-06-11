@@ -31,12 +31,13 @@ private[swing] trait PlottingLowPri {
   _: Plotting.type =>
 
   implicit class Plot1D[A](sq: ISeq[A]) {
-    def plot(legend: String = "", title: String = "Data", ylabel: String = "", discrete: Boolean = false)
+    def plot(legend: String = "", title: String = "Data", ylabel: String = "", discrete: Boolean = false,
+             frame: Boolean = true)
             (implicit num: Numeric[A]): Plot = {
       val series = sq.zipWithIndex.map(_.swap).toXYSeries(name = legend)
       val tpe = if (discrete) TypeStep else TypeLine
       plotXY(series :: Nil, legends = if (legend == "") Nil else legend :: Nil,
-        title = title, xlabel = "", ylabel = ylabel, tpe = tpe)
+        title = title, xlabel = "", ylabel = ylabel, tpe = tpe, frame = frame)
     }
   }
 }
@@ -72,17 +73,18 @@ object Plotting extends PlottingLowPri{
 
   implicit class Plot2D[A, B](it: Iterable[(A, B)]) {
     def plot(legend: String = "", title: String = "Data", xlabel: String = "", ylabel: String = "",
-             scatter: Boolean = true)
+             scatter: Boolean = true, frame: Boolean = true)
             (implicit numA: Numeric[A], numB: Numeric[B]): Plot = {
       val series = it.toXYSeries(name = legend)
       val tpe = if (scatter) TypeScatter else TypeLine
       plotXY(series :: Nil, legends = if (legend == "") Nil else legend :: Nil,
-        title = title, xlabel = xlabel, ylabel = ylabel, tpe = tpe)
+        title = title, xlabel = xlabel, ylabel = ylabel, tpe = tpe, frame = frame)
     }
   }
 
   implicit class MultiPlot1D[A](sqs: ISeq[ISeq[A]]) {
-    def plot(legends: ISeq[String] = Nil, title: String = "Data", ylabel: String = "", discrete: Boolean = false)
+    def plot(legends: ISeq[String] = Nil, title: String = "Data", ylabel: String = "",
+             discrete: Boolean = false, frame: Boolean = true)
             (implicit num: Numeric[A]): Plot = {
       val ssz = sqs    .size
       val lsz = legends.size
@@ -91,12 +93,13 @@ object Plotting extends PlottingLowPri{
         sq.zipWithIndex.map(_.swap).toXYSeries(name = legend)
       }
       val tpe = if (discrete) TypeStep else TypeLine
-      plotXY(series = series, legends = legends, title = title, xlabel = "", ylabel = ylabel, tpe = tpe)
+      plotXY(series = series, legends = legends, title = title, xlabel = "", ylabel = ylabel, tpe = tpe,
+        frame = frame)
     }
   }
 
   protected def plotXY(series: ISeq[XYSeries], legends: ISeq[String],
-                     title: String, xlabel: String, ylabel: String, tpe: Type): Plot = {
+                     title: String, xlabel: String, ylabel: String, tpe: Type, frame: Boolean): Plot = {
     // val sz = datasets.size
 
     val dataset = new XYSeriesCollection
@@ -172,40 +175,44 @@ object Plotting extends PlottingLowPri{
     })
 
     val _title = title
-    val _frame = new Frame {
-      title     = _title
-      contents  = Component.wrap(_panelJ)
-      pack()
-      centerOnScreen()
-    }
-    if (GUI.windowOnTop) _frame.peer.setAlwaysOnTop(true)
 
-    _panelJ.getPopupMenu.getComponents.collectFirst {
-      case m: JMenu if m.getText.toLowerCase.startsWith("save as") => m
-    } .foreach { m =>
-      val pdfAction = pdflitz.SaveAction(_panelJ :: Nil)
-      m.add(Action("PDF...") {
-        // file dialog is hidden if plot window is always on top!
-        _frame.peer.setAlwaysOnTop(false)
-        pdfAction()
-        if (GUI.windowOnTop) _frame.peer.setAlwaysOnTop(true)
-      }.peer)
-    }
+    val __frame = if (frame) {
+      val _frame = new Frame {
+        title = _title
+        contents = Component.wrap(_panelJ)
+        pack()
+        centerOnScreen()
+      }
+      if (GUI.windowOnTop) _frame.peer.setAlwaysOnTop(true)
 
-    _frame.open()
+      _panelJ.getPopupMenu.getComponents.collectFirst {
+        case m: JMenu if m.getText.toLowerCase.startsWith("save as") => m
+      }.foreach { m =>
+        val pdfAction = pdflitz.SaveAction(_panelJ :: Nil)
+        m.add(Action("PDF...") {
+          // file dialog is hidden if plot window is always on top!
+          _frame.peer.setAlwaysOnTop(false)
+          pdfAction()
+          if (GUI.windowOnTop) _frame.peer.setAlwaysOnTop(true)
+        }.peer)
+      }
+
+      _frame.open()
+      _frame
+    } else null
 
     val res: Plot = new Plot {
       override def toString = s"Plot($title)@${hashCode().toHexString}"
 
-      val frame     = _frame
+      def frame     = if (__frame != null) __frame else sys.error("Plot was defined without frame")
       val chart     = _chart
       val component = _panel
     }
 
-    res.listenTo(_panel)
-    res.reactions += {
+    _panel.listenTo(_panel)
+    _panel.reactions += {
       case ChartMouseClicked(trig, opt) =>
-        // println(s"clicked x=$chartX, y = $chartY")
+        // println("clicked") // s"clicked x=$chartX, y = $chartY")
         res.publish(Plot.Clicked(res, trig, mkChartPoint(plot, _panelJ, trig.point)))
 
       case ChartMouseMoved(trig, opt) =>
@@ -218,7 +225,8 @@ object Plotting extends PlottingLowPri{
 
   // cf. http://stackoverflow.com/questions/1512112/jfreechart-get-mouse-coordinates
   private def mkChartPoint(plot: XYPlot, panel: ChartPanel, screen: Point): Point2D = {
-    val p2d       = panel.translateScreenToJava2D(screen)
+    // take note of the comment in the answer
+    val p2d       = screen // panel.translateScreenToJava2D(screen)
     val plotArea  = panel.getScreenDataArea
     val chartX    = plot.getDomainAxis.java2DToValue(p2d.getX, plotArea, plot.getDomainAxisEdge)
     val chartY    = plot.getRangeAxis .java2DToValue(p2d.getY, plotArea, plot.getRangeAxisEdge )
