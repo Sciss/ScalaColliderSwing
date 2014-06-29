@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="32"
+   height="32"
+   id="svg3981"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="icon_synthdef6.svg">
+  <defs
+     id="defs3983" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="7.2407734"
+     inkscape:cx="8.1418412"
+     inkscape:cy="12.573386"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1090"
+     inkscape:window-height="727"
+     inkscape:window-x="275"
+     inkscape:window-y="50"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata3986">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccccccccsssscsssss"
+       id="path9907"
+       inkscape:export-filename="/Users/rutz/Desktop/Cogwheel/path9687.png"
+       d="m 14.963682,9.7987 0.07831,0.3936 -2.72072,1.8197 -0.334164,-0.2233 -3.1958732,-0.9295 -1.1117797,1.6639 2.0812087,2.594 0.3370352,0.2256 -0.6399652,3.2099 -0.3936551,0.078 -2.9164189,1.6017 0.3897959,1.9597 3.3073631,0.3637 0.3936552,-0.078 1.819649,2.7207 c 0,0 -0.226146,0.3377 -0.226146,0.3377 l -0.930102,3.193 1.663904,1.1118 2.59689,-2.0818 0.223275,-0.3341 3.209964,0.6399 0.07888,0.3966 1.601116,2.9135 1.962534,-0.3904 0.364278,-3.3044 -0.07888,-0.3966 2.72072,-1.8196 c 0.0013,0 0.337717,0.2261 0.337717,0.2261 l 3.192443,0.9273 1.111782,-1.664 -2.080636,-2.5911 -0.33474,-0.2261 0.636535,-3.2123 0.399398,-0.08 2.910664,-1.6005 -0.389796,-1.9597 -3.301609,-0.3648 -0.399412,0.079 -1.817352,-2.7241 0.222714,-0.3371 0.930676,-3.1901 -1.663918,-1.1118 -2.594584,2.0784 c 0,0 -0.224693,0.337 -0.22569,0.337 L 18.968767,9.4101 18.890477,9.0165 17.288775,6.1001 15.32682,6.4904 z m 2.178704,1.6725 c 0.06235,-0.014 0.126601,-0.025 0.189636,-0.038 4.03512,-0.8026 7.954437,1.8162 8.757064,5.8513 0.80264,4.0351 -1.815592,7.9573 -5.85071,8.7599 -4.035105,0.8026 -7.957863,-1.8185 -8.76049,-5.8536 -0.790101,-3.972 1.736442,-7.8346 5.6645,-8.7199 z m 1.139569,4.7379 c -1.39592,0.2776 -2.303281,1.6356 -2.025617,3.0315 0.277666,1.3959 1.635635,2.3033 3.031545,2.0256 1.395922,-0.2776 2.300412,-1.635 2.022746,-3.0309 -0.277664,-1.396 -1.632764,-2.3039 -3.028674,-2.0262 z"
+       style="fill:none;stroke:#000000;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-opacity:1;stroke-dasharray:none"
+       inkscape:export-xdpi="4.2872343"
+       inkscape:export-ydpi="4.2872343"
+       inkscape:connector-curvature="0" />
+    <path
+       inkscape:export-ydpi="4.2872343"
+       inkscape:export-xdpi="4.2872343"
+       inkscape:export-filename="/Users/rutz/Desktop/Cogwheel/path9687.png"
+       sodipodi:nodetypes="cccccccccccccccccccc"
+       id="path9909"
+       d="m 2.2599263,0.2611 0,4.6875 0.7499999,0 0,-4.6875 -0.7499999,0 z m 0,8.6807 0,4.6875 0.7499999,0 0,-4.6875 -0.7499999,0 z m 0,8.6806 0,4.6875 0.7499999,0 0,-4.6875 -0.7499999,0 z m 0,8.6778 0,4.6875 0.7499999,0 0,-4.6875 -0.7499999,0 z"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       inkscape:connector-curvature="0" />
+    <path
+       inkscape:export-ydpi="4.2872343"
+       inkscape:export-xdpi="4.2872343"
+       inkscape:export-filename="/Users/rutz/Desktop/Cogwheel/path9687.png"
+       sodipodi:nodetypes="cccccccccccccccccccc"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 30.976549,2.271 -4.687504,0 0,0.75 4.687504,0 0,-0.75 z m -8.677727,0 -4.687504,0 0,0.75 4.687504,0 0,-0.75 z m -8.680664,0 -4.6874998,0 0,0.75 4.6874998,0 0,-0.75 z m -8.6806714,0 -4.68748655,0 0,0.75 4.68748655,0 0,-0.75 z"
+       id="path9911"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>

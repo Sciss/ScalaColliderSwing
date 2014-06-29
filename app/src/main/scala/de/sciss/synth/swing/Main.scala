@@ -224,8 +224,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     GUI.windowOnTop = true
 
     try {
-      //      val web = "com.alee.laf.WebLookAndFeel"
-      //      UIManager.installLookAndFeel("Web Look And Feel", web)
+      val web = "com.alee.laf.WebLookAndFeel"
+      UIManager.installLookAndFeel("Web Look And Feel", web)
       val lafInfo = Prefs.lookAndFeel.getOrElse {
         val res = Prefs.defaultLookAndFeel
         Prefs.lookAndFeel.put(res)

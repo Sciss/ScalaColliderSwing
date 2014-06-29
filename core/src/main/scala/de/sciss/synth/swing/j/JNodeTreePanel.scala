@@ -17,30 +17,29 @@ package j
 import java.awt.geom.Point2D
 import collection.immutable.IntMap
 import prefuse.action.{ ActionList, RepaintAction }
-import prefuse.action.animate.{ ColorAnimator, LocationAnimator, VisibilityAnimator }
-import prefuse.render.{ AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer, LabelRenderer }
+import prefuse.action.animate.{ColorAnimator, LocationAnimator, VisibilityAnimator}
+import prefuse.render.{AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer}
 import prefuse.util.ColorLib
 import prefuse.visual.sort.TreeDepthItemSorter
 import de.sciss.synth.{message, Node, Group, Synth, NodeManager, Ops}
 import prefuse.{Visualization, Constants, Display}
 import prefuse.visual.{NodeItem, VisualItem}
-import de.sciss.synth.swing.impl.DynamicTreeLayout
+import de.sciss.synth.swing.impl.{IconLabelRenderer, DynamicTreeLayout}
 import prefuse.data.expression.AbstractPredicate
 import prefuse.data.{Tuple, Graph, Node => PNode}
 import prefuse.visual.expression.InGroupPredicate
 import prefuse.data.event.TupleSetListener
 import prefuse.data.tuple.TupleSet
-import java.awt.{BasicStroke, Image, Toolkit, Color, BorderLayout, EventQueue}
+import java.awt.{BasicStroke, Color, BorderLayout, EventQueue}
 import prefuse.action.assignment.{StrokeAction, ColorAction}
-import javax.swing.{JMenuItem, JOptionPane, Action, AbstractAction, JPopupMenu, WindowConstants, JFrame, JPanel}
+import javax.swing.{Icon, JMenuItem, JOptionPane, Action, AbstractAction, JPopupMenu, WindowConstants, JFrame, JPanel}
 import java.awt.event.{MouseEvent, MouseAdapter, InputEvent, ActionEvent}
 import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomToFitControl}
 import javax.swing.event.{AncestorEvent, AncestorListener}
 import de.sciss.osc
 import annotation.tailrec
 
-//import VisualInsertionTree._
-import DynamicTreeLayout.{ INFO, NodeInfo }
+import DynamicTreeLayout.{INFO, NodeInfo}
 
 trait NodeTreePanelLike {
   def nodeActionMenu: Boolean
@@ -68,23 +67,19 @@ object JNodeTreePanel {
   private val FADE_TIME     = 333
   private val COL_ICON      = "icon"
 
-  private def getImageResource(name: String): Image =
-    Toolkit.getDefaultToolkit.createImage(GUI.getClass.getResource(name))
-
-  private val imgGroup      = getImageResource("path_group_16.png")
-  private val imgSynth      = getImageResource("path_synth_16.png")
+  private val iconGroup = Shapes.Icon(extent = 16)(Shapes.Group)
+  private val iconSynth = Shapes.Icon(extent = 16)(Shapes.Synth)
 
   private final val ICON_SYNTH = "synth"
   private final val ICON_GROUP = "group"
 
-  private class NodeLabelRenderer(label: String) extends LabelRenderer(label) {
-    override protected def getImage(item: VisualItem): Image = {
+  private class NodeLabelRenderer(label: String) extends IconLabelRenderer(label) {
+    override protected def getIcon(item: VisualItem): Icon =
       item.get(COL_ICON) match {
-        case ICON_SYNTH => imgSynth
-        case ICON_GROUP => imgGroup
-        case _ => null
+        case ICON_SYNTH => iconSynth
+        case ICON_GROUP => iconGroup
+        case _          => null
       }
-    }
   }
 
   private final val VERBOSE = false
@@ -96,15 +91,15 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
   import JNodeTreePanel._
   import NodeManager._
 
-  protected def frameTitle         = "Nodes"
+  protected def frameTitle = "Nodes"
 
   private val t = {
     val t     = new Graph
     val nodes = t.getNodeTable
-    nodes.addColumn(COL_LABEL , classOf[String])
-    nodes.addColumn(COL_ICON  , classOf[String])
-    nodes.addColumn(COL_PAUSED, classOf[Boolean])
-    nodes.addColumn(COL_NODE  , classOf[Node])
+    nodes.addColumn(COL_LABEL , classOf[String  ])
+    nodes.addColumn(COL_ICON  , classOf[String  ])
+    nodes.addColumn(COL_PAUSED, classOf[Boolean ])
+    nodes.addColumn(COL_NODE  , classOf[Node    ])
     nodes.addColumn(INFO      , classOf[NodeInfo])
     t
   }
@@ -139,9 +134,9 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
   {
     val nodeRenderer = new NodeLabelRenderer(COL_LABEL)
     nodeRenderer.setRenderType(AbstractShapeRenderer.RENDER_TYPE_DRAW_AND_FILL)
-    nodeRenderer.setHorizontalAlignment(Constants.LEFT)
+    nodeRenderer.horizontalAlignment = Constants.LEFT
     nodeRenderer.setRoundedCorner(8, 8)
-    nodeRenderer.setVerticalPadding(2)
+    nodeRenderer.verticalPadding = 2
     val edgeRenderer = new EdgeRenderer(Constants.EDGE_TYPE_CURVE)
 
     val rf = new DefaultRendererFactory(nodeRenderer)
@@ -221,7 +216,6 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
 
       // ------------------------------------------------
 
-    nodeRenderer.setHorizontalAlignment (Constants.LEFT  )
     edgeRenderer.setHorizontalAlignment1(Constants.RIGHT )
     edgeRenderer.setHorizontalAlignment2(Constants.LEFT  )
     edgeRenderer.setVerticalAlignment1  (Constants.CENTER)

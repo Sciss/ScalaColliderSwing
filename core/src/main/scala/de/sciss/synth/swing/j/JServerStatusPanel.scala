@@ -16,9 +16,7 @@ package j
 
 import java.awt.{Color, Component, Dimension, EventQueue, Graphics, Image, Toolkit}
 import java.awt.event.ActionEvent
-import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JButton,
-                    JComponent, JFrame, JLabel, JPanel, JProgressBar,
-                    OverlayLayout, WindowConstants }
+import javax.swing.{Icon, AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JButton, JComponent, JFrame, JLabel, JPanel, JProgressBar, OverlayLayout, WindowConstants}
 import javax.swing.event.{AncestorEvent, AncestorListener}
 
 import de.sciss.synth.{ServerConnection, Server, message}
@@ -212,17 +210,10 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS))
 
     val clz       = GUI.getClass  // ScalaColliderSwing.getClass // classOf[ ServerStatusPanel ]
-    val icnGroup  = new ImageIcon(clz.getResource("path_group_16.png"))
-    val icnSynth  = new ImageIcon(clz.getResource("path_synth_16.png"))
-    val icnUGen   = new ImageIcon(clz.getResource("path_ugen_16.png"))
-    val icnDef    = new ImageIcon(clz.getResource("path_def_16.png"))
-
-    def flushImages(): Unit = {
-      icnGroup.getImage.flush()
-      icnSynth.getImage.flush()
-      icnUGen .getImage.flush()
-      icnDef  .getImage.flush()
-    }
+    val icnGroup  = Shapes.Icon(extent = 16)(Shapes.Group   )
+    val icnSynth  = Shapes.Icon(extent = 16)(Shapes.Synth   )
+    val icnUGen   = Shapes.Icon(extent = 16)(Shapes.UGen    )
+    val icnDef    = Shapes.Icon(extent = 16)(Shapes.SynthDef)
 
     def addS(c: Component, gap: Int = 4): Unit = {
       add(c)
@@ -259,26 +250,26 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
     if ((flags & COUNTS) != 0) {
       addS(lbCPU, 8)
-      def addCount(icn: ImageIcon, lb: JLabel, s: Int = 4): Unit = {
+      def addCount(icn: Icon, lb: JLabel, tooltip: String, s: Int = 4): Unit = {
         val lb2 = new JLabel(icn)
         lb2.putClientProperty("JComponent.sizeVariant", "small")
+        lb .setToolTipText(tooltip)
+        lb2.setToolTipText(tooltip)
         addS(lb2)
         addS(lb, s)
       }
-      addCount(icnGroup, lbNumGroups)
-      addCount(icnSynth, lbNumSynths)
-      addCount(icnUGen , lbNumUGens )
-      addCount(icnDef  , lbNumDefs  , 0)
+      addCount(icnGroup, lbNumGroups, "Groups")
+      addCount(icnSynth, lbNumSynths, "Synths")
+      addCount(icnUGen , lbNumUGens , "UGens" )
+      addCount(icnDef  , lbNumDefs  , "SynthDefs", 0)
     }
 
     addAncestorListener(new AncestorListener {
       def ancestorAdded(e: AncestorEvent): Unit =
         startListening()
 
-      def ancestorRemoved(e: AncestorEvent): Unit = {
+      def ancestorRemoved(e: AncestorEvent): Unit =
         stopListening()
-        flushImages()
-      }
 
       def ancestorMoved(e: AncestorEvent) = ()
     })
