@@ -27,28 +27,13 @@ import scalax.chart.Chart
 import scalax.chart.event.{ChartMouseMoved, ChartMouseClicked}
 import scala.swing.event.{MouseMoved, MouseClicked}
 
-private[swing] trait PlottingLowPri {
-  _: Plotting.type =>
+object Plotting {
+  // var windowOnTop = false
 
-  implicit class Plot1D[A](sq: ISeq[A]) {
-    def plot(legend: String = "", title: String = "Data", ylabel: String = "", discrete: Boolean = false,
-             frame: Boolean = true)
-            (implicit num: Numeric[A]): Plot = {
-      val series = sq.zipWithIndex.map(_.swap).toXYSeries(name = legend)
-      val tpe = if (discrete) TypeStep else TypeLine
-      plotXY(series :: Nil, legends = if (legend == "") Nil else legend :: Nil,
-        title = title, xlabel = "", ylabel = ylabel, tpe = tpe, frame = frame)
-    }
-  }
-}
-
-object Plotting extends PlottingLowPri{
-  // type Plot = Unit  // XXX TODO
-
-  protected sealed trait Type
-  protected case object TypeLine    extends Type
-  protected case object TypeStep    extends Type
-  protected case object TypeScatter extends Type
+  private sealed trait Type
+  private case object TypeLine    extends Type
+  private case object TypeStep    extends Type
+  private case object TypeScatter extends Type
 
   private val strokes = {
     import BasicStroke._
@@ -71,30 +56,48 @@ object Plotting extends PlottingLowPri{
     )
   }
 
-  implicit class Plot2D[A, B](it: Iterable[(A, B)]) {
-    def plot(legend: String = "", title: String = "Data", xlabel: String = "", ylabel: String = "",
-             scatter: Boolean = true, frame: Boolean = true)
-            (implicit numA: Numeric[A], numB: Numeric[B]): Plot = {
-      val series = it.toXYSeries(name = legend)
-      val tpe = if (scatter) TypeScatter else TypeLine
-      plotXY(series :: Nil, legends = if (legend == "") Nil else legend :: Nil,
-        title = title, xlabel = xlabel, ylabel = ylabel, tpe = tpe, frame = frame)
+  trait PlottingLowPri {
+    // _: Plotting.type =>
+
+    implicit class Plot1D[A](sq: ISeq[A]) {
+      def plot(legend: String = "", title: String = "Data", ylabel: String = "", discrete: Boolean = false,
+               frame: Boolean = true)
+              (implicit num: Numeric[A]): Plot = {
+        val series = sq.zipWithIndex.map(_.swap).toXYSeries(name = legend)
+        val tpe = if (discrete) TypeStep else TypeLine
+        plotXY(series :: Nil, legends = if (legend == "") Nil else legend :: Nil,
+          title = title, xlabel = "", ylabel = ylabel, tpe = tpe, frame = frame)
+      }
     }
   }
 
-  implicit class MultiPlot1D[A](sqs: ISeq[ISeq[A]]) {
-    def plot(legends: ISeq[String] = Nil, title: String = "Data", ylabel: String = "",
-             discrete: Boolean = false, frame: Boolean = true)
-            (implicit num: Numeric[A]): Plot = {
-      val ssz = sqs    .size
-      val lsz = legends.size
-      val li  = if (lsz >= ssz) legends else legends ++ (0 until (ssz - lsz)).map(i => (i + 65).toChar.toString)
-      val series = (sqs zip li).map { case (sq, legend) =>
-        sq.zipWithIndex.map(_.swap).toXYSeries(name = legend)
+  object Implicits extends PlottingLowPri {
+
+    implicit class Plot2D[A, B](it: Iterable[(A, B)]) {
+      def plot(legend: String = "", title: String = "Data", xlabel: String = "", ylabel: String = "",
+               scatter: Boolean = true, frame: Boolean = true)
+              (implicit numA: Numeric[A], numB: Numeric[B]): Plot = {
+        val series = it.toXYSeries(name = legend)
+        val tpe = if (scatter) TypeScatter else TypeLine
+        plotXY(series :: Nil, legends = if (legend == "") Nil else legend :: Nil,
+          title = title, xlabel = xlabel, ylabel = ylabel, tpe = tpe, frame = frame)
       }
-      val tpe = if (discrete) TypeStep else TypeLine
-      plotXY(series = series, legends = legends, title = title, xlabel = "", ylabel = ylabel, tpe = tpe,
-        frame = frame)
+    }
+
+    implicit class MultiPlot1D[A](sqs: ISeq[ISeq[A]]) {
+      def plot(legends: ISeq[String] = Nil, title: String = "Data", ylabel: String = "",
+               discrete: Boolean = false, frame: Boolean = true)
+              (implicit num: Numeric[A]): Plot = {
+        val ssz = sqs    .size
+        val lsz = legends.size
+        val li  = if (lsz >= ssz) legends else legends ++ (0 until (ssz - lsz)).map(i => (i + 65).toChar.toString)
+        val series = (sqs zip li).map { case (sq, legend) =>
+          sq.zipWithIndex.map(_.swap).toXYSeries(name = legend)
+        }
+        val tpe = if (discrete) TypeStep else TypeLine
+        plotXY(series = series, legends = legends, title = title, xlabel = "", ylabel = ylabel, tpe = tpe,
+          frame = frame)
+      }
     }
   }
 

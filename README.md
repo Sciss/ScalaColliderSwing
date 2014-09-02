@@ -8,10 +8,12 @@ ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008
 
 ## requirements / building
 
-ScalaCollider-Swing compiles against Scala 2.10 using sbt 0.13.
+ScalaCollider-Swing compiles against Scala 2.11 and 2.10 using sbt 0.13.
 
 -`sbt assembly` creates a fully self-contained jar (platform neutral)
 -`sbt appbundle` creates an Mac OS X application bundle
+
+__Note__: The `appbundle` task is currently broken because it doesn't work with multi-project builds. Therefore, on OS X you currently need to use the fat jar as well.
 
 A the `sbt` shell script by [paulp](https://github.com/paulp/sbt-extras), made available under a BSD-style license, is now included. So if you do not want to install `sbt` directly on your system, you can just use that script: `./sbt`.
 
@@ -21,11 +23,12 @@ To link to ScalaCollider-Swing:
 
 Or just to some sub-modules:
 
-    "de.sciss" %% "scalacolliderswing-core"        % v  // only the core library extentions
+    "de.sciss" %% "scalacolliderswing-core"        % v  // only the core library extensions
     "de.sciss" %% "scalacolliderswing-interpreter" % v  // plus the Scala REPL
+    "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current stable version `v` is `"1.17.+"`.
+The current stable version `v` is `"1.18.0"`.
 
 ## running
 

@@ -1,5 +1,5 @@
 
-config.programPath = "/path/to/scsynth"
+config.program     = "/path/to/scsynth"
 config.transport   = TCP
 boot()
 
@@ -51,6 +51,6 @@ val y = play(target = x, addAction = addAfter) {
 
 y.set("freq" -> 10)
 
-s.freeAll
+s.freeAll()
 
 viewDef(dfx)

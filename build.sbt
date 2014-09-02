@@ -4,17 +4,31 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.18.0-SNAPSHOT"
+lazy val projectVersion         = "1.18.0"
 
-lazy val scalaColliderVersion   = "1.13.0-SNAPSHOT"
+// ---- core dependencies ----
+
+lazy val scalaColliderVersion   = "1.13.0"
+
+lazy val prefuseVersion         = "1.0.0"
+
+lazy val audioWidgetsVersion    = "1.6.1"
+
+// ---- interpreter dependencies ----
 
 lazy val interpreterPaneVersion = "1.6.2"
 
 // lazy val syntaxPaneVersion      = "1.1.2"
 
-lazy val desktopVersion         = "0.5.1"
+// ---- plotting dependencies ----
 
-lazy val audioWidgetsVersion    = "1.6.1"
+lazy val pdflitzVersion         = "1.1.0"
+
+lazy val chartVersion           = "0.4.2"
+
+// ---- app dependencies ----
+
+lazy val desktopVersion         = "0.5.1"
 
 lazy val fileUtilVersion        = "1.1.1"
 
@@ -26,12 +40,6 @@ lazy val dockingVersion         = "1.1.1"
 
 // lazy val swingBoxVersion        = "1.0"
 
-lazy val pdflitzVersion         = "1.1.0"
-
-lazy val chartVersion           = "0.4.2"
-
-lazy val prefuseVersion         = "1.0.0"
-
 lazy val dspVersion             = "1.2.1"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
@@ -41,7 +49,7 @@ lazy val commonSettings = Project.defaultSettings ++ Seq(
   crossScalaVersions := Seq("2.11.2", "2.10.4"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
-  scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture"),
+  scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
   retrieveManaged    := true,
   // ---- publishing ----
   publishMavenStyle := true,
@@ -73,8 +81,8 @@ def appMainClass = Some("de.sciss.synth.swing.Main")
 lazy val root = Project(
   id           = baseNameL,
   base         = file("."),
-  aggregate    = Seq(core, interpreter, app),
-  dependencies = Seq(core, interpreter, app),
+  aggregate    = Seq(core, interpreter, plotting, app),
+  dependencies = Seq(core, interpreter, plotting, app),
   settings     = commonSettings ++ assemblySettings ++ Seq(
     publishArtifact in (Compile, packageBin) := false, // there are no binaries
     publishArtifact in (Compile, packageDoc) := false, // there are no javadocs
@@ -120,7 +128,7 @@ lazy val core = Project(
 )
 
 lazy val interpreter = Project(
-  id  = s"$baseNameL-interpreter",
+  id   = s"$baseNameL-interpreter",
   base = file("interpreter"),
   dependencies = Seq(core),
   settings = commonSettings ++ Seq(
@@ -132,10 +140,23 @@ lazy val interpreter = Project(
   )
 )
 
+lazy val plotting = Project(
+  id   = s"$baseNameL-plotting",
+  base = file("plotting"),
+  dependencies = Seq(core),
+  settings = commonSettings ++ Seq(
+    description := "Plotting functions for ScalaCollider",
+    libraryDependencies ++= Seq(
+      "de.sciss"                 %% "pdflitz"     % pdflitzVersion,
+      "com.github.wookietreiber" %% "scala-chart" % chartVersion
+    )
+  )
+)
+
 lazy val app = Project(
-  id  = s"$baseNameL-app",
+  id   = s"$baseNameL-app",
   base = file("app"),
-  dependencies = Seq(core, interpreter),
+  dependencies = Seq(core, interpreter, plotting),
   settings = commonSettings ++ Seq(
     description    := "Standalone application for ScalaCollider",
     libraryDependencies ++= Seq(
@@ -147,13 +168,11 @@ lazy val app = Project(
       "de.sciss"                 %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
       "de.sciss"                 %% "fileutil"              % fileUtilVersion,
       "de.sciss"                 %% "kollflitz"             % kollFlitzVersion,
-      "de.sciss"                 %% "pdflitz"               % pdflitzVersion,
       "de.sciss"                 %  "weblaf"                % webLaFVersion,
       "de.sciss"                 %% "scissdsp"              % dspVersion,
-      "org.dockingframes"        %  "docking-frames-common" % dockingVersion,
+      "org.dockingframes"        %  "docking-frames-common" % dockingVersion
  //     "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
       // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
-      "com.github.wookietreiber" %% "scala-chart"           % chartVersion
     )
   )
 )
