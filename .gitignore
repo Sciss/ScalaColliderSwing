@@ -5,4 +5,5 @@ project/boot/
 .idea/
 .idea_modules/
 *.app
-dependency-graph.sbt
+_creation
+ScalaCollider.jar

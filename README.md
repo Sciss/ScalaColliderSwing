@@ -6,6 +6,8 @@
 
 ScalaCollider-Swing is a Swing GUI front-end for ScalaCollider. (C)opyright 2008-2014 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
+Please see the `licenses` folder for details. It contains the license headers for all dependencies and transitive dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the respective OSS project pages, as indicated in the license files, or&mdash;in compliance with GPL/LGPL&mdash;on request via E-Mail. All source code with group-ID `de.sciss` is available from [github.com/Sciss](https://github.com/Sciss).
+
 ## requirements / building
 
 ScalaCollider-Swing compiles against Scala 2.11 and 2.10 using sbt 0.13.
@@ -28,7 +30,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current stable version `v` is `"1.18.0"`.
+The current stable version `v` is `"1.19.0"`.
 
 ## running
 
@@ -37,6 +39,8 @@ The standalone jar, created via `sbt assembly` produces `ScalaCollider.jar` whic
     $ java -jar ScalaCollider.jar
 
 A Linux desktop template is included. You will have to edit this file to change the installation path. Future versions may simplify this procedure or provide a direct `.deb` package.
+
+On OS X, you can use the __`ScalaCollider.command` shell script__ now. It should be associated automatically to open with `Terminal.app`.
 
 ## documentation
 
