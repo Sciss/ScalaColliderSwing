@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Sciss/ScalaColliderSwing/master/icons/application.png" alt="logo" style="width:256px;height:256px">
+<img src="https://raw.githubusercontent.com/Sciss/ScalaColliderSwing/master/icons/application.png" alt="logo" style="width:128px;height:128px">
 
 # ScalaCollider-Swing
 
