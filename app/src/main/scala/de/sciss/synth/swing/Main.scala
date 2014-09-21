@@ -83,7 +83,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       "de.sciss.synth.swing.SynthGraphPanel._",
       "de.sciss.synth.swing.Implicits._",     // ScalaCollider swing extensions
       "de.sciss.synth.swing.AppFunctions._",  // ScalaCollider swing app extensions
-      "de.sciss.synth.swing.Plotting._",      // ScalaCollider swing app extensions
+      "de.sciss.synth.swing.Plotting.Implicits._", // ScalaCollider swing plotting extensions
       "de.sciss.synth.ugen._",                // UGens
       "replSupport._"                         // REPL bindings
     )

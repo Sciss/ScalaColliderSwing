@@ -79,7 +79,7 @@ The GUI extensions are available by calling the special `.gui` method on support
     fun.waveform(dur)           // record and plot graph function for duration in seconds
 ```
 
-Experimental support for JFreeChart is added (app sub-project only). Extensions are imported with `import de.sciss.synth.swing.Plotting`.
+Experimental support for JFreeChart is added (app sub-project only). Extensions are imported with `import de.sciss.synth.swing.Plotting.Implicits._`.
 
 ```scala
 
