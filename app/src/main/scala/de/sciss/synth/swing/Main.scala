@@ -18,6 +18,8 @@ import de.sciss.desktop.{DialogSource, OptionPane, FileDialog, RecentFiles, KeyS
 import javax.swing.{KeyStroke, UIManager, SwingUtilities}
 import bibliothek.gui.dock.common.{CLocation, DefaultSingleCDockable, CControl}
 import java.awt.{Font, GraphicsEnvironment}
+import de.sciss.syntaxpane.TokenType
+
 import scala.swing.{Action, Swing, Orientation, BoxPanel, Component, BorderPanel}
 import bibliothek.gui.dock.common.theme.ThemeMap
 import de.sciss.{scalainterpreter => si}
@@ -385,22 +387,28 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     Desktop.browseURI(new URL(url).toURI)
   }
 
-  private def lookUpHelp(): Unit = {
-    println("(TODO: lookUpHelp()")
-    //    val url = getClass.getResource("""/de/sciss/synth/Server.html""")
-    //    if (url != null) {
-    //      // --- version 1: shows as plain text ---
-    //      // hp.peer.setPage(url)
-    //
-    //      // --- version 2: kind of works (doesn't find css and scripts though) ---
-    //      // hp.text = io.Source.fromURL(url, "UTF-8").mkString
-    //
-    //      // --- version 3: creates new document (again doesn't find css and scripts) ---
-    //      val doc = hp.editorKit.createDefaultDocument()
-    //      hp.editorKit.read(url.openStream(), doc, 0)
-    //      hp.peer.setDocument(doc)
-    //    }
-    //    else println("!Help sources not found!")
+  private def lookUpHelp(dock: TextViewDockable): Unit = {
+    val ed = dock.view.editor
+    ed.activeToken.foreach { token =>
+      if (token.`type` == TokenType.IDENTIFIER) {
+        val ident = token.getString(ed.editor.peer.getDocument)
+        println(s"TODO: lookUpHelp - $ident")
+      }
+      //    val url = getClass.getResource("""/de/sciss/synth/Server.html""")
+      //    if (url != null) {
+      //      // --- version 1: shows as plain text ---
+      //      // hp.peer.setPage(url)
+      //
+      //      // --- version 2: kind of works (doesn't find css and scripts though) ---
+      //      // hp.text = io.Source.fromURL(url, "UTF-8").mkString
+      //
+      //      // --- version 3: creates new document (again doesn't find css and scripts) ---
+      //      val doc = hp.editorKit.createDefaultDocument()
+      //      hp.editorKit.read(url.openStream(), doc, 0)
+      //      hp.peer.setDocument(doc)
+      //    }
+      //    else println("!Help sources not found!")
+    }
   }
 
   private trait FileAction {
@@ -487,9 +495,16 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     protected def perform(dock: TextViewDockable): Unit = saveAs(dock)
   }
 
-  private lazy val actionEnlargeFont = new ActionFontSize("Enlarge Font"    , KeyStrokes.menu1 + Key.Plus ,  1)
-  private lazy val actionShrinkFont  = new ActionFontSize("Shrink Font"     , KeyStrokes.menu1 + Key.Minus, -1)
-  private lazy val actionResetFont   = new ActionFontSize("Reset Font Size" , KeyStrokes.menu1 + Key.Key0 ,  0)
+  private object ActionLookUpHelp extends Action("Look up Documentation for Cursor") with FileAction {
+    accelerator = Some(KeyStrokes.menu1 + Key.D)
+    protected def perform(dock: TextViewDockable): Unit = lookUpHelp(dock)
+  }
+
+  import KeyStrokes.menu1
+
+  private lazy val actionEnlargeFont = new ActionFontSize("Enlarge Font"    , menu1 + Key.Equals, 1)  // Plus doesn't work
+  private lazy val actionShrinkFont  = new ActionFontSize("Shrink Font"     , menu1 + Key.Minus, -1)
+  private lazy val actionResetFont   = new ActionFontSize("Reset Font Size" , menu1 + Key.Key0 ,  0)
 
   private class ActionFontSize(text: String, shortcut: KeyStroke, amount: Int )
     extends Action(text) with FileAction {
@@ -500,7 +515,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   }
 
   private lazy val fileActions = List(ActionFileClose, ActionFileSave, ActionFileSaveAs,
-    actionEnlargeFont, actionShrinkFont, actionResetFont)
+    actionEnlargeFont, actionShrinkFont, actionResetFont, ActionLookUpHelp)
 
   protected lazy val menuFactory: Menu.Root = {
     import Menu._
@@ -513,7 +528,11 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
            |<font size=+1><b>About $name</b></font><p>
            |Copyright (c) 2008&ndash;2014 Hanns Holger Rutz. All rights reserved.<p>
            |This software is published under the GNU General Public License v3+
-           |""".stripMargin
+           |<p>&nbsp;<p><i>
+           |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
+           |ScalaCollider-Swing v${de.sciss.synth.swing.BuildInfo.version}<br>
+           |Scala v${de.sciss.synth.BuildInfo.scalaVersion}
+           |</i>""".stripMargin
       OptionPane.message(message = new javax.swing.JLabel(html)).show(Some(frame))
     }
     val itPrefs = Item.Preferences(App)(ActionPreferences())
@@ -546,7 +565,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
     val gActions = Group("actions", "Actions")
       .add(Item("boot-server"   )("Boot Server"       -> (menu1 + Key.B))(bootServer()))
-      .add(Item("reboot-server" )("Reboot Server"                      )(rebootServer()))
+      .add(Item("reboot-server" )("Reboot Server"                       )(rebootServer()))
       .add(Item("server-meters" )("Show Server Meter" -> (menu1 + Key.M))(serverMeters()))
       .add(Item("show-tree"     )("Show Node Tree")(showNodes()))
       .add(Item("dump-tree"     )("Dump Node Tree"               -> (menu1         + Key.T))(dumpNodes(controls = false)))
@@ -557,7 +576,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       .add(Item("clear-log")("Clear Log Window" -> (menu1 + shift + Key.P))(clearLog()))
 
     val gHelp = Group("help", "Help")
-      .add(Item("help-for-cursor")("Look up Documentation for Cursor" -> (menu1 + Key.D))(lookUpHelp()))
+      .add(Item("help-for-cursor", ActionLookUpHelp))
 
     if (itAbout.visible) gHelp.addLine().add(itAbout)
 
