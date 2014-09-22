@@ -43,7 +43,7 @@ object TextViewDockable {
     val text  = TextView(interpreter, cc)
     text.file = file
     // val sid = docFact.create() new DefaultSingleCDockable("interpreter", "Interpreter", sip.component.peer)
-    text.editor.editor.setCaretPosition(0)  // XXX TODO: that should be done by the codePane itself automatically
+    text.editor.editor.caret.position = 0  // XXX TODO: that should be done by the codePane itself automatically
 
     def mkTitle() = {
       val name = text.file.fold {
@@ -71,7 +71,7 @@ object TextViewDockable {
     documentHandler.addDocument(dock)
 
     // tricky business to ensure initial focus
-    dock.setFocusComponent(text.editor.editor)
+    dock.setFocusComponent(text.editor.editor.peer)
     dockControl.getController.setFocusedDockable(dock.intern(), true)
     dock
   }
@@ -83,10 +83,10 @@ class TextViewDockable(val view: TextView)
 
   private def updateFontSize(): Unit = {
     val ed    = view.editor.editor
-    val fnt   = ed.getFont
+    val fnt   = ed.font
     val scale = math.pow(1.08334, fntSizeAmt)
     // note: deriveFont _replaces_ the affine transform, does not concatenate it
-    ed.setFont(fnt.deriveFont(AffineTransform.getScaleInstance(scale, scale)))
+    ed.font   = fnt.deriveFont(AffineTransform.getScaleInstance(scale, scale))
   }
 
   private def fontSizeReset(): Unit = {

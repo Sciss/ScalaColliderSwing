@@ -13,16 +13,11 @@
 
 package de.sciss.synth.swing
 
-import scala.swing.Swing
-import de.sciss.osc.TCP
-import util.control.NonFatal
-import de.sciss.synth.{ServerConnection, Server}
+import scala.swing.{Frame, SimpleSwingApplication, Swing}
+import Swing._
 
-object ScalaColliderSwing extends App {
-  // ---- constructor ----
-  Swing.onEDT(buildGUI())
-
-  def buildGUI(): Unit = {
+object ScalaColliderSwing extends SimpleSwingApplication {
+  lazy val top: Frame = {
     val ssp   = new ServerStatusPanel()
     val sspw  = ssp.peer.makeWindow
     val ntp   = new NodeTreePanel()
@@ -34,7 +29,8 @@ object ScalaColliderSwing extends App {
     ntpw.setLocation(sspw.getX, sspw.getY + sspw.getHeight + 32)
     sspw.setVisible(true)
     ntpw.setVisible(true)
-    sif.setLocation(sspw.getX + sspw.getWidth + 32, sif.getY)
-    sif.setVisible(true)
+    sif.location = (sspw.getX + sspw.getWidth + 32, sif.peer.getY)
+    sif.open()
+    sif
   }
 }

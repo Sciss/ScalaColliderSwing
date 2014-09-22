@@ -35,8 +35,8 @@ object InterpreterImpl {
     private def defer(body: => Unit): Unit =
       if (EventQueue.isDispatchThread) body else Swing.onEDT(body)
 
-    def interpretWithoutResult(code: String, quiet: Boolean): Result = {
-      val res = peer.interpretWithoutResult(code, quiet)
+    def interpretWithResult(code: String, quiet: Boolean): Result = {
+      val res = peer.interpretWithResult(code, quiet)
       intpDone(code, res)
       res
     }

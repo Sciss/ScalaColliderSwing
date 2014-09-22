@@ -14,18 +14,22 @@
 package de.sciss.synth.swing
 
 import de.sciss.scalainterpreter.{CodePane, LogPane, InterpreterPane, NamedParam, Interpreter}
-import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 import java.io.{IOException, File, FileInputStream}
 import java.awt.GraphicsEnvironment
 
+import scala.swing.{Swing, Frame, SplitPane}
+import Swing._
+
 class ScalaInterpreterFrame(replSupport: REPLSupport)
-  extends JFrame("ScalaCollider Interpreter") {
+  extends Frame {
 
   private val lp = {
     val p = LogPane()
     p.makeDefault(error = true)
     p
   }
+
+  title = "ScalaCollider Interpreter"
 
   val pane = {
     //      val paneCfg = InterpreterPane.Config()
@@ -82,7 +86,6 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
 
   // ---- constructor ----
   {
-    val cp = getContentPane
     //      val lpCfg = LogPane.Settings()
     //      val lp = LogPane()
     //      pane.out = Some( lp.writer )
@@ -92,18 +95,22 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
     //      System.setErr( new PrintStream( lp.outputStream ))
 
     //      pane.init()
-    val sp = new JSplitPane(SwingConstants.HORIZONTAL)
-    sp.setTopComponent(pane.component)
-    sp.setBottomComponent(lp.component)
-    cp.add(sp)
+    val sp = new SplitPane {
+      topComponent    = pane.component
+      bottomComponent = lp.component
+    }
+    contents = sp
+
     val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
-    setSize(b.width / 2, b.height * 7 / 8)
-    sp.setDividerLocation(b.height * 2 / 3)
+    size = (b.width / 2, b.height * 7 / 8)
+    sp.dividerLocation = b.height * 2 / 3
     setLocationRelativeTo(null)
     //      setLocation( x, getY )
-    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+
     //      setVisible( true )
   }
+
+  override def closeOperation(): Unit = sys.exit(0)
 
   def withInterpreter(fun: InterpreterPane => Unit): Unit = {
     //      sync.synchronized {

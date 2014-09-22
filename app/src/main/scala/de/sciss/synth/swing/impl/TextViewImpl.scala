@@ -58,7 +58,7 @@ object TextViewImpl {
 
     def editor: si.CodePane = codePane
 
-    protected def currentText: String = codePane.editor.getText
+    protected def currentText: String = codePane.editor.text
 
     //    private def addEditAndClear(edit: UndoableEdit): Unit = {
     //      requireEDT()
@@ -83,7 +83,7 @@ object TextViewImpl {
 
     def clearUndoBuffer(): Unit = {
       // chasing an odd problem where the runtime classes for SyntaxDocument do not match...
-      codePane.editor.getDocument match {
+      codePane.editor.peer.getDocument match {
         case doc: SyntaxDocument => doc.clearUndos()
         case other => Console.err.println(s"Expected SyntaxDocument but found ${other.getClass.getName}")
       }
@@ -101,8 +101,8 @@ object TextViewImpl {
     //      futCompile.isDefined
     //    }
 
-    def undoAction: Action = Action.wrap(codePane.editor.getActionMap.get("undo"))
-    def redoAction: Action = Action.wrap(codePane.editor.getActionMap.get("redo"))
+    def undoAction: Action = Action.wrap(codePane.editor.peer.getActionMap.get("undo"))
+    def redoAction: Action = Action.wrap(codePane.editor.peer.getActionMap.get("redo"))
 
     private var _comp: Component =_
 
@@ -113,13 +113,14 @@ object TextViewImpl {
 
     private def installExecutionAction(intp: si.Interpreter): Unit = {
       val ed          = codePane.editor
-      val iMap        = ed.getInputMap(JComponent.WHEN_FOCUSED)
-      val aMap        = ed.getActionMap
+      val edJ         = ed.peer
+      val iMap        = edJ.getInputMap(JComponent.WHEN_FOCUSED)
+      val aMap        = edJ.getActionMap
       val executeKey  = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)
       iMap.put(executeKey, "de.sciss.exec")
       aMap.put("de.sciss.exec", new AbstractAction {
         def actionPerformed(e: ActionEvent): Unit =
-          codePane.getSelectedTextOrCurrentLine.foreach { ln =>
+          codePane.activeText.foreach { ln =>
             intp.interpret(ln) match {
               case si.Interpreter.Incomplete =>
                 println("Interpreter: Code incomplete!")
@@ -158,7 +159,7 @@ object TextViewImpl {
       //      actionApply = Action("Apply")(save())
       //      actionApply.enabled = false
 
-      codePane.editor.getDocument match {
+      codePane.editor.peer.getDocument match {
         // chasing an odd problem where the runtime classes for SyntaxDocument do not match...
         case doc: SyntaxDocument =>
           //      doc.addUndoableEditListener(
@@ -182,7 +183,7 @@ object TextViewImpl {
       //      val panelBottom = new FlowPanel(FlowPanel.Alignment.Trailing)(
       //        HGlue, ggApply, ggCompile, progressPane) // HStrut(16))
 
-      _comp = Component.wrap(codePane.component)
+      _comp = codePane.component
     }
   }
 }

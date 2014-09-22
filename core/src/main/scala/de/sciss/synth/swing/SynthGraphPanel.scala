@@ -15,7 +15,9 @@ package de.sciss.synth.swing
 
 import java.awt.{BorderLayout, Color, Point}
 import java.awt.event.{WindowAdapter, WindowEvent}
+import java.util.Locale
 import javax.swing.{JComponent, JFrame, JPanel, JSplitPane, WindowConstants}
+import de.sciss.synth.ugen.{UnaryOpUGen, BinaryOpUGen}
 import prefuse.{Constants, Display, Visualization}
 import prefuse.action.{ActionList, RepaintAction}
 import prefuse.action.assignment.ColorAction
@@ -90,18 +92,24 @@ class SynthGraphPanel(name: String, graph: UGenGraph, forceDirected: Boolean)
     val indexed = graph.ugens.zipWithIndex
     indexed.foreach { case (ru, idx) =>
       val pNode = g.addNode()
-      pNode.setString(COL_LABEL, ru.ugen.productPrefix)
-      pNode.set(COL_RATE, ru.ugen.rate)
+      val u     = ru.ugen
+      val name = u.name match {
+        case "BinaryOpUGen" => BinaryOpUGen.Op(u.specialIndex).name.toLowerCase(Locale.US)
+        case "UnaryOpUGen"  => UnaryOpUGen .Op(u.specialIndex).name.toLowerCase(Locale.US)
+        case other          => other
+      }
+      pNode.setString(COL_LABEL, name  )
+      pNode.set      (COL_RATE , u.rate)
       mapNodes += idx -> pNode
     }
     indexed.foreach { case (ru, idx) =>
       val pNode1 = mapNodes(idx)
       ru.inputSpecs.foreach(spec => {
         if (spec._1 >= 0) {
-          val (pidx, oidx) = spec
-          val pNode2 = mapNodes(pidx)
+          val (pIdx, oIdx) = spec
+          val pNode2 = mapNodes(pIdx)
           val pEdge = g.addEdge(pNode2, pNode1)
-          pEdge.set(COL_RATE, graph.ugens(pidx).ugen.outputRates(oidx))
+          pEdge.set(COL_RATE, graph.ugens(pIdx).ugen.outputRates(oIdx))
         }
       })
     }
@@ -209,21 +217,21 @@ class SynthGraphPanel(name: String, graph: UGenGraph, forceDirected: Boolean)
     val cp = frame.getContentPane
     lay match {
       case fd: ForceDirectedLayout =>
-        val fsim = fd.getForceSimulator
-        val fpanel = new JForcePanel(fsim)
-        fpanel.setBackground(null)
-        def setDeepSchnuck(jc: JComponent): Unit = {
+        val fSim    = fd.getForceSimulator
+        val fPanel  = new JForcePanel(fSim)
+        fPanel.setBackground(null)
+        def setDeepMini(jc: JComponent): Unit = {
           jc.putClientProperty("JComponent.sizeVariant", "mini")
           for (i <- 0 until jc.getComponentCount) jc.getComponent(i) match {
-            case jc2: JComponent => setDeepSchnuck(jc2)
+            case jc2: JComponent => setDeepMini(jc2)
             case _ =>
           }
         }
 
-        setDeepSchnuck(fpanel)
+        setDeepMini(fPanel)
         val split = new JSplitPane()
         split.setLeftComponent(panel)
-        split.setRightComponent(fpanel)
+        split.setRightComponent(fPanel)
         split.setOneTouchExpandable(true)
         split.setContinuousLayout(false)
         split.setDividerLocation(400)

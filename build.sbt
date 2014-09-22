@@ -16,9 +16,9 @@ lazy val audioWidgetsVersion    = "1.7.0"
 
 // ---- interpreter dependencies ----
 
-lazy val interpreterPaneVersion = "1.6.2"
+lazy val interpreterPaneVersion = "1.7.0-SNAPSHOT"
 
-// lazy val syntaxPaneVersion      = "1.1.2"
+// lazy val syntaxPaneVersion      = "1.1.4"
 
 // ---- plotting dependencies ----
 
@@ -37,8 +37,6 @@ lazy val kollFlitzVersion       = "0.2.0"
 lazy val webLaFVersion          = "1.28"
 
 lazy val dockingVersion         = "1.1.1"
-
-// lazy val swingBoxVersion        = "1.0"
 
 lazy val dspVersion             = "1.2.1"
 

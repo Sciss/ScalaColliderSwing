@@ -433,7 +433,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       val fw = new FileOutputStream(file)
       val w  = new OutputStreamWriter(fw, "UTF-8")
       try {
-        w.write(text.editor.editor.getText)
+        w.write(text.editor.editor.text)
         w.flush()
       } finally {
         w.close()
