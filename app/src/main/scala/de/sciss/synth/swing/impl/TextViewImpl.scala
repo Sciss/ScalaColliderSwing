@@ -14,6 +14,8 @@
 package de.sciss.synth.swing
 package impl
 
+import de.sciss.scalainterpreter.InterpreterPane
+
 import scala.swing.{Swing, Action, Component}
 import de.sciss.{scalainterpreter => si}
 import de.sciss.swingplus.Implicits._
@@ -120,15 +122,13 @@ object TextViewImpl {
       iMap.put(executeKey, "de.sciss.exec")
       aMap.put("de.sciss.exec", new AbstractAction {
         def actionPerformed(e: ActionEvent): Unit =
-          codePane.activeText.foreach { ln =>
-            intp.interpret(ln) match {
-              case si.Interpreter.Incomplete =>
-                println("Interpreter: Code incomplete!")
+          InterpreterPane.bang(codePane, intp) match {
+            case Some(si.Interpreter.Incomplete) =>
+              println("Interpreter: Code incomplete!")
               // case si.Interpreter.Success(_, _) =>
               // case si.Interpreter.Error(message) =>
               //   println(s"Interpreter error: $message!")
-              case _ =>
-            }
+            case _ =>
           }
       })
     }
