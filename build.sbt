@@ -8,7 +8,7 @@ lazy val projectVersion         = "1.20.1"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.14.0"
+lazy val scalaColliderVersion   = "1.14.1"
 
 lazy val prefuseVersion         = "1.0.0"
 
