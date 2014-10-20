@@ -4,7 +4,7 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.20.1"
+lazy val projectVersion         = "1.20.2-SNAPSHOT"
 
 // ---- core dependencies ----
 
@@ -14,7 +14,7 @@ lazy val prefuseVersion         = "1.0.0"
 
 lazy val audioWidgetsVersion    = "1.7.0"
 
-lazy val ugensVersion           = "1.11.1"
+lazy val ugensVersion           = "1.11.2-SNAPSHOT"
 
 // ---- interpreter dependencies ----
 
@@ -114,7 +114,7 @@ lazy val core = Project(
     description    := "Swing components for ScalaCollider",
     libraryDependencies ++= Seq(
       "de.sciss" %% "scalacollider"        % scalaColliderVersion,
-      "de.sciss" %% "scalacolliderugens-core" % ugensVersion,
+      "de.sciss" %% "scalacolliderugens-plugins" % ugensVersion,  // NB: sc3-plugins
       "de.sciss" %  "prefuse-core"         % prefuseVersion,
       "de.sciss" %% "audiowidgets-swing"   % audioWidgetsVersion
     ),
