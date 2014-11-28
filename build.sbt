@@ -4,17 +4,17 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.20.2-SNAPSHOT"
+lazy val projectVersion         = "1.20.2"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.14.1"
+lazy val scalaColliderVersion   = "1.14.3"
 
 lazy val prefuseVersion         = "1.0.0"
 
 lazy val audioWidgetsVersion    = "1.7.0"
 
-lazy val ugensVersion           = "1.11.2-SNAPSHOT"
+lazy val ugensVersion           = "1.11.2"
 
 // ---- interpreter dependencies ----
 
@@ -45,8 +45,8 @@ lazy val dspVersion             = "1.2.1"
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.11.2",
-  crossScalaVersions := Seq("2.11.2", "2.10.4"),
+  scalaVersion       := "2.11.4",
+  crossScalaVersions := Seq("2.11.4", "2.10.4"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
