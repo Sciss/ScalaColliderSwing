@@ -50,7 +50,6 @@ lazy val commonSettings = Project.defaultSettings ++ Seq(
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
-  retrieveManaged    := true,
   // ---- publishing ----
   publishMavenStyle := true,
   publishTo :=
