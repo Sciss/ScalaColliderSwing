@@ -2,7 +2,7 @@
  *  Main.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -526,7 +526,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       val html =
         s"""<html><center>
            |<font size=+1><b>About $name</b></font><p>
-           |Copyright (c) 2008&ndash;2014 Hanns Holger Rutz. All rights reserved.<p>
+           |Copyright (c) 2008&ndash;2015 Hanns Holger Rutz. All rights reserved.<p>
            |This software is published under the GNU General Public License v3+
            |<p>&nbsp;<p><i>
            |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
