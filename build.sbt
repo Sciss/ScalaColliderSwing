@@ -4,7 +4,7 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.24.0"
+lazy val projectVersion         = "1.25.0"
 
 // ---- core dependencies ----
 
@@ -12,7 +12,7 @@ lazy val scalaColliderVersion   = "1.17.1"
 
 lazy val prefuseVersion         = "1.0.0"
 
-lazy val audioWidgetsVersion    = "1.8.0"
+lazy val audioWidgetsVersion    = "1.9.0"
 
 lazy val ugensVersion           = "1.13.1"
 
@@ -28,7 +28,7 @@ lazy val chartVersion           = "0.4.2"
 
 // ---- app dependencies ----
 
-lazy val desktopVersion         = "0.6.0"
+lazy val desktopVersion         = "0.7.0"
 
 lazy val fileUtilVersion        = "1.1.1"
 
