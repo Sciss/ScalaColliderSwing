@@ -2,6 +2,9 @@
 
 # ScalaCollider-Swing
 
+[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=sciss&url=https%3A%2F%2Fgithub.com%2FSciss%2FScalaColliderSwing&title=ScalaCollider%20Swing%20Application&language=Scala&tags=github&category=software)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.11)
+
 ## statement
 
 ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://github.com/Sciss/ScalaCollider). ScalaCollider is a client for the [SuperCollider](http://supercollider.sourceforge.net/) sound synthesis server.
