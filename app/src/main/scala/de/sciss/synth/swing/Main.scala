@@ -375,10 +375,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private def clearLog(): Unit = lg.clear()
 
-  private def dumpNodes(controls: Boolean): Unit = {
-    import de.sciss.synth.Ops._
+  private def dumpNodes(controls: Boolean): Unit =
     sp.server.foreach(_.dumpTree(controls = controls))
-  }
 
   private lazy val _recent = RecentFiles(Main.userPrefs("recent-docs"))(checkOpenFile)
 
@@ -531,7 +529,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
            |<p>&nbsp;<p><i>
            |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
            |ScalaCollider-Swing v${de.sciss.synth.swing.BuildInfo.version}<br>
-           |Scala v${de.sciss.synth.BuildInfo.scalaVersion}
+           |Scala v${de.sciss.synth.swing.BuildInfo.scalaVersion}
            |</i>""".stripMargin
       OptionPane.message(message = new javax.swing.JLabel(html)).show(Some(frame))
     }

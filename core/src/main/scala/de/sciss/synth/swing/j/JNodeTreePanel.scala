@@ -53,7 +53,7 @@ object JNodeTreePanel {
   private val COL_LABEL     = "name"
   private val COL_PAUSED    = "paused"
   private val COL_NODE      = "node"
-  // create the tree layout action
+
   private val orientation   = Constants.ORIENT_LEFT_RIGHT
   private val GROUP_TREE    = "tree"
   private val GROUP_NODES   = "tree.nodes"
@@ -563,12 +563,11 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
 
   private def isPaused(n: Node): Boolean = map.get(n.id).exists(_.getBoolean(COL_PAUSED))
 
-  private class NodeActionsPopupMenu(_confirmDestr: Boolean) extends JPopupMenu {
+  private class NodeActionsPopupMenu(private var _confirmDestructiveActions: Boolean) extends JPopupMenu {
     pop =>
 
     import Ops._
 
-    private var confirmDestr = false
     private var selectionVar = Option.empty[Node]
 
     val actionNodeFree = new AbstractAction {
@@ -622,7 +621,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     }
 
     private def confirm(action: Action, message: String)(thunk: => Unit): Unit =
-      if (!confirmDestr || JOptionPane.showConfirmDialog(treePanel, message,
+      if (!_confirmDestructiveActions || JOptionPane.showConfirmDialog(treePanel, message,
         action.getValue(Action.NAME).toString, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) ==
         JOptionPane.YES_OPTION) {
 
@@ -645,13 +644,11 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     display.add(this)
     display.addMouseListener(popupTrigger)
 
-    confirmDestructiveActions = false // inits labels
-    selection_=(None)
-
-    // inits enabled states
+    confirmDestructiveActions = false // initializes labels
+    selection_=(None) // initializes enabled states
 
     def confirmDestructiveActions_=(b: Boolean): Unit = {
-      confirmDestr = b
+      _confirmDestructiveActions = b
       actionNodeFree      .putValue(Action.NAME, if (b) "Free..."       else "Free"     )
       actionGroupFreeAll  .putValue(Action.NAME, if (b) "Free all..."   else "Free all" )
       actionGroupDeepFree .putValue(Action.NAME, if (b) "Free deep..."  else "Free deep")

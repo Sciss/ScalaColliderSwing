@@ -13,19 +13,21 @@
 
 package de.sciss.synth.swing
 
-import scalax.chart.api._
+import java.awt.geom.{AffineTransform, Ellipse2D, Point2D, Rectangle2D}
 import java.awt.{BasicStroke, Color}
-import java.awt.geom.{Point2D, AffineTransform, Rectangle2D, Ellipse2D}
-import de.sciss.pdflitz
-import org.jfree.chart.{ChartMouseEvent, ChartMouseListener, ChartFactory, ChartPanel}
-import scala.swing.{Point, Action, Component, Frame}
-import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
-import collection.immutable.{Seq => ISeq}
-import org.jfree.chart.plot.PlotOrientation
 import javax.swing.JMenu
+
+import de.sciss.pdflitz
+import org.jfree.chart.plot.PlotOrientation
+import org.jfree.chart.{ChartFactory, ChartMouseEvent, ChartMouseListener, ChartPanel}
+import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
+
+import scala.collection.immutable.{Seq => ISeq}
+import scala.swing.event.{MouseClicked, MouseMoved}
+import scala.swing.{Action, Component, Frame, Point}
 import scalax.chart.Chart
-import scalax.chart.event.{ChartMouseMoved, ChartMouseClicked}
-import scala.swing.event.{MouseMoved, MouseClicked}
+import scalax.chart.api._
+import scalax.chart.event.{ChartMouseClicked, ChartMouseMoved}
 
 object Plotting {
   // var windowOnTop = false
