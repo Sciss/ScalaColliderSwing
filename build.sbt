@@ -4,11 +4,11 @@ lazy val baseName               = "ScalaColliderSwing"
 
 def baseNameL                   = baseName.toLowerCase
 
-lazy val projectVersion         = "1.25.1-SNAPSHOT"
+lazy val projectVersion         = "1.25.1"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.17.1"
+lazy val scalaColliderVersion   = "1.17.2"
 
 lazy val prefuseVersion         = "1.0.0"
 
@@ -38,7 +38,7 @@ lazy val webLaFVersion          = "1.28"
 
 lazy val dockingVersion         = "1.1.1"
 
-lazy val dspVersion             = "1.2.1"
+lazy val dspVersion             = "1.2.2"
 
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
