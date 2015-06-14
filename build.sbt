@@ -6,7 +6,6 @@ lazy val projectVersion         = "1.25.2-SNAPSHOT"
 
 // ---- core dependencies ----
 
-lazy val scala_version          = "2.11.6"
 lazy val scalaColliderVersion   = "1.17.2"
 lazy val prefuseVersion         = "1.0.0"
 lazy val audioWidgetsVersion    = "1.9.0"
@@ -34,8 +33,8 @@ lazy val dspVersion             = "1.2.2"
 lazy val commonSettings = Project.defaultSettings ++ Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := scala_version,
-  crossScalaVersions := Seq(scala_version, "2.10.5"),
+  scalaVersion       := "2.11.6",
+  crossScalaVersions := Seq("2.11.6", "2.10.5"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
@@ -123,7 +122,7 @@ lazy val interpreter = Project(id = s"$baseNameL-interpreter", base = file("inte
     description    := "REPL for ScalaCollider",
     libraryDependencies ++= Seq(
       "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion,
-      "org.scala-lang" %  "scala-compiler" % scala_version  // make sure we have the newest
+      "org.scala-lang" %  "scala-compiler" % scalaVersion.value  // make sure we have the newest
     )
   )
 
@@ -163,11 +162,8 @@ lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
 
 // ---- ls.implicit.ly ----
 
-seq(lsSettings :_*)
-
-(LsKeys.tags   in LsKeys.lsync) := Seq("sound-synthesis", "sound", "music", "supercollider")
-
-(LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
-
-(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
+// seq(lsSettings :_*)
+// (LsKeys.tags   in LsKeys.lsync) := Seq("sound-synthesis", "sound", "music", "supercollider")
+// (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
+// (LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
 

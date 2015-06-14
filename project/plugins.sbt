@@ -1,4 +1,4 @@
-addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.3")            // to publish infos on ls.implicit.ly
+// addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.3")            // to publish infos on ls.implicit.ly
 
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.13.0")  // standalone jar (windows, linux)
 
