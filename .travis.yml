@@ -1,0 +1,12 @@
+language: scala
+
+scala:
+  - 2.11.5
+  - 2.10.0
+
+jdk:
+  - openjdk7
+  - openjdk6
+
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION test assembly
