@@ -1,14 +1,13 @@
 lazy val baseName               = "ScalaColliderSwing"
+lazy val baseNameL              = baseName.toLowerCase
 
-def baseNameL                   = baseName.toLowerCase
-
-lazy val projectVersion         = "1.25.2-SNAPSHOT"
+lazy val projectVersion         = "1.26.0-SNAPSHOT"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.17.2"
+lazy val scalaColliderVersion   = "1.18.0-SNAPSHOT"
 lazy val prefuseVersion         = "1.0.0"
-lazy val audioWidgetsVersion    = "1.9.0"
+lazy val audioWidgetsVersion    = "1.10.0-SNAPSHOT"
 lazy val ugensVersion           = "1.13.1"
 
 // ---- interpreter dependencies ----
@@ -28,9 +27,9 @@ lazy val kollFlitzVersion       = "0.2.0"
 lazy val xstreamVersion         = "1.4.8" // 1.4.7 corrupt sha1 on Maven Central
 lazy val webLaFVersion          = "1.28"
 lazy val dockingVersion         = "1.1.1"
-lazy val dspVersion             = "1.2.2"
+lazy val dspVersion             = "1.3.0-SNAPSHOT"
 
-lazy val commonSettings = Project.defaultSettings ++ Seq(
+lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
   scalaVersion       := "2.11.6",
@@ -107,7 +106,6 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
       "de.sciss" %% "audiowidgets-swing"   % audioWidgetsVersion
     ),
     // ---- build info ----
-    sourceGenerators in Compile <+= buildInfo,
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
       BuildInfoKey.map(homepage) { case (k, opt)           => k -> opt.get },
       BuildInfoKey.map(licenses) { case (_, Seq((lic, _))) => "license" -> lic }
