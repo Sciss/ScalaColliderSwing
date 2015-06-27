@@ -1,18 +1,18 @@
 lazy val baseName               = "ScalaColliderSwing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.26.0-SNAPSHOT"
+lazy val projectVersion         = "1.25.2"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.18.0-SNAPSHOT"
+lazy val scalaColliderVersion   = "1.17.3"
 lazy val prefuseVersion         = "1.0.0"
-lazy val audioWidgetsVersion    = "1.10.0-SNAPSHOT"
-lazy val ugensVersion           = "1.13.1"
+lazy val audioWidgetsVersion    = "1.9.1"
+lazy val ugensVersion           = "1.13.2"
 
 // ---- interpreter dependencies ----
 
-lazy val interpreterPaneVersion = "1.7.1"
+lazy val interpreterPaneVersion = "1.7.2"
 
 // ---- plotting dependencies ----
 
@@ -24,16 +24,15 @@ lazy val chartVersion           = "0.4.2"
 lazy val desktopVersion         = "0.7.0"
 lazy val fileUtilVersion        = "1.1.1"
 lazy val kollFlitzVersion       = "0.2.0"
-lazy val xstreamVersion         = "1.4.8" // 1.4.7 corrupt sha1 on Maven Central
 lazy val webLaFVersion          = "1.28"
 lazy val dockingVersion         = "1.1.1"
-lazy val dspVersion             = "1.3.0-SNAPSHOT"
+lazy val dspVersion             = "1.2.2"
 
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.11.6",
-  crossScalaVersions := Seq("2.11.6", "2.10.5"),
+  scalaVersion       := "2.11.7",
+  crossScalaVersions := Seq("2.11.7", "2.10.5"),
   homepage           := Some(url("https://github.com/Sciss/" + baseName)),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
@@ -149,7 +148,6 @@ lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
       "de.sciss"                 %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
       "de.sciss"                 %% "fileutil"              % fileUtilVersion,
       "de.sciss"                 %% "kollflitz"             % kollFlitzVersion,
-      "com.thoughtworks.xstream" % "xstream" % xstreamVersion, // PROBLEM WITH MAVEN CENTRAL
       "de.sciss"                 %  "weblaf"                % webLaFVersion,
       "de.sciss"                 %% "scissdsp"              % dspVersion,
       "org.dockingframes"        %  "docking-frames-common" % dockingVersion
