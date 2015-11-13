@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=ScalaCollider
+Version=1.2.0
+GenericName=ScalaCollider
+Comment=ScalaCollider Standalone Application
+Exec=/usr/share/scalacollider/bin/scalacollider %F
+StartupWMClass=de-sciss-synth-swing-Main
+Icon=/usr/share/scalacollider/ScalaCollider.png
+Categories=Development;Audio;Music;
+Terminal=false
+Type=Application
