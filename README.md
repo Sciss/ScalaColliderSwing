@@ -16,7 +16,8 @@ Please see the `licenses` folder for details. It contains the license headers fo
 
 ## downloading
 
-- A binary (executable) version is provided via [bintray.com/sciss/generic/ScalaCollider](https://bintray.com/sciss/generic/ScalaCollider).
+- A binary (executable) version is provided via [GitHub releases](https://github.com/Sciss/ScalaColliderSwing/releases/latest).
+  We provide a universal zip for all platforms as well as a dedicated Debian package.
 - The source code can be downloaded from [github.com/Sciss/ScalaColliderSwing](http://github.com/Sciss/ScalaColliderSwing).
 
 ## building from source
@@ -24,9 +25,6 @@ Please see the `licenses` folder for details. It contains the license headers fo
 ScalaCollider-Swing compiles against Scala 2.11 and 2.10 using sbt 0.13.
 
 -`sbt assembly` creates a fully self-contained jar (platform neutral)
--`sbt appbundle` creates an Mac OS X application bundle
-
-__Note__: The `appbundle` task is currently broken because it doesn't work with multi-project builds. Therefore, on OS X you currently need to use the fat jar as well.
 
 A the `sbt` shell script by [paulp](https://github.com/paulp/sbt-extras), made available under a BSD-style license, is now included. So if you do not want to install `sbt` directly on your system, you can just use that script: `./sbt`.
 
@@ -41,7 +39,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current stable version `v` is `"1.25.3"`.
+The current stable version `v` is `"1.26.0"`.
 
 ## running
 
@@ -49,9 +47,7 @@ The standalone jar, created via `sbt assembly` produces `ScalaCollider.jar` whic
 
     $ java -jar ScalaCollider.jar
 
-A Linux desktop template is included. You will have to edit this file to change the installation path. Future versions may simplify this procedure or provide a direct `.deb` package.
-
-On OS X, you can use the __`ScalaCollider.command` shell script__ now. It should be associated automatically to open with `Terminal.app`.
+Runnable packages can be created via `sbt universal:packageBin` (all platforms) or `sbt debian:packageBin` (Debian).
 
 ## documentation
 
