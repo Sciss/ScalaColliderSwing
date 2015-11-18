@@ -39,7 +39,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current stable version `v` is `"1.26.0"`.
+The current stable version `v` is `"1.27.0"`.
 
 ## running
 
