@@ -2,7 +2,7 @@
  *  JServerStatusPanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -14,13 +14,13 @@
 package de.sciss.synth.swing
 package j
 
-import java.awt.{Color, Component, Dimension, EventQueue, Graphics, Image, Toolkit}
 import java.awt.event.ActionEvent
-import javax.swing.{Icon, AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JButton, JComponent, JFrame, JLabel, JPanel, JProgressBar, OverlayLayout, WindowConstants}
+import java.awt.{Color, Component, Dimension, EventQueue, Graphics, Image, Toolkit}
 import javax.swing.event.{AncestorEvent, AncestorListener}
+import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, Icon, JButton, JComponent, JFrame, JLabel, JPanel, JProgressBar, OverlayLayout, WindowConstants}
 
-import de.sciss.synth.{ServerConnection, Server, message}
 import de.sciss.model.Model
+import de.sciss.synth.{Server, ServerConnection, message}
 
 object JServerStatusPanel {
   final val COUNTS      = 0x01
@@ -209,11 +209,11 @@ class JServerStatusPanel(flags: Int) extends JPanel {
   {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS))
 
-    val clz       = GUI.getClass  // ScalaColliderSwing.getClass // classOf[ ServerStatusPanel ]
-    val icnGroup  = Shapes.Icon(extent = 16)(Shapes.Group   )
-    val icnSynth  = Shapes.Icon(extent = 16)(Shapes.Synth   )
-    val icnUGen   = Shapes.Icon(extent = 16)(Shapes.UGen    )
-    val icnDef    = Shapes.Icon(extent = 16)(Shapes.SynthDef)
+    val colr      = getForeground
+    val icnGroup  = Shapes.Icon(extent = 16, fill = colr)(Shapes.Group   )
+    val icnSynth  = Shapes.Icon(extent = 16, fill = colr)(Shapes.Synth   )
+    val icnUGen   = Shapes.Icon(extent = 16, fill = colr)(Shapes.UGen    )
+    val icnDef    = Shapes.Icon(extent = 16, fill = colr)(Shapes.SynthDef)
 
     def addS(c: Component, gap: Int = 4): Unit = {
       add(c)
