@@ -147,6 +147,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
     case ServerConnection.Aborted =>
       clearCounts()
+      booting_=(None)
       actionBoot.serverUpdate(Server.Offline)
 
     //      case msg => actionBoot.serverUpdate( msg )
@@ -157,6 +158,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
     case msg @ Server.Offline =>
       clearCounts()
+      server_=(None)
       actionBoot.serverUpdate(msg)
 
     case msg => actionBoot.serverUpdate(msg)
@@ -169,12 +171,14 @@ class JServerStatusPanel(flags: Int) extends JPanel {
   }
   def server_=(s: Option[Server]): Unit =
     sync.synchronized {
-      val wasListening = listening
-      if (wasListening) stopListening()
-      _server = s
-      _booting = None
-      updateFrameTitle()
-      if (wasListening) startListening()
+      if (_server != s) {
+        val wasListening = listening
+        if (wasListening) stopListening()
+        _server = s
+        _booting = None
+        updateFrameTitle()
+        if (wasListening) startListening()
+      }
     }
 
   private var _booting = Option.empty[ServerConnection]
@@ -184,12 +188,14 @@ class JServerStatusPanel(flags: Int) extends JPanel {
   }
   def booting_=(b: Option[ServerConnection]): Unit =
     sync.synchronized {
-      val wasListening = listening
-      if (wasListening) stopListening()
-      _server   = None
-      _booting  = b
-      updateFrameTitle()
-      if (wasListening) startListening()
+      if (_booting != b) {
+        val wasListening = listening
+        if (wasListening) stopListening()
+        _server   = None
+        _booting  = b
+        updateFrameTitle()
+        if (wasListening) startListening()
+      }
     }
 
   private var _bootAction = Option.empty[() => Unit]
@@ -316,20 +322,21 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       if (!listening) {
         listening = true
         defer {
-          serverUpdate(server.map(_.condition).getOrElse(
-            if (_booting.isDefined) Connecting else Server.Offline))
+          val st = server.map(_.condition).getOrElse(
+            if (_booting.isDefined) Connecting else Server.Offline)
+          serverUpdate(st)
         }
         _booting.foreach(_.addListener(bootingUpdate))
-        _server.foreach(_.addListener(serverUpdate))
+        _server .foreach(_.addListener(serverUpdate ))
       }
     }
 
   private def stopListening(): Unit =
     sync.synchronized {
       if (listening) {
-        _booting.foreach(_.removeListener(bootingUpdate))
-        _server.foreach(_.removeListener(serverUpdate))
         listening = false
+        _booting.foreach(_.removeListener(bootingUpdate))
+        _server .foreach(_.removeListener(serverUpdate ))
         clearCounts()
       }
     }
