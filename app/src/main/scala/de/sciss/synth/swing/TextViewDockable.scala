@@ -81,6 +81,8 @@ class TextViewDockable(val view: TextView)
 
   private var fntSizeAmt = 0
 
+  override def toString: String = s"TextViewDockable($view)"
+
   private def updateFontSize(): Unit = {
     val ed    = view.editor.editor
     val fnt   = ed.font

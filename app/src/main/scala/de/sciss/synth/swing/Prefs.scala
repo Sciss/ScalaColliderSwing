@@ -13,32 +13,65 @@
 
 package de.sciss.synth.swing
 
-import de.sciss.desktop.Preferences
-import Preferences.{Entry, Type}
-import de.sciss.file._
 import javax.swing.UIManager
-import UIManager.LookAndFeelInfo
-import de.sciss.synth.swing.{Main => App}
+import javax.swing.plaf.metal.MetalLookAndFeel
+
+import de.sciss.desktop.Preferences
+import de.sciss.desktop.Preferences.Entry
+import de.sciss.file._
 import de.sciss.scalainterpreter.{Style => ColorScheme}
+import de.sciss.submin.Submin
+import de.sciss.synth.swing.{Main => App}
 
 object Prefs {
   import App.userPrefs
 
-  implicit object LookAndFeelType extends Type[LookAndFeelInfo] {
-    def toString(value: LookAndFeelInfo): String = value.getClassName
-    def valueOf(string: String): Option[LookAndFeelInfo] =
-      UIManager.getInstalledLookAndFeels.find(_.getClassName == string)
-  }
-
-  // ---- gui ----
-
-  def defaultLookAndFeel: LookAndFeelInfo =
-    UIManager.getInstalledLookAndFeels.find(_.getName == "Web Look And Feel").getOrElse {
-      val clazzName = UIManager.getSystemLookAndFeelClassName
-      LookAndFeelType.valueOf(clazzName).getOrElse(new LookAndFeelInfo("<system>", clazzName))
+  object LookAndFeel {
+    implicit object Type extends Preferences.Type[LookAndFeel] {
+      def toString(value: LookAndFeel): String = value.id
+      def valueOf(string: String): Option[LookAndFeel] = all.find(_.id == string)
     }
 
-  def lookAndFeel: Entry[LookAndFeelInfo] = userPrefs("look-and-feel")
+    case object Native extends LookAndFeel {
+      val id          = "native"
+      val description = "Native"
+
+      def install(): Unit = UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
+    }
+
+    case object Metal extends LookAndFeel {
+      val id          = "metal"
+      val description = "Metal"
+
+      def install(): Unit = UIManager.setLookAndFeel(classOf[MetalLookAndFeel].getName)
+    }
+
+    case object Light extends LookAndFeel {
+      val id          = "light"
+      val description = "Submin Light"
+
+      def install(): Unit = Submin.install(false)
+    }
+
+    case object Dark extends LookAndFeel {
+      val id          = "dark"
+      val description = "Submin Dark"
+
+      def install(): Unit = Submin.install(true)
+    }
+
+    def all: Seq[LookAndFeel] = Seq(Native, Metal, Light, Dark)
+
+    def default: LookAndFeel = Light
+  }
+
+  sealed trait LookAndFeel {
+    def install(): Unit
+    def id: String
+    def description: String
+  }
+
+  def lookAndFeel: Entry[LookAndFeel] = userPrefs("look-and-feel")
 
   object ColorSchemeNames {
     private val blueForest  = "blue-forest"

@@ -13,28 +13,31 @@
 
 package de.sciss.synth.swing
 
-import de.sciss.desktop.impl.{WindowHandlerImpl, SwingApplicationImpl, WindowImpl}
-import de.sciss.desktop.{DialogSource, OptionPane, FileDialog, RecentFiles, KeyStrokes, LogPane, Desktop, Window, WindowHandler, Menu}
-import javax.swing.{KeyStroke, UIManager, SwingUtilities}
-import bibliothek.gui.dock.common.{CLocation, DefaultSingleCDockable, CControl}
-import java.awt.{Font, GraphicsEnvironment}
-import de.sciss.syntaxpane.TokenType
+import java.awt.{Color, Font, GraphicsEnvironment}
+import java.io.{FileOutputStream, OutputStreamWriter}
+import java.net.URL
+import javax.swing.{KeyStroke, SwingUtilities, UIManager}
 
-import scala.swing.{Action, Swing, Orientation, BoxPanel, Component, BorderPanel}
-import bibliothek.gui.dock.common.theme.ThemeMap
-import de.sciss.{scalainterpreter => si}
-import scala.tools.nsc.interpreter.NamedParam
-import scala.util.control.NonFatal
-import de.sciss.file._
-import de.sciss.synth.Server
-import scala.concurrent.{ExecutionContext, Future}
-import bibliothek.gui.dock.dockable.IconHandling
 import bibliothek.gui.dock.common.event.CFocusListener
 import bibliothek.gui.dock.common.intern.CDockable
-import java.io.{OutputStreamWriter, FileOutputStream}
-import scala.util.{Success, Failure, Try}
+import bibliothek.gui.dock.common.mode.ExtendedMode
+import bibliothek.gui.dock.common.theme.ThemeMap
+import bibliothek.gui.dock.common.{CControl, CLocation, DefaultSingleCDockable}
+import bibliothek.gui.dock.dockable.IconHandling
+import bibliothek.gui.dock.util.Priority
+import de.sciss.desktop._
+import de.sciss.desktop.impl.{SwingApplicationImpl, WindowHandlerImpl, WindowImpl}
+import de.sciss.file._
+import de.sciss.syntaxpane.TokenType
+import de.sciss.synth.Server
+import de.sciss.{scalainterpreter => si}
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.swing.event.Key
-import java.net.URL
+import scala.swing.{Action, BorderPanel, BoxPanel, Component, Orientation, Swing}
+import scala.tools.nsc.interpreter.NamedParam
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 object Main extends SwingApplicationImpl("ScalaCollider") {
   type Document = TextViewDockable
@@ -179,11 +182,68 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   def dockControl: CControl = dockCtrl
 
+  def isDarkSkin: Boolean = UIManager.getBoolean("dark-skin")
+
   private lazy val dockCtrl: CControl = {
     val jf  = SwingUtilities.getWindowAncestor(frame.component.peer.getRootPane).asInstanceOf[javax.swing.JFrame]
     val res = new CControl(jf)
     val th  = res.getThemes
     th.select(ThemeMap.KEY_FLAT_THEME)
+    if (isDarkSkin) {
+      val c = res.getController.getColors
+      import Priority.CLIENT
+      val c0 = new Color(50, 56, 62)
+      c.put(CLIENT, "title.active.left", c0)
+      c.put(CLIENT, "title.flap.active", c0)
+      c.put(CLIENT, "title.flap.active.knob.highlight", c0)
+      c.put(CLIENT, "title.flap.active.knob.shadow", c0)
+      // val c1 = new Color(48, 48, 48)
+      val c2 = new Color(64, 64, 64)
+      c.put(CLIENT, "title.active.right", c2)
+      val c3 = new Color(220, 220, 200)
+      c.put(CLIENT, "title.active.text", c3)
+      c.put(CLIENT, "title.flap.active.text", c3)
+      val c4 = Color.gray
+      c.put(CLIENT, "title.inactive.text", c4)
+      c.put(CLIENT, "title.flap.inactive.text", c4)
+      val c5 = c2 // Color.darkGray
+      c.put(CLIENT, "title.flap.selected", c5)
+      c.put(CLIENT, "title.flap.selected.knob.highlight", c5)
+      c.put(CLIENT, "title.flap.selected.knob.shadow", c5)
+      val c6 = new Color(64, 64, 64, 64)
+      c.put(CLIENT, "title.inactive.left", c6)
+      c.put(CLIENT, "title.inactive.right", c6)
+      c.put(CLIENT, "title.flap.inactive", c6)
+      c.put(CLIENT, "title.flap.inactive.knob.highlight", c6)
+      c.put(CLIENT, "stack.tab.background.top", c6)
+      c.put(CLIENT, "stack.tab.background.bottom", c6)
+      c.put(CLIENT, "stack.tab.background.top.focused", c0)
+      c.put(CLIENT, "stack.tab.background.bottom.focused", c2)
+
+      c.put(CLIENT, "stack.tab.background.top.selected", c6)  // unfocused
+      c.put(CLIENT, "stack.tab.background.bottom.selected", c2)
+      // c.put(CLIENT, "stack.tab.background.top.disabled", ...)
+      // c.put(CLIENT, "stack.tab.background.bottom.disabled", ...)
+
+      // c.put(CLIENT, "paint", ...)
+      // c.put(CLIENT, "paint.insertion.area", ...)
+      // c.put(CLIENT, "paint.removal", ...)
+
+      val c8 = new Color(16, 16, 16)
+      c.put(CLIENT, "stack.tab.border", c8)
+      c.put(CLIENT, "stack.tab.border.center.focused", c8)
+      c.put(CLIENT, "stack.tab.border.center.selected", c8)
+      c.put(CLIENT, "stack.tab.border.center.disabled", c8)
+      c.put(CLIENT, "stack.tab.border.center", c8)
+      c.put(CLIENT, "stack.tab.border.out", c8)
+      c.put(CLIENT, "stack.tab.border.out.focused", c8)
+      c.put(CLIENT, "stack.tab.border.out.selected", c8)
+      // c.put(CLIENT, "stack.tab.foreground", ...)
+    }
+    // res.getController.getFonts
+    // res.getController.getIcons
+    // borders?
+
     res.addMultipleDockableFactory("de.sciss.synth.swing.TextView", TextViewDockable.factory)
     //    res.addControlListener(new CControlListener {
     //      def opened (control: CControl, dockable: CDockable): Unit =
@@ -205,7 +265,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     //    })
 
     res.addFocusListener(new CFocusListener {
-      def focusLost  (dockable: CDockable): Unit = dockable match {
+      def focusLost(dockable: CDockable): Unit = dockable match {
         case tvd: TextViewDockable =>
           fileActions.foreach(_.view = None)
         case _ =>
@@ -215,6 +275,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
         case tvd: TextViewDockable =>
           val viewOpt = Some(tvd)
           fileActions.foreach(_.view = viewOpt)
+          documentHandler.activeDocument = viewOpt
         case _ =>
       }
     })
@@ -226,14 +287,12 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     GUI.windowOnTop = true
 
     try {
-      val web = "com.alee.laf.WebLookAndFeel"
-      UIManager.installLookAndFeel("Web Look And Feel", web)
       val lafInfo = Prefs.lookAndFeel.getOrElse {
-        val res = Prefs.defaultLookAndFeel
+        val res = Prefs.LookAndFeel.default
         Prefs.lookAndFeel.put(res)
         res
       }
-      UIManager.setLookAndFeel(lafInfo.getClassName)
+      lafInfo.install()
     } catch {
       case NonFatal(e) => e.printStackTrace()
     }
@@ -312,6 +371,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val options     = Seq(saveText, "Cancel", "Close without Saving")
     val dlg = OptionPane(message = msg, optionType = OptionPane.Options.YesNoCancel,
       messageType = OptionPane.Message.Warning, entries = options, initial = Some(saveText))
+    // dock.getControlAccess.show(dock)
+    dock.setExtendedMode(ExtendedMode.NORMALIZED)
     val idx = dlg.show(Some(frame)).id
     if (idx == 0) UnsavedSave else if (idx == 2) UnsavedDiscard else UnsavedCancel
   }
@@ -335,8 +396,15 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       val src = io.Source.fromFile(file)
       try {
         val text0 = src.mkString
-        // XXX TODO: if the current window is empty and untitled, simply replace its content
-        // (or close it)
+        // If the current window is empty and untitled, simply close it first
+        documentHandler.activeDocument.foreach { doc0 =>
+          val doc1  = doc0: Document // IntelliJ...
+          val view0 = doc1.view
+          // println(s"FOUND: ${view0.file} / ${view0.dirty}")
+          if (!view0.dirty && view0.file.isEmpty) {
+            doc1.close()
+          }
+        }
         TextViewDockable.apply(text0, Some(file))
         _recent.add(file)
       } finally {
@@ -516,8 +584,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     actionEnlargeFont, actionShrinkFont, actionResetFont, ActionLookUpHelp)
 
   protected lazy val menuFactory: Menu.Root = {
-    import Menu._
     import KeyStrokes._
+    import Menu._
     import de.sciss.synth.swing.{Main => App}
 
     val itAbout = Item.About(App) {

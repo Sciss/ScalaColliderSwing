@@ -39,6 +39,8 @@ object TextViewImpl {
   private final class Impl(interpreter: Future[si.Interpreter], codeConfig: si.CodePane.Config)
     extends TextView with ModelImpl[TextView.Update] {
 
+    override def toString = s"TextView(file = ${file.map(_.getName)}, dirty = $dirty)"
+
     private var _file = Option.empty[File]
     def file = _file
     def file_=(value: Option[File]): Unit = if (_file != value) {
@@ -183,7 +185,9 @@ object TextViewImpl {
       //      val panelBottom = new FlowPanel(FlowPanel.Alignment.Trailing)(
       //        HGlue, ggApply, ggCompile, progressPane) // HStrut(16))
 
-      _comp = codePane.component
+      val scroll = codePane.component
+      scroll.peer.putClientProperty("styleId", "undecorated")
+      _comp = scroll
     }
   }
 }
