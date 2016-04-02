@@ -13,7 +13,8 @@
 
 package de.sciss.synth.swing
 
-import java.awt.{Color, Font, GraphicsEnvironment}
+import java.awt.event._
+import java.awt.{Color, Font, GraphicsEnvironment, KeyboardFocusManager}
 import java.io.{FileOutputStream, OutputStreamWriter}
 import java.net.URL
 import javax.swing.{KeyStroke, SwingUtilities, UIManager}
@@ -372,8 +373,54 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val dlg = OptionPane(message = msg, optionType = OptionPane.Options.YesNoCancel,
       messageType = OptionPane.Message.Warning, entries = options, initial = Some(saveText))
     // dock.getControlAccess.show(dock)
-    dock.setExtendedMode(ExtendedMode.NORMALIZED)
-    val idx = dlg.show(Some(frame)).id
+    // println("EXTENDED: " + dock.getExtendedMode.getModeIdentifier)
+    val extend = true // dock.getExtendedMode == ExtendedMode.MINIMIZED
+    if (extend) dock.setExtendedMode(ExtendedMode.NORMALIZED)
+
+    // val idx = dlg.show(None /* Some(frame) */).id
+
+    val jDlg  = dlg.peer.createDialog(null, dlg.title)
+//    val kbm   = KeyboardFocusManager.getCurrentKeyboardFocusManager
+//    val pl = new PropertyChangeListener {
+//      def propertyChange(e: PropertyChangeEvent): Unit = {
+//        if (jDlg.isActive) {
+//          println("---" + e.getPropertyName)
+//          val fo = kbm.getFocusOwner
+//          val po = kbm.getPermanentFocusOwner
+//          val ro = kbm.getCurrentFocusCycleRoot
+//          println("OWNER " + (if (fo == null) "null" else fo.getClass.getSimpleName))
+//          println("PERM  " + (if (po == null) "null" else po.getClass.getSimpleName))
+//          println("ROOT  " + (if (ro == null) "null" else ro.getClass.getSimpleName))
+//          // if (kbm.getFocusOwner == null && jDlg.isVisible) jDlg.transferFocus()
+//        }
+//      }
+//    }
+//    kbm.addPropertyChangeListener("focusOwner", pl)
+//    kbm.addPropertyChangeListener("permanentFocusOwner", pl)
+//    kbm.addPropertyChangeListener("currentFocusCycleRoot", pl)
+
+    // cheesy work around to reset focus after asynchronous dock expansion
+    if (extend) jDlg.addWindowListener(new WindowAdapter {
+      override def windowOpened(e: WindowEvent): Unit = {
+        val t = new javax.swing.Timer(500, new ActionListener {
+          def actionPerformed(e: ActionEvent): Unit = {
+            val kbm   = KeyboardFocusManager.getCurrentKeyboardFocusManager
+//            val fo  = kbm.getFocusOwner
+//            println("owner? " + fo)
+            if (jDlg.isVisible && kbm.getFocusOwner == null) {
+              // jDlg.requestFocus()
+              // jDlg.toFront()
+              jDlg.transferFocus()
+            }
+          }
+        })
+        t.setRepeats(false)
+        t.start()
+      }
+    })
+    jDlg.setVisible(true)
+    val idx = dlg.result.id
+
     if (idx == 0) UnsavedSave else if (idx == 2) UnsavedDiscard else UnsavedCancel
   }
 
