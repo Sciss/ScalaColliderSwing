@@ -26,8 +26,8 @@ import bibliothek.gui.dock.common.theme.ThemeMap
 import bibliothek.gui.dock.common.{CControl, CLocation, DefaultSingleCDockable}
 import bibliothek.gui.dock.dockable.IconHandling
 import bibliothek.gui.dock.util.Priority
-import de.sciss.desktop._
 import de.sciss.desktop.impl.{SwingApplicationImpl, WindowHandlerImpl, WindowImpl}
+import de.sciss.desktop.{Desktop, DialogSource, FileDialog, KeyStrokes, LogPane, Menu, OptionPane, RecentFiles, Window, WindowHandler}
 import de.sciss.file._
 import de.sciss.syntaxpane.TokenType
 import de.sciss.synth.Server
@@ -47,26 +47,35 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     override def usesInternalFrames: Boolean = false
   }
 
-  //  private val bodyUrl = "https://raw2.github.com/Sciss/ScalaCollider/master/README.md"
-  //  private val cssUrl  = "https://gist.github.com/andyferra/2554919/raw/2e66cabdafe1c9a7f354aa2ebf5bc38265e638e5/github.css"
-
-  //  // is this the best way?
-  //  private def readURL(url: String): String = io.Source.fromURL(url, "UTF-8").getLines().mkString("\n")
-
   private lazy val sp = new ServerStatusPanel
 
-  private lazy val lg = {
-    val cn    = Prefs.colorScheme.getOrElse(Prefs.ColorSchemeNames.default)
-    val style = Prefs.ColorSchemeNames(cn)
-    val res   = LogPane(rows = 12)
-    // res.font  = style.font
-    res.background  = style.background
-    res.foreground  = style.foreground
-    res.font        = new Font("Monospaced", Font.PLAIN, 12)  // XXX TODO: should be preferences setting
-    res
+  // XXX TODO -- should be made public in ScalaInterpreterPane
+  private def defaultFonts = Seq[(String, Int)](
+    "Menlo"                     -> 12,
+    "DejaVu Sans Mono"          -> 12,
+    "Bitstream Vera Sans Mono"  -> 12,
+    "Monaco"                    -> 12,
+    "Anonymous Pro"             -> 12
+  )
+
+  private def logFont(): Font = {
+    val list          = defaultFonts
+    val allFontNames  = GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
+    val (fontName, fontSize) = list.find(spec => allFontNames.contains(spec._1))
+      .getOrElse("Monospaced" -> 12)
+
+    new Font(fontName, Font.PLAIN, /*if( isMac )*/ fontSize /*else fontSize * 3/4*/)
   }
 
-  // private lazy val codePane = sip.codePane
+  private lazy val lg = {
+    val cn          = Prefs.colorScheme.getOrElse(Prefs.ColorSchemeNames.default)
+    val style       = Prefs.ColorSchemeNames(cn)
+    val res         = LogPane(rows = 12)
+    res.background  = style.background
+    res.foreground  = style.foreground
+    res.font        = logFont() // new Font("Monospaced", Font.PLAIN, 12)  // XXX TODO: should be preferences setting
+    res
+  }
 
   private lazy val repl: REPLSupport = new REPLSupport(sp, null)
 
@@ -162,25 +171,6 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   def mainWindow: Window = frame
 
-  //  private lazy val hp: EditorPane = {
-  //    // val md    = readURL(bodyUrl)
-  //    // val css   = readURL(cssUrl )
-  //    // val html  = Markdown(md)
-  //
-  //    //    val html1 = s"<html><head><style>$css</style></head><body>$html</body></html>"
-  //    //    //    new EditorPane("text/html", "") {
-  //    //    //      editable  = false
-  //    //    //      editorKit = new SwingBoxEditorKit()
-  //    //    //      text      = html1
-  //    //    //    }
-  //
-  //    new EditorPane("text/html", "") {
-  //      override lazy val peer: BrowserPane = new BrowserPane with SuperMixin
-  //      // text = html1
-  //    }
-  //  }
-
-
   def dockControl: CControl = dockCtrl
 
   def isDarkSkin: Boolean = UIManager.getBoolean("dark-skin")
@@ -190,39 +180,41 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val res = new CControl(jf)
     val th  = res.getThemes
     th.select(ThemeMap.KEY_FLAT_THEME)
+    val controller = res.getController
+    import Priority.CLIENT
+
     if (isDarkSkin) {
-      val c = res.getController.getColors
-      import Priority.CLIENT
+      val colors = controller.getColors
       val c0 = new Color(50, 56, 62)
-      c.put(CLIENT, "title.active.left", c0)
-      c.put(CLIENT, "title.flap.active", c0)
-      c.put(CLIENT, "title.flap.active.knob.highlight", c0)
-      c.put(CLIENT, "title.flap.active.knob.shadow", c0)
+      colors.put(CLIENT, "title.active.left", c0)
+      colors.put(CLIENT, "title.flap.active", c0)
+      colors.put(CLIENT, "title.flap.active.knob.highlight", c0)
+      colors.put(CLIENT, "title.flap.active.knob.shadow", c0)
       // val c1 = new Color(48, 48, 48)
       val c2 = new Color(64, 64, 64)
-      c.put(CLIENT, "title.active.right", c2)
+      colors.put(CLIENT, "title.active.right", c2)
       val c3 = new Color(220, 220, 200)
-      c.put(CLIENT, "title.active.text", c3)
-      c.put(CLIENT, "title.flap.active.text", c3)
+      colors.put(CLIENT, "title.active.text", c3)
+      colors.put(CLIENT, "title.flap.active.text", c3)
       val c4 = Color.gray
-      c.put(CLIENT, "title.inactive.text", c4)
-      c.put(CLIENT, "title.flap.inactive.text", c4)
+      colors.put(CLIENT, "title.inactive.text", c4)
+      colors.put(CLIENT, "title.flap.inactive.text", c4)
       val c5 = c2 // Color.darkGray
-      c.put(CLIENT, "title.flap.selected", c5)
-      c.put(CLIENT, "title.flap.selected.knob.highlight", c5)
-      c.put(CLIENT, "title.flap.selected.knob.shadow", c5)
+      colors.put(CLIENT, "title.flap.selected", c5)
+      colors.put(CLIENT, "title.flap.selected.knob.highlight", c5)
+      colors.put(CLIENT, "title.flap.selected.knob.shadow", c5)
       val c6 = new Color(64, 64, 64, 64)
-      c.put(CLIENT, "title.inactive.left", c6)
-      c.put(CLIENT, "title.inactive.right", c6)
-      c.put(CLIENT, "title.flap.inactive", c6)
-      c.put(CLIENT, "title.flap.inactive.knob.highlight", c6)
-      c.put(CLIENT, "stack.tab.background.top", c6)
-      c.put(CLIENT, "stack.tab.background.bottom", c6)
-      c.put(CLIENT, "stack.tab.background.top.focused", c0)
-      c.put(CLIENT, "stack.tab.background.bottom.focused", c2)
+      colors.put(CLIENT, "title.inactive.left", c6)
+      colors.put(CLIENT, "title.inactive.right", c6)
+      colors.put(CLIENT, "title.flap.inactive", c6)
+      colors.put(CLIENT, "title.flap.inactive.knob.highlight", c6)
+      colors.put(CLIENT, "stack.tab.background.top", c6)
+      colors.put(CLIENT, "stack.tab.background.bottom", c6)
+      colors.put(CLIENT, "stack.tab.background.top.focused", c0)
+      colors.put(CLIENT, "stack.tab.background.bottom.focused", c2)
 
-      c.put(CLIENT, "stack.tab.background.top.selected", c6)  // unfocused
-      c.put(CLIENT, "stack.tab.background.bottom.selected", c2)
+      colors.put(CLIENT, "stack.tab.background.top.selected", c6)  // unfocused
+      colors.put(CLIENT, "stack.tab.background.bottom.selected", c2)
       // c.put(CLIENT, "stack.tab.background.top.disabled", ...)
       // c.put(CLIENT, "stack.tab.background.bottom.disabled", ...)
 
@@ -231,39 +223,39 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       // c.put(CLIENT, "paint.removal", ...)
 
       val c8 = new Color(16, 16, 16)
-      c.put(CLIENT, "stack.tab.border", c8)
-      c.put(CLIENT, "stack.tab.border.center.focused", c8)
-      c.put(CLIENT, "stack.tab.border.center.selected", c8)
-      c.put(CLIENT, "stack.tab.border.center.disabled", c8)
-      c.put(CLIENT, "stack.tab.border.center", c8)
-      c.put(CLIENT, "stack.tab.border.out", c8)
-      c.put(CLIENT, "stack.tab.border.out.focused", c8)
-      c.put(CLIENT, "stack.tab.border.out.selected", c8)
+      colors.put(CLIENT, "stack.tab.border", c8)
+      colors.put(CLIENT, "stack.tab.border.center.focused", c8)
+      colors.put(CLIENT, "stack.tab.border.center.selected", c8)
+      colors.put(CLIENT, "stack.tab.border.center.disabled", c8)
+      colors.put(CLIENT, "stack.tab.border.center", c8)
+      colors.put(CLIENT, "stack.tab.border.out", c8)
+      colors.put(CLIENT, "stack.tab.border.out.focused", c8)
+      colors.put(CLIENT, "stack.tab.border.out.selected", c8)
       // c.put(CLIENT, "stack.tab.foreground", ...)
     }
+    val icons         = controller.getIcons
+    val colrIcon      = if (isDarkSkin) Color.lightGray /* new Color(220, 220, 200) */ else Color.darkGray
+    val iconDock      = Shapes.Icon(fill = colrIcon, extent = 16)(Shapes.Document  )
+    val iconMin       = Shapes.Icon(fill = colrIcon, extent = 16)(Shapes.Minimize  )
+    val iconMax       = Shapes.Icon(fill = colrIcon, extent = 16)(Shapes.Maximize  )
+    val iconNorm      = Shapes.Icon(fill = colrIcon, extent = 16)(Shapes.Normalized)
+    val iconExt       = Shapes.Icon(fill = colrIcon, extent = 16)(Shapes.Layered   )
+    val iconPinned    = Shapes.Icon(fill = colrIcon, extent = 16)(Shapes.Pinned    )
+    val iconNotPinned = Shapes.Icon(fill = colrIcon, extent = 16)(Shapes.NotPinned )
+    icons.put(CLIENT, "dockable.default"                        , iconDock      )
+    icons.put(CLIENT, "locationmanager.minimize"                , iconMin       )
+    icons.put(CLIENT, "locationmanager.maximize"                , iconMax       )
+    icons.put(CLIENT, "locationmanager.normalize"               , iconNorm      )
+    icons.put(CLIENT, "locationmanager.externalize"             , iconExt       )
+    icons.put(CLIENT, "locationmanager.unexternalize"           , iconNorm      )
+    icons.put(CLIENT, "locationmanager.unmaximize_externalized" , iconExt       )
+    icons.put(CLIENT, "flap.hold"                               , iconPinned    )
+    icons.put(CLIENT, "flap.free"                               , iconNotPinned )
+
     // res.getController.getFonts
-    // res.getController.getIcons
     // borders?
 
     res.addMultipleDockableFactory("de.sciss.synth.swing.TextView", TextViewDockable.factory)
-    //    res.addControlListener(new CControlListener {
-    //      def opened (control: CControl, dockable: CDockable): Unit =
-    //        println(s"CControlListener.opened ($control, $dockable")
-    //      def closed (control: CControl , dockable: CDockable): Unit =
-    //        println(s"CControlListener.closed ($control, $dockable")
-    //      def added  (control: CControl  , dockable: CDockable): Unit =
-    //        println(s"CControlListener.added  ($control, $dockable")
-    //      def removed(control: CControl, dockable: CDockable): Unit =
-    //        println(s"CControlListener.removed($control, $dockable")
-    //    })
-
-    //    res.addStateListener(new CDockableStateListener {
-    //      def visibilityChanged(dockable: CDockable): Unit =
-    //        println(s"CDockableStateListener.visibilityChanged($dockable")
-    //
-    //      def extendedModeChanged(dockable: CDockable, mode: ExtendedMode): Unit =
-    //        println(s"CDockableStateListener.extendedModeChanged($dockable, $mode")
-    //    })
 
     res.addFocusListener(new CFocusListener {
       def focusLost(dockable: CDockable): Unit = dockable match {
@@ -313,27 +305,23 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     Console.setOut(lg.outputStream)
     Console.setErr(lg.outputStream)
 
-    // lg.background = sif.pane.codePane.component.getBackground
-    // lg.foreground = sif.pane.codePane.component.getForeground
     val lgd = new DefaultSingleCDockable("log", "Log", lg.component.peer)
     lgd.setLocation(CLocation.base().normalSouth(0.25))
     lgd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
     lgd.setTitleIcon(null)
 
-    //    // hp.peer.setPage("http://www.sciss.de/scalaCollider")
-    //    val hps   = new ScrollPane(hp)
-    //    val hpd   = new DefaultSingleCDockable("help", "Help", hps.peer)
-    //    hpd.setLocation(CLocation.base().normalNorth(0.65))
-    //    hpd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
-    //    hpd.setTitleIcon(null)
-
     dockCtrl.addDockable(lgd)
-    // ctl.addDockable(spd)
-    // dockCtrl.addDockable(hpd)
     lgd.setVisible(true)
-    // spd.setVisible(true)
-    // hpd.setExtendedMode(ExtendedMode.MINIMIZED)
-    // hpd.setVisible(true)
+
+//    lgd.addCDockableStateListener(new CDockableStateListener {
+//      def extendedModeChanged(dockable: CDockable, mode: ExtendedMode): Unit = {
+//        if (mode == ExtendedMode.EXTERNALIZED) {
+//          println("Externalized")
+//        }
+//      }
+//
+//      def visibilityChanged(dockable: CDockable): Unit = ()
+//    })
 
     frame.init(bp)
 
@@ -372,44 +360,16 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val options     = Seq(saveText, "Cancel", "Close without Saving")
     val dlg = OptionPane(message = msg, optionType = OptionPane.Options.YesNoCancel,
       messageType = OptionPane.Message.Warning, entries = options, initial = Some(saveText))
-    // dock.getControlAccess.show(dock)
-    // println("EXTENDED: " + dock.getExtendedMode.getModeIdentifier)
-    val extend = true // dock.getExtendedMode == ExtendedMode.MINIMIZED
-    if (extend) dock.setExtendedMode(ExtendedMode.NORMALIZED)
-
-    // val idx = dlg.show(None /* Some(frame) */).id
+    dock.setExtendedMode(ExtendedMode.NORMALIZED)
 
     val jDlg  = dlg.peer.createDialog(null, dlg.title)
-//    val kbm   = KeyboardFocusManager.getCurrentKeyboardFocusManager
-//    val pl = new PropertyChangeListener {
-//      def propertyChange(e: PropertyChangeEvent): Unit = {
-//        if (jDlg.isActive) {
-//          println("---" + e.getPropertyName)
-//          val fo = kbm.getFocusOwner
-//          val po = kbm.getPermanentFocusOwner
-//          val ro = kbm.getCurrentFocusCycleRoot
-//          println("OWNER " + (if (fo == null) "null" else fo.getClass.getSimpleName))
-//          println("PERM  " + (if (po == null) "null" else po.getClass.getSimpleName))
-//          println("ROOT  " + (if (ro == null) "null" else ro.getClass.getSimpleName))
-//          // if (kbm.getFocusOwner == null && jDlg.isVisible) jDlg.transferFocus()
-//        }
-//      }
-//    }
-//    kbm.addPropertyChangeListener("focusOwner", pl)
-//    kbm.addPropertyChangeListener("permanentFocusOwner", pl)
-//    kbm.addPropertyChangeListener("currentFocusCycleRoot", pl)
-
     // cheesy work around to reset focus after asynchronous dock expansion
-    if (extend) jDlg.addWindowListener(new WindowAdapter {
+    jDlg.addWindowListener(new WindowAdapter {
       override def windowOpened(e: WindowEvent): Unit = {
         val t = new javax.swing.Timer(500, new ActionListener {
           def actionPerformed(e: ActionEvent): Unit = {
             val kbm   = KeyboardFocusManager.getCurrentKeyboardFocusManager
-//            val fo  = kbm.getFocusOwner
-//            println("owner? " + fo)
             if (jDlg.isVisible && kbm.getFocusOwner == null) {
-              // jDlg.requestFocus()
-              // jDlg.toFront()
               jDlg.transferFocus()
             }
           }
@@ -495,10 +455,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   private lazy val _recent = RecentFiles(Main.userPrefs("recent-docs"))(checkOpenFile)
 
-  def openURL(url: String): Unit = {
-    // hp.peer.setPage(url)
-    Desktop.browseURI(new URL(url).toURI)
-  }
+  def openURL(url: String): Unit = Desktop.browseURI(new URL(url).toURI)
 
   private def lookUpHelp(dock: TextViewDockable): Unit = {
     val ed = dock.view.editor
@@ -507,20 +464,6 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
         val ident = token.getString(ed.editor.peer.getDocument)
         println(s"TODO: lookUpHelp - $ident")
       }
-      //    val url = getClass.getResource("""/de/sciss/synth/Server.html""")
-      //    if (url != null) {
-      //      // --- version 1: shows as plain text ---
-      //      // hp.peer.setPage(url)
-      //
-      //      // --- version 2: kind of works (doesn't find css and scripts though) ---
-      //      // hp.text = io.Source.fromURL(url, "UTF-8").mkString
-      //
-      //      // --- version 3: creates new document (again doesn't find css and scripts) ---
-      //      val doc = hp.editorKit.createDefaultDocument()
-      //      hp.editorKit.read(url.openStream(), doc, 0)
-      //      hp.peer.setDocument(doc)
-      //    }
-      //    else println("!Help sources not found!")
     }
   }
 

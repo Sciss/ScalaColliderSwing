@@ -21,7 +21,7 @@ import scala.swing.Graphics2D
 object Shapes {
   /** Creates an icon from a given shape function. */
   def Icon(extent: Int = 32, fill: Paint = Color.black)(fun: Path2D => Unit): javax.swing.Icon = {
-    val p = new Path2D.Float()
+    val p = new Path2D.Float(Path2D.WIND_EVEN_ODD)
     fun(p)
     p.closePath()
     val shape = if (extent == 32) p else {
@@ -38,7 +38,7 @@ object Shapes {
       val hints = g2.getRenderingHints
       val at    = g2.getTransform
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING  , RenderingHints.VALUE_ANTIALIAS_ON)
-      g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE )
+      // g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE)
       g2.translate(x, y)
       g2.setPaint(fill)
       g2.fill(shape)
@@ -49,6 +49,8 @@ object Shapes {
     def getIconWidth : Int = extent
     def getIconHeight: Int = extent
   }
+
+  // ---- core ----
 
   def Group(p: Path2D): Unit = {
     p.moveTo(6.77607f, 15.77078f)
@@ -475,5 +477,163 @@ object Shapes {
     p.lineTo(4.9374866f, 3.021f)
     p.lineTo(4.9374866f, 2.271f)
     p.lineTo(4.9374866f, 2.271f)
+  }
+
+  // ---- app ----
+
+  def Minimize(p: Path2D): Unit = {
+    p.moveTo( 2.0, 24.0)
+    p.lineTo(29.0, 24.0)
+    p.lineTo(29.0, 29.0)
+    p.lineTo( 2.0, 29.0)
+    p.closePath()
+  }
+
+  def Maximize(p: Path2D): Unit = {
+    p.moveTo( 2.0,  2.0)
+    p.lineTo(29.0,  2.0)
+    p.lineTo(29.0, 29.0)
+    p.lineTo( 2.0, 29.0)
+    p.closePath()
+    p.moveTo( 5.0,  5.0)
+    p.lineTo(26.0,  5.0)
+    p.lineTo(26.0, 26.0)
+    p.lineTo( 5.0, 26.0)
+    p.closePath()
+  }
+
+  def Pinned(p: Path2D): Unit = {
+    p.moveTo(23.03125f, 0.53125f)
+    p.curveTo(22.679699f, 1.5533035f, 23.71875f, 3.65625f, 23.71875f, 3.65625f)
+    p.lineTo(15.5f, 9.875f)
+    p.curveTo(15.5f, 9.875f, 12.251338f, 8.110042f, 10.25f, 9.03125f)
+    p.curveTo(11.689804f, 10.725467f, 15.375f, 14.3125f, 15.375f, 14.3125f)
+    p.lineTo(17.625f, 16.625f)
+    p.curveTo(17.625f, 16.625f, 21.240767f, 20.320328f, 22.96875f, 21.75f)
+    p.curveTo(23.866287f, 19.781847f, 22.125f, 16.5625f, 22.125f, 16.5625f)
+    p.lineTo(28.28125f, 8.28125f)
+    p.curveTo(28.28125f, 8.28125f, 30.425142f, 9.338682f, 31.46875f, 8.96875f)
+    p.curveTo(28.731115f, 6.065033f, 25.93469f, 3.2688718f, 23.03125f, 0.53125f)
+    p.lineTo(23.03125f, 0.53125f)
+    p.moveTo(14.15625f, 15.75f)
+    p.curveTo(12.502968f, 17.66335f, 7.54957f, 23.421309f, 4.71875f, 27.28125f)
+    p.curveTo(4.738359f, 27.273304f, 4.75897f, 27.288403f, 4.78125f, 27.28125f)
+    p.curveTo(8.53409f, 24.389627f, 14.270967f, 19.491327f, 16.1875f, 17.84375f)
+    p.lineTo(14.15625f, 15.75f)
+    p.lineTo(14.15625f, 15.75f)
+  }
+
+  def NotPinned(p: Path2D): Unit = {
+    p.moveTo(16.84375f, 7.0f)
+    p.curveTo(16.663853f, 9.216087f, 16.75f, 14.375f, 16.75f, 14.375f)
+    p.lineTo(16.71875f, 17.5625f)
+    p.curveTo(16.71875f, 17.5625f, 16.632814f, 22.767199f, 16.84375f, 25.0f)
+    p.curveTo(18.8701f, 24.24296f, 19.9375f, 20.71875f, 19.9375f, 20.71875f)
+    p.lineTo(30.125f, 19.21875f)
+    p.curveTo(30.125f, 19.21875f, 30.906727f, 21.49239f, 31.90625f, 21.96875f)
+    p.curveTo(32.02369f, 17.979712f, 32.023502f, 14.020084f, 31.90625f, 10.03125f)
+    p.curveTo(30.934965f, 10.505367f, 30.1875f, 12.71875f, 30.1875f, 12.71875f)
+    p.lineTo(19.96875f, 11.34375f)
+    p.curveTo(19.96875f, 11.34375f, 18.910301f, 7.763767f, 16.84375f, 7.0f)
+    p.lineTo(16.84375f, 7.0f)
+    p.moveTo(14.90625f, 14.53125f)
+    p.curveTo(12.415221f, 14.712822f, 4.808247f, 15.270046f, 0.0625f, 16.0f)
+    p.curveTo(-0.05961561f, 15.98964f, 0.0243804f, 16.02684f, 0.09375f, 16.0625f)
+    p.curveTo(4.827063f, 16.676004f, 12.460336f, 17.253107f, 14.90625f, 17.4375f)
+    p.lineTo(14.90625f, 14.53125f)
+    p.lineTo(14.90625f, 14.53125f)
+  }
+
+  def Document(p: Path2D): Unit = {
+    p.moveTo(23.024f, 5.673f)
+    p.curveTo(21.28f, 3.9789999f, 19.399f, 2.6219997f, 17.855999f, 2.4369998f)
+    p.curveTo(17.772f, 2.4249997f, 17.685f, 2.4179997f, 17.592999f, 2.416f)
+    p.lineTo(7.438f, 2.416f)
+    p.curveTo(7.276f, 2.416f, 7.116f, 2.4789999f, 7.0020003f, 2.596f)
+    p.curveTo(6.889f, 2.71f, 6.822f, 2.87f, 6.822f, 3.033f)
+    p.lineTo(6.822f, 28.783f)
+    p.curveTo(6.822f, 28.945002f, 6.885f, 29.1f, 7.002f, 29.218f)
+    p.curveTo(7.119f, 29.334f, 7.273f, 29.397001f, 7.4379997f, 29.397001f)
+    p.lineTo(25.802f, 29.397001f)
+    p.curveTo(25.964f, 29.397001f, 26.119f, 29.335001f, 26.236f, 29.218f)
+    p.curveTo(26.353f, 29.101f, 26.418f, 28.946001f, 26.418f, 28.783f)
+    p.lineTo(26.418f, 11.648f)
+    p.curveTo(26.382f, 9.659f, 24.824f, 7.49f, 23.024f, 5.673f)
+    p.lineTo(23.024f, 5.673f)
+    p.moveTo(22.157f, 6.545f)
+    p.curveTo(22.962f, 7.3310003f, 23.685999f, 8.221f, 24.226f, 9.079f)
+    p.curveTo(23.758f, 8.894f, 23.267f, 8.757001f, 22.806f, 8.648001f)
+    p.curveTo(21.791f, 8.420001f, 20.798f, 8.328001f, 20.181f, 8.291f)
+    p.curveTo(20.184f, 8.158f, 20.185f, 8.008f, 20.185f, 7.8450003f)
+    p.curveTo(20.185f, 6.9760003f, 20.13f, 5.7370005f, 19.828999f, 4.6450005f)
+    p.curveTo(19.825998f, 4.635f, 19.824f, 4.6250005f, 19.819998f, 4.6150002f)
+    p.curveTo(20.584f, 5.119f, 21.416f, 5.788f, 22.157f, 6.545f)
+    p.lineTo(22.157f, 6.545f)
+    p.moveTo(25.184f, 28.164f)
+    p.lineTo(8.052f, 28.164f)
+    p.lineTo(8.052f, 3.646f)
+    p.lineTo(17.594f, 3.646f)
+    p.lineTo(17.594f, 3.648f)
+    p.curveTo(18.01f, 3.623f, 18.369f, 4.034f, 18.644f, 4.974f)
+    p.curveTo(18.894f, 5.869f, 18.956999f, 7.0360003f, 18.956f, 7.8450003f)
+    p.curveTo(18.958f, 8.438001f, 18.928999f, 8.836f, 18.928999f, 8.836f)
+    p.lineTo(18.88f, 9.488001f)
+    p.lineTo(19.536f, 9.495001f)
+    p.curveTo(19.539f, 9.495001f, 21.052f, 9.5130005f, 22.536f, 9.85f)
+    p.curveTo(23.962f, 10.158f, 25.077f, 10.772f, 25.181f, 11.467f)
+    p.curveTo(25.185f, 11.529f, 25.185999f, 11.591f, 25.185f, 11.649f)
+    p.lineTo(25.185f, 28.164f)
+    p.lineTo(25.184f, 28.164f)
+  }
+
+  def Normalized(p: Path2D): Unit = {
+    p.moveTo(4.083f, 14.0f)
+    p.lineTo(14.0f, 14.0f)
+    p.lineTo(14.0f, 4.083f)
+    p.lineTo(4.083f, 4.083f)
+    p.lineTo(4.083f, 14.0f)
+    p.lineTo(4.083f, 14.0f)
+    p.moveTo(17.0f, 4.083f)
+    p.lineTo(17.0f, 14.0f)
+    p.lineTo(26.917f, 14.0f)
+    p.lineTo(26.917f, 4.083f)
+    p.lineTo(17.0f, 4.083f)
+    p.lineTo(17.0f, 4.083f)
+    p.moveTo(17.0f, 26.917f)
+    p.lineTo(26.917f, 26.917f)
+    p.lineTo(26.917f, 16.999f)
+    p.lineTo(17.0f, 16.999f)
+    p.lineTo(17.0f, 26.917f)
+    p.lineTo(17.0f, 26.917f)
+    p.moveTo(4.083f, 26.917f)
+    p.lineTo(14.0f, 26.917f)
+    p.lineTo(14.0f, 16.999f)
+    p.lineTo(4.083f, 16.999f)
+    p.lineTo(4.083f, 26.917f)
+    p.lineTo(4.083f, 26.917f)
+  }
+
+  def Layered(p: Path2D): Unit = {
+    p.moveTo(5.896f, 5.333f)
+    p.lineTo(5.896f, 21.25f)
+    p.lineTo(29.313f, 21.25f)
+    p.lineTo(29.313f, 5.333f)
+    p.lineTo(5.896f, 5.333f)
+    p.lineTo(5.896f, 5.333f)
+    p.moveTo(26.312f, 18.25f)
+    p.lineTo(8.896f, 18.25f)
+    p.lineTo(8.896f, 8.334f)
+    p.lineTo(26.313f, 8.334f)
+    p.lineTo(26.313f, 18.25f)
+    p.lineTo(26.312f, 18.25f)
+    p.lineTo(26.312f, 18.25f)
+    p.moveTo(4.896f, 9.542f)
+    p.lineTo(1.687f, 9.542f)
+    p.lineTo(1.687f, 25.459f)
+    p.lineTo(25.104f, 25.459f)
+    p.lineTo(25.104f, 22.25f)
+    p.lineTo(4.896f, 22.25f)
+    p.lineTo(4.896f, 9.542f)
+    p.lineTo(4.896f, 9.542f)
   }
 }

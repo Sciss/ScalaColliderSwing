@@ -16,12 +16,12 @@ lazy val appDescription         = "Standalone application for ScalaCollider"
 
 lazy val scalaColliderVersion   = "1.18.1"
 lazy val prefuseVersion         = "1.0.1"
-lazy val audioWidgetsVersion    = "1.9.1"
+lazy val audioWidgetsVersion    = "1.9.4"
 lazy val ugensVersion           = "1.14.1"
 
 // ---- interpreter dependencies ----
 
-lazy val interpreterPaneVersion = "1.7.2"
+lazy val interpreterPaneVersion = "1.7.3"
 
 // ---- plotting dependencies ----
 
@@ -33,9 +33,10 @@ lazy val chartVersion           = "0.5.0"
 lazy val desktopVersion         = "0.7.2"
 lazy val fileUtilVersion        = "1.1.1"
 lazy val kollFlitzVersion       = "0.2.0"
-lazy val subminVersion          = "0.1.0"
+lazy val subminVersion          = "0.2.0"
 lazy val dockingVersion         = "1.1.1"
 lazy val dspVersion             = "1.2.2"
+// lazy val raphaelVersion         = "1.0.3"
 
 lazy val commonSettings = Seq(
   version            := projectVersion,
@@ -134,14 +135,6 @@ lazy val pkgDebianSettings = Seq(
   }
 )
 
-// lazy vall appbundleSettings = Seq(
-//    // ---- appbundle ----
-//    appbundle.mainClass := appMainClass,
-//    appbundle.target := baseDirectory.value,
-//    appbundle.name   := "ScalaCollider",
-//    appbundle.icon   := Some(file("icons/ScalaCollider.png"))
-// )
-
 lazy val assemblySettings = Seq(
   // ---- assembly ----
   test            in assembly := (),
@@ -234,6 +227,7 @@ lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
       "de.sciss"                 %% "kollflitz"             % kollFlitzVersion,
       "de.sciss"                 %  "submin"                % subminVersion,
       "de.sciss"                 %% "scissdsp"              % dspVersion,
+      // "de.sciss"                 %% "raphael-icons"         % raphaelVersion,
       "org.dockingframes"        %  "docking-frames-common" % dockingVersion
  //     "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
       // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
