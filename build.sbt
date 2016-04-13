@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.28.0-SNAPSHOT"
+lazy val projectVersion         = "1.28.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
 lazy val authorEMail            = "contact@sciss.de"
@@ -34,9 +34,9 @@ lazy val desktopVersion         = "0.7.2"
 lazy val fileUtilVersion        = "1.1.1"
 lazy val kollFlitzVersion       = "0.2.0"
 lazy val subminVersion          = "0.2.0"
-lazy val dockingVersion         = "1.1.1"
+lazy val dockingVersion         = "2.0.0"
+lazy val pegDownVersion         = "1.6.0"
 lazy val dspVersion             = "1.2.2"
-// lazy val raphaelVersion         = "1.0.3"
 
 lazy val commonSettings = Seq(
   version            := projectVersion,
@@ -219,25 +219,16 @@ lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
     libraryDependencies ++= Seq(
       // experiment with making sources and docs available.
       // cf. http://stackoverflow.com/questions/22160701
- //     "de.sciss" %% "scalacollider" % scalaColliderVersion,
- //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "javadoc",
- //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
-      "de.sciss"                 %% "desktop"               % desktopVersion, // withJavadoc() withSources(),
-      "de.sciss"                 %% "fileutil"              % fileUtilVersion,
-      "de.sciss"                 %% "kollflitz"             % kollFlitzVersion,
-      "de.sciss"                 %  "submin"                % subminVersion,
-      "de.sciss"                 %% "scissdsp"              % dspVersion,
-      // "de.sciss"                 %% "raphael-icons"         % raphaelVersion,
-      "org.dockingframes"        %  "docking-frames-common" % dockingVersion
- //     "net.sf.cssbox"            %  "swingbox"              % swingBoxVersion,
-      // "org.fusesource.scalamd"   %% "scalamd"               % "1.6",
+      //     "de.sciss" %% "scalacollider" % scalaColliderVersion,
+      //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "javadoc",
+      //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
+      "de.sciss"    %  "scalacolliderugens-spec" % ugensVersion,
+      "de.sciss"    %% "desktop"                 % desktopVersion, // withJavadoc() withSources(),
+      "de.sciss"    %% "fileutil"                % fileUtilVersion,
+      "de.sciss"    %% "kollflitz"               % kollFlitzVersion,
+      "de.sciss"    %  "submin"                  % subminVersion,
+      "de.sciss"    %% "scissdsp"                % dspVersion,
+      "de.sciss"    %  "docking-frames"          % dockingVersion,
+      "org.pegdown" %  "pegdown"                 % pegDownVersion
     )
   )
-
-// ---- ls.implicit.ly ----
-
-// seq(lsSettings :_*)
-// (LsKeys.tags   in LsKeys.lsync) := Seq("sound-synthesis", "sound", "music", "supercollider")
-// (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
-// (LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
-

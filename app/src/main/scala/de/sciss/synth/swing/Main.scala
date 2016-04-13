@@ -17,25 +17,29 @@ import java.awt.event._
 import java.awt.{Color, Font, GraphicsEnvironment, KeyboardFocusManager}
 import java.io.{FileOutputStream, OutputStreamWriter}
 import java.net.URL
+import javax.swing.event.{HyperlinkEvent, HyperlinkListener}
 import javax.swing.{KeyStroke, SwingUtilities, UIManager}
 
 import bibliothek.gui.dock.common.event.CFocusListener
 import bibliothek.gui.dock.common.intern.CDockable
 import bibliothek.gui.dock.common.mode.ExtendedMode
 import bibliothek.gui.dock.common.theme.ThemeMap
-import bibliothek.gui.dock.common.{CControl, CLocation, DefaultSingleCDockable}
+import bibliothek.gui.dock.common.{CControl, CLocation, DefaultSingleCDockable, SingleCDockable}
 import bibliothek.gui.dock.dockable.IconHandling
 import bibliothek.gui.dock.util.Priority
 import de.sciss.desktop.impl.{SwingApplicationImpl, WindowHandlerImpl, WindowImpl}
 import de.sciss.desktop.{Desktop, DialogSource, FileDialog, KeyStrokes, LogPane, Menu, OptionPane, RecentFiles, Window, WindowHandler}
 import de.sciss.file._
+import de.sciss.swingplus.PopupMenu
 import de.sciss.syntaxpane.TokenType
-import de.sciss.synth.Server
+import de.sciss.synth.{Server, UGenSpec, UndefinedRate, ugen}
 import de.sciss.{scalainterpreter => si}
+import org.pegdown.PegDownProcessor
 
+import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
-import scala.swing.event.Key
-import scala.swing.{Action, BorderPanel, BoxPanel, Component, Orientation, Swing}
+import scala.swing.event.{Key, MouseButtonEvent, MousePressed}
+import scala.swing.{Action, BorderPanel, BoxPanel, Component, EditorPane, MenuItem, Orientation, ScrollPane, Swing}
 import scala.tools.nsc.interpreter.NamedParam
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -161,8 +165,13 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     }
 
     def init(c: Component): Unit = {
-      contents  = c
-      bounds    = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
+      contents = c
+      delegate.component.peer match {
+        case jf: java.awt.Frame =>
+          jf.setExtendedState(java.awt.Frame.MAXIMIZED_BOTH)
+        case _ =>
+          bounds = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
+      }
       front()
     }
   }
@@ -276,6 +285,63 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     res
   }
 
+  private var helpHistory     = Vector.empty[String]
+  private var helpHistoryIdx  = 0
+
+  private lazy val helpEditor: EditorPane = {
+    val res = new EditorPane("text/html", "") {
+      editable = false
+      border = Swing.EmptyBorder(8)
+
+      peer.addHyperlinkListener(new HyperlinkListener {
+        def hyperlinkUpdate(e: HyperlinkEvent): Unit = {
+          if (e.getEventType == HyperlinkEvent.EventType.ACTIVATED) {
+            // println(s"description: ${e.getDescription}")
+            // println(s"source elem: ${e.getSourceElement}")
+            // println(s"url        : ${e.getURL}")
+            val link = e.getDescription
+            val ident = if (link.startsWith("ugen.")) link.substring(5) else link
+            lookUpHelp(ident)
+          }
+        }
+      })
+
+      listenTo(mouse.clicks)
+      reactions += {
+        case e: MouseButtonEvent if e.triggersPopup && helpHistory.nonEmpty =>
+          val pop = new PopupMenu {
+            if (helpHistoryIdx > 0) contents += new MenuItem(Action("Back") {
+              val idx = helpHistoryIdx - 1
+              if (idx >= 0 && idx < helpHistory.size) {
+                helpHistoryIdx = idx
+                lookUpHelp(helpHistory(idx), addToHistory = false)
+              }
+            })
+            if (helpHistoryIdx < helpHistory.size - 1) contents += new MenuItem(Action("Forward") {
+              val idx = helpHistoryIdx + 1
+              if (idx < helpHistory.size) {
+                helpHistoryIdx = idx
+                lookUpHelp(helpHistory(idx), addToHistory = false)
+              }
+            })
+          }
+          pop.show(this, e.point.x - 4, e.point.y - 4)
+      }
+    }
+    res
+  }
+
+  private lazy val helpDockable: SingleCDockable = {
+    val scroll  = new ScrollPane(helpEditor)
+    scroll.peer.putClientProperty("styleId", "undecorated")
+    val res     = new DefaultSingleCDockable("help", "Help", scroll.peer)
+    res.setLocation(CLocation.base().normalEast(0.0333).north(0.75)) // .east(0.333)
+    res.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
+    res.setTitleIcon(null)
+    dockCtrl.addDockable(res)
+    res
+  }
+
   override protected def init(): Unit = {
     GUI.windowOnTop = true
 
@@ -306,12 +372,14 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     Console.setErr(lg.outputStream)
 
     val lgd = new DefaultSingleCDockable("log", "Log", lg.component.peer)
-    lgd.setLocation(CLocation.base().normalSouth(0.25))
+    lgd.setLocation(CLocation.base().normalSouth(0.25).east(0.333))
     lgd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
     lgd.setTitleIcon(null)
 
     dockCtrl.addDockable(lgd)
     lgd.setVisible(true)
+
+    helpDockable  // init
 
 //    lgd.addCDockableStateListener(new CDockableStateListener {
 //      def extendedModeChanged(dockable: CDockable, mode: ExtendedMode): Unit = {
@@ -457,14 +525,124 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   def openURL(url: String): Unit = Desktop.browseURI(new URL(url).toURI)
 
-  private def lookUpHelp(dock: TextViewDockable): Unit = {
-    val ed = dock.view.editor
-    ed.activeToken.foreach { token =>
-      if (token.`type` == TokenType.IDENTIFIER) {
-        val ident = token.getString(ed.editor.peer.getDocument)
-        println(s"TODO: lookUpHelp - $ident")
+  def lookUpHelp(ident: String, addToHistory: Boolean = true): Unit = {
+    val opt = UGenSpec.standardUGens.get(ident).orElse(UGenSpec.thirdPartyUGens.get(ident))
+    opt.fold[Unit] {
+      println(s"No documentation for $ident")
+    } { spec =>
+      spec.doc.fold[Unit] {
+        println(s"No documentation for UGen $ident")
+      } { doc =>
+        val source = ugenDocToMarkdown(spec, doc)
+        browseMarkdown(source = source)
+        if (addToHistory) {
+          helpHistory     = helpHistory.take(helpHistoryIdx + 1).takeRight(32) :+ ident
+          helpHistoryIdx  = helpHistory.size - 1
+        }
       }
     }
+  }
+
+  private def ugenDocToMarkdown(spec: UGenSpec, doc: UGenSpec.Doc): String = {
+    val sb = new StringBuilder
+
+    @tailrec def convert(in: String, findL: String, findR: String, replL: String, replR: String,
+                         midF: String => String = identity): String = {
+      val i = in.indexOf(findL)
+      if (i >= 0) {
+        val j = i + findL.length
+        val k = in.indexOf(findR, j)
+        if (k >= 0) {
+          val m    = k + findR.length
+          val pre  = in.substring(0, i)
+          val mid  = in.substring(j, k)
+          val post = in.substring(m)
+          val out  = s"$pre$replL${midF(mid)}$replR$post"
+          convert(in = out, findL = findL, findR = findR, replL = replL, replR = replR)
+        } else in
+      } else in
+    }
+
+    // bold, italics, pre
+    def convertAll(in: String) = {
+      val a = in
+      val b = convert(a, "'''", "'''", "__"   , "__"     )
+      val c = convert(b, "''" , "''" , "_"    , "_"      )
+      val d = convert(c, "{{{", "}}}", "\n", "\n", mid => mid.split("\n").map(ln => s"    $ln").mkString("\n"))
+      d
+    }
+
+    if (doc.links.nonEmpty) {
+      val links = doc.links.map { link =>
+        val name = link.substring(link.lastIndexOf('.') + 1)
+        s"[$name]($link)"
+      }
+      sb.append(links.mkString("See also: ", ", ", "\n\n"))
+    }
+
+    sb.append(s"# ${spec.name}\n\n")
+
+    doc.body.foreach { in =>
+      sb.append(convertAll(in))
+      sb.append("\n\n")
+    }
+
+    if (doc.args.nonEmpty) {
+      sb.append("## Arguments\n\n")
+      if (doc.warnPos) {
+        sb.append("__Warning:__ The argument order differs from sc-lang!\n\n")
+      }
+      spec.args.foreach { arg =>
+        doc.args.get(arg.name).foreach { argDoc =>
+          var pre = s"- __${arg.name}__: "
+          argDoc.foreach { par =>
+            sb.append(pre)
+            sb.append(convertAll(par))
+            pre = "<br><br>"
+          }
+          if (arg.defaults.nonEmpty) {
+            val df = arg.defaults.map { case (rate, value) =>
+              if (rate == UndefinedRate) value.toString else s"$value for ${rate.name} rate"
+            } .mkString(" _(default: ", ", ", ")_")
+            sb.append(df)
+          }
+          sb.append('\n')
+        }
+      }
+      sb.append('\n')
+    }
+    if (doc.examples.nonEmpty) {
+      sb.append("## Examples\n\n")
+      doc.examples.foreach { ex =>
+        // Simple: Example specifies UGens which can be wrapped in a `play { ... }` block */
+        // Full: A full scale example which should be executed by itself without wrapping. */
+        sb.append(s"### ${ex.name}\n\n")
+        val isSimple = ex.tpe == UGenSpec.Example.Simple
+        if (isSimple) sb.append("    play {\n")
+        val indent = if (isSimple) "      " else "    "
+        ex.code.foreach { ln =>
+          sb.append(indent)
+          sb.append(ln)
+          sb.append('\n')
+        }
+        if (isSimple) sb.append("    }\n")
+        sb.append('\n')
+      }
+    }
+
+    sb.result()
+  }
+
+  def browseMarkdown(source: String): Unit = {
+    val mdp  = new PegDownProcessor
+    val html = mdp.markdownToHtml(source)
+    browseHTML(source = html)
+  }
+
+  def browseHTML(source: String): Unit = {
+    helpEditor.text = source
+    helpEditor.peer.setCaretPosition(0)
+    helpDockable.setVisible(true) // setExtendedMode(ExtendedMode.NORMALIZED)
   }
 
   private trait FileAction {
@@ -551,9 +729,30 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     protected def perform(dock: TextViewDockable): Unit = saveAs(dock)
   }
 
-  private object ActionLookUpHelp extends Action("Look up Documentation for Cursor") with FileAction {
+  private object ActionLookUpHelpCursor extends Action("Look up Documentation for Cursor") with FileAction {
     accelerator = Some(KeyStrokes.menu1 + Key.D)
-    protected def perform(dock: TextViewDockable): Unit = lookUpHelp(dock)
+    protected def perform(dock: TextViewDockable): Unit = {
+      val ed = dock.view.editor
+      ed.activeToken.foreach { token =>
+        if (token.`type` == TokenType.IDENTIFIER) {
+          val ident = token.getString(ed.editor.peer.getDocument)
+          lookUpHelp(ident)
+        }
+      }
+    }
+  }
+
+  private object ActionLookUpHelpQuery extends Action("Look up Documentation...") {
+    accelerator = Some(KeyStrokes.menu1 + KeyStrokes.shift + Key.D)
+
+
+    def apply(): Unit = {
+      val pane = OptionPane.textInput(message = "Symbol:", initial = "")
+      val res  = pane.show(title = "Look up Documentation")
+      res.foreach { ident =>
+        lookUpHelp(ident)
+      }
+    }
   }
 
   import KeyStrokes.menu1
@@ -571,7 +770,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   }
 
   private lazy val fileActions = List(ActionFileClose, ActionFileSave, ActionFileSaveAs,
-    actionEnlargeFont, actionShrinkFont, actionResetFont, ActionLookUpHelp)
+    actionEnlargeFont, actionShrinkFont, actionResetFont, ActionLookUpHelpCursor)
 
   protected lazy val menuFactory: Menu.Root = {
     import KeyStrokes._
@@ -582,7 +781,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       val html =
         s"""<html><center>
            |<font size=+1><b>About $name</b></font><p>
-           |Copyright (c) 2008&ndash;2015 Hanns Holger Rutz. All rights reserved.<p>
+           |Copyright (c) 2008&ndash;2016 Hanns Holger Rutz. All rights reserved.<p>
            |This software is published under the GNU General Public License v3+
            |<p>&nbsp;<p><i>
            |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
@@ -632,7 +831,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
       .add(Item("clear-log")("Clear Log Window" -> (menu1 + shift + Key.P))(clearLog()))
 
     val gHelp = Group("help", "Help")
-      .add(Item("help-for-cursor", ActionLookUpHelp))
+      .add(Item("help-for-cursor", ActionLookUpHelpCursor))
+      .add(Item("help-query"     , ActionLookUpHelpQuery ))
 
     if (itAbout.visible) gHelp.addLine().add(itAbout)
 
