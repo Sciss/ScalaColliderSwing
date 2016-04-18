@@ -15,6 +15,8 @@ ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://github.
 
 Please see the `licenses` folder for details. It contains the license headers for all dependencies and transitive dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the respective OSS project pages, as indicated in the license files, or&mdash;in compliance with GPL/LGPL&mdash;on request via E-Mail. All source code with group-ID `de.sciss` is available from [github.com/Sciss](https://github.com/Sciss).
 
+<img src="screenshot.png" alt="screenshot" width="574" height="382"/>
+
 ## downloading
 
 - A binary (executable) version is provided via [GitHub releases](https://github.com/Sciss/ScalaColliderSwing/releases/latest).
