@@ -14,6 +14,8 @@
 package de.sciss.synth
 package swing
 
+import de.sciss.optional.Optional
+
 import language.implicitConversions
 
 object Implicits {
@@ -27,7 +29,7 @@ object Implicits {
     def apply[A: GraphFunction.Result.In](target: Node = Server.default, outBus: Int = 0,
                                           fadeTime: Optional[Double] = None, addAction: AddAction = addToHead)
                                          (thunk: => A): GUI.GraphFunction[A] = {
-      val data = new GUI.GraphFunctionData(target = target, outBus = outBus, fadeTime = fadeTime.option,
+      val data = new GUI.GraphFunctionData(target = target, outBus = outBus, fadeTime = fadeTime,
         addAction = addAction, args = Nil, thunk = thunk)
       new GUI.GraphFunction(data)
     }

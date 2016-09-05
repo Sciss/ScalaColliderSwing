@@ -15,12 +15,15 @@ package de.sciss.synth
 package swing
 package impl
 
-import scala.swing.{Component, Orientation, BoxPanel, Swing}
-import de.sciss.{osc, synth}
+import java.awt.EventQueue
+
 import de.sciss.audiowidgets.PeakMeter
 import de.sciss.osc.Message
-import collection.immutable.{Seq => ISeq, IndexedSeq => Vec}
-import java.awt.EventQueue
+import de.sciss.synth.Ops.stringToControl
+import de.sciss.{osc, synth}
+
+import scala.collection.immutable.{IndexedSeq => Vec, Seq => ISeq}
+import scala.swing.{BoxPanel, Component, Orientation, Swing}
 
 class AudioBusMeterImpl(val strips: ISeq[AudioBusMeter.Strip]) extends AudioBusMeter {
   private var wasClosed = false

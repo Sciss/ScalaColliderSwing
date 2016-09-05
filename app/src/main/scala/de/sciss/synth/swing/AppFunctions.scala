@@ -14,10 +14,11 @@
 package de.sciss.synth.swing
 
 import java.io.RandomAccessFile
-import de.sciss.file._
+
 import de.sciss.desktop.FileDialog
+import de.sciss.file._
+import de.sciss.optional.Optional
 import de.sciss.synth.swing.{Main => App}
-import de.sciss.synth.Optional
 
 object AppFunctions {
   // def plot(data: Plot.Source, title: String = "title"): Unit = Plot(data)

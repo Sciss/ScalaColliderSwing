@@ -14,9 +14,11 @@
 package de.sciss.synth
 package swing
 
-import de.sciss.synth.{GraphFunction => SGraphFunction, Group => SGroup, Server => SServer, Node => SNode, AudioBus => SAudioBus}
+import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, Group => SGroup, Node => SNode, Server => SServer}
+import de.sciss.synth.Ops.stringToControl
+
+import scala.collection.immutable.{Seq => ISeq}
 import scala.swing.Frame
-import collection.immutable.{Seq => ISeq}
 
 object GUI {
   var windowOnTop = false

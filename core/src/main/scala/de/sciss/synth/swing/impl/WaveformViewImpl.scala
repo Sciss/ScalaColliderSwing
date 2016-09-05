@@ -15,16 +15,19 @@ package de.sciss.synth
 package swing
 package impl
 
-import de.sciss.{osc, synth}
-import de.sciss.audiowidgets.j.WavePainter
-import java.io.File
-import java.awt.{Point, RenderingHints, Graphics, Dimension, Color, Graphics2D, Font}
-import javax.swing.JComponent
-import scala.swing.{Swing, BoxPanel, Component, BorderPanel, Orientation, Frame}
-import scala.collection.immutable.{IndexedSeq => Vec}
-import de.sciss.audiowidgets.{AxisFormat, Axis}
-import javax.swing.event.MouseInputAdapter
 import java.awt.event.MouseEvent
+import java.awt.{Color, Dimension, Font, Graphics, Graphics2D, Point, RenderingHints}
+import java.io.File
+import javax.swing.JComponent
+import javax.swing.event.MouseInputAdapter
+
+import de.sciss.audiowidgets.j.WavePainter
+import de.sciss.audiowidgets.{Axis, AxisFormat}
+import de.sciss.synth.Ops.stringToControl
+import de.sciss.{osc, synth}
+
+import scala.collection.immutable.{IndexedSeq => Vec}
+import scala.swing.{BorderPanel, BoxPanel, Component, Frame, Orientation, Swing}
 
 object WaveformViewImpl {
   private final case class GUIRecordOut(in: GE)(chanFun: Int => Unit)
