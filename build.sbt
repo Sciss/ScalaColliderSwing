@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.30.0"
+lazy val projectVersion         = "1.31.0-SNAPSHOT"
 
 lazy val authorName             = "Hanns Holger Rutz"
 lazy val authorEMail            = "contact@sciss.de"
@@ -14,10 +14,11 @@ lazy val appDescription         = "Standalone application for ScalaCollider"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.20.0"
+lazy val scalaColliderVersion   = "1.21.0-SNAPSHOT"
 lazy val prefuseVersion         = "1.0.1"
 lazy val audioWidgetsVersion    = "1.10.0"
-lazy val ugensVersion           = "1.15.2"
+lazy val ugensVersion           = "1.16.0-SNAPSHOT"
+lazy val dotVersion             = "0.3.0-SNAPSHOT"
 
 // ---- interpreter dependencies ----
 
@@ -175,11 +176,12 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
     name           := s"$baseName-core",
     description    := "Swing components for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss" %% "scalacollider"        % scalaColliderVersion,
-      "de.sciss" %% "scalacolliderugens-core"    % ugensVersion,
-      "de.sciss" %% "scalacolliderugens-plugins" % ugensVersion,  // NB: sc3-plugins
-      "de.sciss" %  "prefuse-core"         % prefuseVersion,
-      "de.sciss" %% "audiowidgets-swing"   % audioWidgetsVersion
+      "de.sciss"      %% "scalacollider"              % scalaColliderVersion,
+      "de.sciss"      %% "scalacolliderugens-core"    % ugensVersion,
+      "de.sciss"      %% "scalacolliderugens-plugins" % ugensVersion,  // NB: sc3-plugins
+      "de.sciss"      %  "prefuse-core"               % prefuseVersion,
+      "de.sciss"      %% "audiowidgets-swing"         % audioWidgetsVersion,
+      "at.iem"        %% "scalacollider-dot"          % dotVersion
     ),
     // ---- build info ----
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
