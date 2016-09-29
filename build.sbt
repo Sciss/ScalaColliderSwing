@@ -146,7 +146,8 @@ lazy val assemblySettings = Seq(
   assemblyJarName in assembly := "ScalaCollider.jar",
   assemblyMergeStrategy in assembly := {
     case "logback.xml" => MergeStrategy.last
-    case PathList("org", "xmlpull", xs @ _*) => MergeStrategy.first
+    case PathList("org", "xmlpull", xs @ _*)              => MergeStrategy.first
+    case PathList("org", "w3c", "dom", "events", xs @ _*) => MergeStrategy.first // bloody Apache Batik
     case x =>
       val old = (assemblyMergeStrategy in assembly).value
       old(x)
@@ -185,7 +186,7 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
       "de.sciss"               %% "audiowidgets-swing"         % audioWidgetsVersion,
       "at.iem"                 %% "scalacollider-dot"          % dotVersion,
       "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion,
-      "org.apache.xmlgraphics" %  "xmlgraphics-commons"        % xmlGraphicsVersion // required by Batik!
+      "org.apache.xmlgraphics" %  "xmlgraphics-commons"        % xmlGraphicsVersion // bloody Apache Batik does not declare its dependencies
     ),
     // ---- build info ----
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
