@@ -1,5 +1,5 @@
 
-config.program     = "/path/to/scsynth"
+config.program     = "scsynth"  // valid path here
 config.transport   = TCP
 boot()
 
@@ -10,18 +10,18 @@ val x = play {
 }
 
 // bus plotter
-val b = new AudioBus( s, s.config.outputBusChannels, 1 ) // microphone
+val b = new AudioBus(s, s.config.outputBusChannels, 1) // microphone
 b.gui.waveform(duration = 2)
 
 x release 10
 
 // function plotter
-val x = gui {
+val x = graph {
    val f = LFSaw.kr(0.4).madd(24, LFSaw.kr(List(8, 7.23)).madd(3, 80)).midicps // glissando function
    CombN.ar(SinOsc.ar(f)*0.04, 0.2, 0.2, 4) // echoing sine wave
 }
 
-x.waveform(duration = 2)
+x.gui.waveform(duration = 2)
 
 // node tree
 s.defaultGroup.gui.tree()
@@ -46,11 +46,10 @@ x run false
 x run true
 
 val y = play(target = x, addAction = addAfter) {
-   ReplaceOut.ar(0, In.ar(0, 2) * SinOsc.ar("freq".kr(1)))
+  ReplaceOut.ar(0, In.ar(0, 2) * SinOsc.ar("freq".kr(1), Pi/4))
 }
 
 y.set("freq" -> 10)
-
 s.freeAll()
 
-viewDef(dfx)
+dfx.gui.diagram()

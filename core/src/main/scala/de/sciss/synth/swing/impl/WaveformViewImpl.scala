@@ -26,17 +26,18 @@ import de.sciss.audiowidgets.{Axis, AxisFormat}
 import de.sciss.synth.Ops.stringToControl
 import de.sciss.{osc, synth}
 
-import scala.collection.immutable.{IndexedSeq => Vec}
 import scala.swing.{BorderPanel, BoxPanel, Component, Frame, Orientation, Swing}
 
 object WaveformViewImpl {
   private final case class GUIRecordOut(in: GE)(chanFun: Int => Unit)
     extends UGenSource.ZeroOut with WritesBus {
+
+    import UGenSource._
     // XXX TODO should not be UGenSource
 
-    protected def makeUGens: Unit = unwrap(in.expand.outputs)
+    protected def makeUGens: Unit = unwrap(this, in.expand.outputs)
 
-    protected def makeUGen(ins: Vec[UGenIn]): Unit = {
+    private[synth] def makeUGen(ins: Vec[UGenIn]): Unit = {
       if (ins.isEmpty) return
 
       import synth._
@@ -57,7 +58,7 @@ object WaveformViewImpl {
     }
   }
 
-  def apply[A](data: GUI.GraphFunctionData[A], duration: Double): Frame = {
+  def apply(data: GUI.GraphFunctionData, duration: Double): Frame = {
     import data._
 
     val server = target.server

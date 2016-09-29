@@ -14,24 +14,26 @@
 package de.sciss.synth
 package swing
 
-import de.sciss.optional.Optional
-
-import language.implicitConversions
+import scala.language.implicitConversions
 
 object Implicits {
   implicit def enableGUI(group : Group   ): GUI.Factory[GUI.Group   ]  = new GUI.Factory(new GUI.Group   (group ))
   implicit def enableGUI(server: Server  ): GUI.Factory[GUI.Server  ]  = new GUI.Factory(new GUI.Server  (server))
   implicit def enableGUI(bus   : AudioBus): GUI.Factory[GUI.AudioBus]  = new GUI.Factory(new GUI.AudioBus(bus   ))
+  implicit def enableGUI(sd    : SynthDef): GUI.Factory[GUI.SynthDef]  = new GUI.Factory(new GUI.SynthDef(sd    ))
 
-  object gui {
-    def apply[A: GraphFunction.Result.In](thunk: => A): GUI.GraphFunction[A] = apply()(thunk)
+  implicit def enableGUI[A](fun: GraphFunction[A]): GUI.Factory[GUI.GraphFunction[A]] =
+    new GUI.Factory(new GUI.GraphFunction(fun))
 
-    def apply[A: GraphFunction.Result.In](target: Node = Server.default, outBus: Int = 0,
-                                          fadeTime: Optional[Double] = None, addAction: AddAction = addToHead)
-                                         (thunk: => A): GUI.GraphFunction[A] = {
-      val data = new GUI.GraphFunctionData(target = target, outBus = outBus, fadeTime = fadeTime,
-        addAction = addAction, args = Nil, thunk = thunk)
-      new GUI.GraphFunction(data)
-    }
-  }
+//  object gui {
+//    def apply[A: GraphFunction.Result.In](thunk: => A): GUI.GraphFunction[A] = apply()(thunk)
+//
+//    def apply[A: GraphFunction.Result.In](target: Node = Server.default, outBus: Int = 0,
+//                                          fadeTime: Optional[Double] = None, addAction: AddAction = addToHead)
+//                                         (thunk: => A): GUI.GraphFunction[A] = {
+//      val data = new GUI.GraphFunctionData(target = target, outBus = outBus, fadeTime = fadeTime,
+//        addAction = addAction, args = Nil, thunk = thunk)
+//      new GUI.GraphFunction(data)
+//    }
+//  }
 }

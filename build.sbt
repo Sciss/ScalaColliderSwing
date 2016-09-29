@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.31.0-SNAPSHOT"
+lazy val projectVersion         = "1.31.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
 lazy val authorEMail            = "contact@sciss.de"
@@ -14,11 +14,13 @@ lazy val appDescription         = "Standalone application for ScalaCollider"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.21.0-SNAPSHOT"
+lazy val scalaColliderVersion   = "1.21.0"
 lazy val prefuseVersion         = "1.0.1"
 lazy val audioWidgetsVersion    = "1.10.0"
-lazy val ugensVersion           = "1.16.0-SNAPSHOT"
-lazy val dotVersion             = "0.3.0-SNAPSHOT"
+lazy val ugensVersion           = "1.16.0"
+lazy val dotVersion             = "0.3.0"
+lazy val batikVersion           = "1.8"
+lazy val xmlGraphicsVersion     = "2.1"
 
 // ---- interpreter dependencies ----
 
@@ -32,7 +34,7 @@ lazy val chartVersion           = "0.5.0"
 // ---- app dependencies ----
 
 lazy val desktopVersion         = "0.7.2"
-lazy val fileUtilVersion        = "1.1.1"
+lazy val fileUtilVersion        = "1.1.2"
 lazy val kollFlitzVersion       = "0.2.0"
 lazy val subminVersion          = "0.2.1"
 lazy val dockingVersion         = "2.0.0"
@@ -176,12 +178,14 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
     name           := s"$baseName-core",
     description    := "Swing components for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss"      %% "scalacollider"              % scalaColliderVersion,
-      "de.sciss"      %% "scalacolliderugens-core"    % ugensVersion,
-      "de.sciss"      %% "scalacolliderugens-plugins" % ugensVersion,  // NB: sc3-plugins
-      "de.sciss"      %  "prefuse-core"               % prefuseVersion,
-      "de.sciss"      %% "audiowidgets-swing"         % audioWidgetsVersion,
-      "at.iem"        %% "scalacollider-dot"          % dotVersion
+      "de.sciss"               %% "scalacollider"              % scalaColliderVersion,
+      "de.sciss"               %% "scalacolliderugens-core"    % ugensVersion,
+      "de.sciss"               %% "scalacolliderugens-plugins" % ugensVersion,  // NB: sc3-plugins
+      "de.sciss"               %  "prefuse-core"               % prefuseVersion,
+      "de.sciss"               %% "audiowidgets-swing"         % audioWidgetsVersion,
+      "at.iem"                 %% "scalacollider-dot"          % dotVersion,
+      "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion,
+      "org.apache.xmlgraphics" %  "xmlgraphics-commons"        % xmlGraphicsVersion // required by Batik!
     ),
     // ---- build info ----
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,

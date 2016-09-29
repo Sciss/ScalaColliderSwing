@@ -14,11 +14,17 @@
 package de.sciss.synth
 package swing
 
-import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, Group => SGroup, Node => SNode, Server => SServer}
+import java.io.{ByteArrayInputStream, File}
+import javax.swing.JButton
+
+import at.iem.scalacollider.ScalaColliderDOT
 import de.sciss.synth.Ops.stringToControl
+import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, Group => SGroup, Node => SNode, Server => SServer, SynthDef => SSynthDef}
+import org.apache.batik.swing.JSVGCanvas
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.swing.Frame
+import scala.swing.event.MouseWheelMoved
+import scala.swing.{BorderPanel, Component, FlowPanel, Frame, Label, ScrollPane}
 
 object GUI {
   var windowOnTop = false
@@ -32,7 +38,7 @@ object GUI {
     def gui: A = target
   }
 
-  final class Group private[swing](val group: SGroup) {
+  final class Group private[swing](group: SGroup) {
     def tree() : Frame = {
       val ntp                       = new NodeTreePanel()
       ntp.nodeActionMenu            = true
@@ -45,13 +51,13 @@ object GUI {
     }
   }
 
-  final class AudioBus private[swing](val bus: SAudioBus) {
+  final class AudioBus private[swing](bus: SAudioBus) {
     def meter(target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail): Frame =
       makeAudioBusMeter(bus.toString, AudioBusMeter.Strip(bus, target, addAction) :: Nil)
 
     def waveform(duration: Double = 0.1, target: SGroup = bus.server.rootNode, addAction: AddAction = addToTail): Frame = {
-      val data = new GraphFunctionData(target = target, fadeTime = None, outBus = 0, addAction = addAction,
-        args = ("$inbus" -> bus.index) :: Nil, thunk = {
+      val data = new GraphFunctionData(target = target, fadeTime = -1, addAction = addAction,
+        args = ("$inbus" -> bus.index) :: Nil, fun = { () =>
           import ugen._
           In.ar("$inbus".ir, bus.numChannels)
         })
@@ -60,19 +66,63 @@ object GUI {
     }
   }
 
-  final class GraphFunctionData[A] private[swing](val target: SNode, val outBus: Int, val fadeTime: Option[Double],
-                                                  val addAction: AddAction,
-                                                  val args: Seq[ControlSet], thunk: => A)
-                                                 (implicit result: SGraphFunction.Result.In[A]) {
-
-    def apply(): GE = result.view(thunk)
+  final class SynthDef private[swing](sd: SSynthDef) {
+    def diagram(): Frame = {
+      val config        = ScalaColliderDOT.Config()
+      config.rateColors = true
+      config.graphName  = sd.name
+      config.input      = sd.graph
+      val dot           = ScalaColliderDOT(config)
+      val dotIn         = new ByteArrayInputStream(dot.getBytes("UTF-8"))
+      val svgOut        = File.createTempFile("temp", "svg")
+//      println(svgOut)
+      svgOut.deleteOnExit()
+      import scala.sys.process._
+      val res           = Seq("dot", "-Tsvg").#<(dotIn).#>(svgOut).!
+      if (res != 0) sys.error(s"'dot' failed with code $res")
+      // XXX TODO --- zoom http://stackoverflow.com/questions/10838971
+      // XXX TODO --- font quality: http://stackoverflow.com/questions/32272822/
+      val svgCanvas     = new JSVGCanvas(null, true, false)
+      val zoomIn  = new svgCanvas.ZoomAction(math.sqrt(2.0))
+      val ggZoomIn  = new JButton(zoomIn)
+      ggZoomIn.setText("+")
+      val zoomOut = new svgCanvas.ZoomAction(math.sqrt(0.5))
+      val ggZoomOut = new JButton(zoomOut)
+      ggZoomOut.setText("\u2013")
+      val scroll  = new ScrollPane(Component.wrap(svgCanvas))
+      scroll.peer.putClientProperty("styleId", "undecorated")
+      val lbInfo  = new Label("Shift-Drag = Pan, Ctrl-Drag = Zoom, Ctrl-T = Reset")
+      val panel   = new BorderPanel {
+        add(scroll, BorderPanel.Position.Center)
+        add(new FlowPanel(Component.wrap(ggZoomIn), Component.wrap(ggZoomOut), lbInfo), BorderPanel.Position.South)
+      }
+      svgCanvas.loadSVGDocument(svgOut.toURI.toURL.toExternalForm)
+      makeFrame(sd.name, s"SynthDef($sd.name)(...).gui.diagram", panel)(svgOut.delete())
+    }
   }
 
-  final class GraphFunction[A] private[swing](data: GraphFunctionData[A]) {
-    def waveform(duration: Double = 0.1): Frame = {
+  final class GraphFunctionData private[swing](val target: SNode, val fadeTime: Double,
+                                               val addAction: AddAction,
+                                               val args: Seq[ControlSet], fun: () => GE) {
+
+    def apply(): GE = fun()
+  }
+
+  final class GraphFunction[A] private[swing](fun: SGraphFunction[A]) {
+    def waveform(duration: Double = 0.1, target: Node = Server.default.defaultGroup,
+                 fadeTime: Double = 0.02, addAction: AddAction = addToHead, args: Seq[ControlSet] = Nil): Frame = {
+      val resIn: () => GE = fun.result match {
+        case SGraphFunction.Result.In(view) => () => view(fun.peer())
+        case _                              => () => ugen.DC.ar(0)    // XXX TODO --- not cool
+      }
+      val data = new GraphFunctionData(target = target, fadeTime = fadeTime, addAction = addAction,
+        args = args, fun = resIn)
       val w = impl.WaveformViewImpl(data, duration = duration)
       configure(w)
     }
+
+    def diagram(fadeTime: Double = 0.02): Frame =
+      new SynthDef(SGraphFunction.mkSynthDef(fun, fadeTime)).diagram()
   }
 
   private def makeAudioBusMeter(name: String, strips: ISeq[AudioBusMeter.Strip]): Frame = {
@@ -103,7 +153,7 @@ object GUI {
     }
   }
 
-  final class Server private[swing](val server: SServer) {
+  final class Server private[swing](server: SServer) {
     def tree(): Frame = {
       val w = new Group(server.rootNode).tree()
       configure(w)
