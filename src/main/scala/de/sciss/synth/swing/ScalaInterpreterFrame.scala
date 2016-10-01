@@ -25,17 +25,51 @@
 
 package de.sciss.synth.swing
 
-import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
-import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
-import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
-import tools.nsc.interpreter.{NamedParam, IMain}
-import java.io.{File, FileInputStream, PrintStream}
 import java.awt.GraphicsEnvironment
+import java.io.{File, FileInputStream}
+import javax.swing.{JFrame, JSplitPane, SwingConstants, WindowConstants}
+
+import de.sciss.scalainterpreter.{CodePane, Interpreter, InterpreterPane, LogPane}
+import de.sciss.synth.swing.ScalaColliderSwing.REPLSupport
+
+import scala.tools.nsc.interpreter.{IMain, NamedParam}
 
 class ScalaInterpreterFrame( replSupport: REPLSupport )
 extends JFrame( "ScalaCollider Interpreter" ) {
 
-   val pane = new ScalaInterpreterPane
+   val iConfig = Interpreter.Config()
+  val pConfig = InterpreterPane.Config()
+  val cConfig = CodePane.Config()
+  val lpConfig = LogPane.Config()
+  val lp = LogPane(lpConfig)
+
+  iConfig.imports ++= Seq(
+      "math._",
+      "de.sciss.synth.{osc => sosc, _}", "de.sciss.osc", "osc.Implicits._",
+      "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
+      "swing.Implicits._", /* "io._", */ "de.sciss.synth.ugen._", "replSupport._"
+  )
+
+  iConfig.bindings :+= NamedParam( "replSupport", replSupport )
+  iConfig.out = Some( lp.writer )
+
+  val file = new File( /* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.txt" )
+  if( file.exists() ) try {
+    val fis  = new FileInputStream( file )
+    val txt  = try {
+      val arr = new Array[ Byte ]( fis.available() )
+      fis.read( arr )
+      new String( arr, "UTF-8" )
+    } finally {
+      fis.close()
+    }
+    cConfig.text += txt
+
+  } catch {
+    case e: Throwable => e.printStackTrace()
+  }
+
+  val pane = InterpreterPane(pConfig, iConfig, cConfig)
    private val sync = new AnyRef
 //   private var inCode: Option[ IMain => Unit ] = None
    
@@ -43,62 +77,16 @@ extends JFrame( "ScalaCollider Interpreter" ) {
    {
       val cp = getContentPane
 
-//      pane.initialCode = Some(
-//"""
-//import math._
-//import de.sciss.osc.{ OSCBundle, OSCMessage, OSCPacket, UDP, TCP }
-//import de.sciss.synth._
-//import de.sciss.synth.swing.SynthGraphPanel._
-//import de.sciss.synth.swing.Implicits._
-//import de.sciss.synth.io._
-//import de.sciss.synth.osc._
-//import de.sciss.synth.ugen._
-//import replSupport._
-//"""
-//      )
+     lp.makeDefault()
 
-      // note: for the auto-completion in the pane to work, we must
-      // import de.sciss.synth.ugen._ instead of ugen._
-      // ; also name aliasing seems to be broken, thus the stuff
-      // in de.sciss.osc is hidden
-      pane.customImports = Seq(
-         "math._",
-         "de.sciss.synth.{osc => sosc, _}", "de.sciss.osc", "osc.Implicits._",
-         "osc.Dump.{Off, Both, Text}", "osc.{TCP, UDP}", "swing.SynthGraphPanel._",
-         "swing.Implicits._", /* "io._", */ "de.sciss.synth.ugen._", "replSupport._"
-      )
+//      Console.setOut( lp.outputStream )
+//      Console.setErr( lp.outputStream )
+//      System.setErr( new PrintStream( lp.outputStream ))
 
-      pane.customBindings = Seq( NamedParam( "replSupport", replSupport ))
-//         in.bind( "s", classOf[ Server ].getName, ntp )
-//         in.bind( "in", classOf[ Interpreter ].getName, in )
-
-      val lp = new LogPane
-      lp.init()
-      pane.out = Some( lp.writer )
-      Console.setOut( lp.outputStream )
-      Console.setErr( lp.outputStream )
-      System.setErr( new PrintStream( lp.outputStream ))
-
-      val file = new File( /* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.txt" )
-      if( file.exists() ) try {
-         val fis  = new FileInputStream( file )
-         val txt  = try {
-            val arr = new Array[ Byte ]( fis.available() )
-            fis.read( arr )
-            new String( arr, "UTF-8" )
-         } finally {
-            fis.close()
-         }
-         pane.initialText += txt
-
-      } catch {
-         case e => e.printStackTrace()
-      }
-
-      pane.init()
+//      pane.init()
       val sp = new JSplitPane( SwingConstants.HORIZONTAL )
-      sp.setTopComponent( pane )
-      sp.setBottomComponent( lp )
+      sp.setTopComponent( pane.component.peer )
+      sp.setBottomComponent( lp.component.peer )
       cp.add( sp )
       val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
       setSize( b.width / 2, b.height * 7 / 8 )
@@ -109,12 +97,12 @@ extends JFrame( "ScalaCollider Interpreter" ) {
 //      setVisible( true )
    }
 
-   def withInterpreter( fun: IMain => Unit ) {
-      sync.synchronized {
-         pane.interpreter.map( fun( _ ))
-//         getOrElse {
-//            inCode = Some( fun )
-//         }
-      }
-   }
+//   def withInterpreter( fun: IMain => Unit ) {
+//      sync.synchronized {
+//         pane.interpreter.map( fun( _ ))
+////         getOrElse {
+////            inCode = Some( fun )
+////         }
+//      }
+//   }
 }

@@ -25,11 +25,13 @@
 
 package de.sciss.synth.swing
 
+import de.sciss.gui.j.PeakMeter
+
 import sys.error
-import de.sciss.gui.PeakMeter
 import de.sciss.osc.Message
-import de.sciss.synth.{addToHead, addToTail, AudioBus, Group => SGroup, Server => SServer}
-import swing.{Swing, BoxPanel, Orientation, Frame}
+import de.sciss.synth.{AudioBus, addToHead, addToTail, Group => SGroup, Server => SServer}
+
+import swing.{BoxPanel, Component, Frame, Orientation, Swing}
 
 object GUI {
    class Factory[ T ] private[swing] ( target: => T ) { def gui: T = target }
@@ -81,7 +83,7 @@ captionLabels = false // XXX currently they have wrong layout
          val f = new Frame {
             title = "Meter : " + name
             contents = new BoxPanel( Orientation.Horizontal ) {
-               contents ++= sections.map( _._1 )
+               contents ++= sections.map(tup => Component.wrap(tup._1))
             }
             pack().centerOnScreen()
 
