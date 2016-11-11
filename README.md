@@ -80,10 +80,10 @@ The GUI extensions are available by calling the special `.gui` method on support
     someBus.gui.waveform(dur)   // record and plot bus output for duration in seconds
 
     // graph functions
-    val fun = gui {             // use `gui { ... }` instead of `play { ... }` to capture function
+    val fun = graph {           // use `graph { ... }` instead of `play { ... }` to capture function
       PinkNoise.ar
     }
-    fun.waveform(dur)           // record and plot graph function for duration in seconds
+    fun.gui.waveform(dur)       // record and plot graph function for duration in seconds
 ```
 
 Experimental support for JFreeChart is added (app sub-project only). Extensions are imported with `import de.sciss.synth.swing.Plotting.Implicits._`.
