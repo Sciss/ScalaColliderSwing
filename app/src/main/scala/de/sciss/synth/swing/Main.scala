@@ -338,7 +338,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     res.setLocation(CLocation.base().normalEast(0.0333).north(0.75)) // .east(0.333)
     res.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
     res.setTitleIcon(null)
-    dockCtrl.addDockable(res)
+    dockCtrl.addDockable[SingleCDockable](res)
     res
   }
 
@@ -376,7 +376,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     lgd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
     lgd.setTitleIcon(null)
 
-    dockCtrl.addDockable(lgd)
+    dockCtrl.addDockable[SingleCDockable](lgd)
     lgd.setVisible(true)
 
     helpDockable  // init

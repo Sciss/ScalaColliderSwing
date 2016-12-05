@@ -23,7 +23,6 @@ import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, G
 import org.apache.batik.swing.JSVGCanvas
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.swing.event.MouseWheelMoved
 import scala.swing.{BorderPanel, Component, FlowPanel, Frame, Label, ScrollPane}
 
 object GUI {

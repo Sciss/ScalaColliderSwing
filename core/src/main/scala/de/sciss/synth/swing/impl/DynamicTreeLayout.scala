@@ -14,10 +14,12 @@
 package de.sciss.synth.swing
 package impl
 
-import prefuse.action.layout.Layout
 import java.awt.geom.Point2D
-import annotation.switch
+
+import prefuse.action.layout.Layout
 import prefuse.visual.NodeItem
+
+import scala.annotation.switch
 
 object DynamicTreeLayout {
   /** Creates a new dynamic tree layout.
@@ -36,11 +38,11 @@ object DynamicTreeLayout {
       subtreeSpacing = subtreeSpacing)
 
   final class NodeInfo {
-    var parent: prefuse.data.Node = null
-    var pred  : prefuse.data.Node = null
-    var succ  : prefuse.data.Node = null
-    var head  : prefuse.data.Node = null
-    var tail  : prefuse.data.Node = null
+    var parent: prefuse.data.Node = _
+    var pred  : prefuse.data.Node = _
+    var succ  : prefuse.data.Node = _
+    var head  : prefuse.data.Node = _
+    var tail  : prefuse.data.Node = _
   }
 
   final val INFO = "info"
@@ -62,8 +64,8 @@ object DynamicTreeLayout {
     var shift   = 0.0
     var change  = 0.0
     var number  = -2
-    var ancestor: NodeItem = null
-    var thread  : NodeItem = null
+    var ancestor: NodeItem = _
+    var thread  : NodeItem = _
 
     def init(item: NodeItem): Unit = {
       ancestor  = item
@@ -86,9 +88,8 @@ final class DynamicTreeLayout private(group: String, private var orientationVar:
                                       var breadthSpacing: Double, var subtreeSpacing: Double)
   extends Layout(group) {
 
-  import prefuse.Constants.{ORIENT_TOP_BOTTOM, ORIENT_BOTTOM_TOP, ORIENTATION_COUNT, ORIENT_CENTER,
-  ORIENT_LEFT_RIGHT, ORIENT_RIGHT_LEFT}
-  import DynamicTreeLayout.{NodeInfo, Params, PARAMS, PARAMS_SCHEMA, INFO}
+  import DynamicTreeLayout.{INFO, NodeInfo, PARAMS, PARAMS_SCHEMA, Params}
+  import prefuse.Constants.{ORIENTATION_COUNT, ORIENT_BOTTOM_TOP, ORIENT_CENTER, ORIENT_LEFT_RIGHT, ORIENT_RIGHT_LEFT, ORIENT_TOP_BOTTOM}
 
   var rootNodeOffset: Double = 50
 
@@ -103,7 +104,7 @@ final class DynamicTreeLayout private(group: String, private var orientationVar:
   private var depths = new Array[Double](10)
   private var maxDepth = 0
 
-  private var rootVar: NodeItem = null
+  private var rootVar: NodeItem = _
   private var anchorX = 0.0
   private var anchorY = 0.0
 

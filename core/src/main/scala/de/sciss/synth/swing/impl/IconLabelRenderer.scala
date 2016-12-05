@@ -13,23 +13,13 @@
 
 package de.sciss.synth.swing.impl
 
-import java.awt.Dimension
-import java.awt.Font
-import java.awt.FontMetrics
-import java.awt.Graphics2D
-import java.awt.Shape
-import java.awt.geom.AffineTransform
-import java.awt.geom.Point2D
-import java.awt.geom.Rectangle2D
-import java.awt.geom.RectangularShape
-import java.awt.geom.RoundRectangle2D
+import java.awt.{Dimension, Font, FontMetrics, Graphics2D, Shape}
+import java.awt.geom.{Point2D, Rectangle2D, RectangularShape, RoundRectangle2D}
 import javax.swing.Icon
+
 import prefuse.Constants
-import prefuse.render.{Renderer, AbstractShapeRenderer}
-import prefuse.util.ColorLib
-import prefuse.util.FontLib
-import prefuse.util.GraphicsLib
-import prefuse.util.StringLib
+import prefuse.render.{AbstractShapeRenderer, Renderer}
+import prefuse.util.{ColorLib, FontLib, GraphicsLib, StringLib}
 import prefuse.visual.VisualItem
 
 import scala.annotation.switch
@@ -42,24 +32,24 @@ import scala.annotation.switch
  *
  * <p>When created using the default constructor, the renderer attempts
  * to use text from the "label" field. To use a different field, use the
- * appropriate constructor or use the {@link #setTextField(String)} method.
+ * appropriate constructor or use the `setTextField` method.
  * To perform custom String selection, subclass this Renderer and override the 
- * {@link #getText(VisualItem)} method. When the text field is
+ * `getText` method. When the text field is
  * <code>null</code>, no text label will be shown. Labels can span multiple
  * lines of text, determined by the presence of newline characters ('\n')
  * within the text string.</p>
  *
  * <p>By default, no icon is shown. To show an icon, the icon field needs
  * to be set, either using the appropriate constructor or the
- * {@link #setIconField(String)} method. The value of the icon field should
+ * `setIconField` method. The value of the icon field should
  * be an `Icon` instance to use.
  *
  * <p>The position of the icon relative to text can be set using the
- * {@link #setIconPosition(int)} method. Images can be placed to the
+ * `setIconPosition` method. Images can be placed to the
  * left, right, above, or below the text. The horizontal and vertical
  * alignments of either the text or the icon can be set explicitly
  * using the appropriate methods of this class (e.g.,
- * {@link #setHorizontalTextAlignment(int)}). By default, both the
+ * `setHorizontalTextAlignment`). By default, both the
  * text and icon are centered along both the horizontal and
  * vertical directions.</p>
  *
@@ -412,15 +402,15 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
   }
 
   /** Gets the horizontal text alignment within the layout. One of
-    * {@link prefuse.Constants#LEFT}, {@link prefuse.Constants#RIGHT}, or
-    * {@link prefuse.Constants#CENTER}. The default is centered text.
+    * `Constants.LEFT`, `Constants.RIGHT`, or
+    * `Constants.CENTER`. The default is centered text.
     * @return the horizontal text alignment
     */
   def horizontalTextAlignment: Int = m_hTextAlign
 
   /** Sets the horizontal text alignment within the layout. One of
-    * {@link prefuse.Constants#LEFT}, {@link prefuse.Constants#RIGHT}, or
-    * {@link prefuse.Constants#CENTER}. The default is centered text.
+    * `Constants.LEFT`, `Constants.RIGHT`, or
+    * `Constants.CENTER`. The default is centered text.
     * @param value the desired horizontal text alignment
     */
   def horizontalTextAlignment_=(value: Int): Unit = {
@@ -430,15 +420,15 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
   }
 
   /** Gets the vertical text alignment within the layout. One of
-    * {@link prefuse.Constants#TOP}, {@link prefuse.Constants#BOTTOM}, or
-    * {@link prefuse.Constants#CENTER}. The default is centered text.
+    * `Constants.TOP`, `Constants.BOTTOM`, or
+    * `Constants.CENTER`. The default is centered text.
     * @return the vertical text alignment
     */
   def verticalTextAlignment: Int = m_vTextAlign
 
   /** Sets the vertical text alignment within the layout. One of
-    * {@link prefuse.Constants#TOP}, {@link prefuse.Constants#BOTTOM}, or
-    * {@link prefuse.Constants#CENTER}. The default is centered text.
+    * `Constants.TOP`, `Constants.BOTTOM`, or
+    * `Constants.CENTER`. The default is centered text.
     * @param value the desired vertical text alignment
     */
   def verticalTextAlignment_=(value: Int): Unit = {
@@ -448,15 +438,15 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
   }
 
   /** Gets the horizontal icon alignment within the layout. One of
-    * {@link prefuse.Constants#LEFT}, {@link prefuse.Constants#RIGHT}, or
-    * {@link prefuse.Constants#CENTER}. The default is a centered icon.
+    * `Constants.LEFT`, `Constants.RIGHT`, or
+    * `Constants.CENTER`. The default is a centered icon.
     * @return the horizontal icon alignment
     */
   def horizontalIconAlignment: Int = m_hIconAlign
 
   /** Sets the horizontal icon alignment within the layout. One of
-    * {@link prefuse.Constants#LEFT}, {@link prefuse.Constants#RIGHT}, or
-    * {@link prefuse.Constants#CENTER}. The default is a centered icon.
+    * `Constants.LEFT`, `Constants.RIGHT`, or
+    * `Constants.CENTER`. The default is a centered icon.
     * @param value the desired horizontal icon alignment
     */
   def horizontalIconAlignment_=(value: Int): Unit = {
@@ -466,15 +456,15 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
   }
 
   /** Gets the vertical icon alignment within the layout. One of
-   * {@link prefuse.Constants#TOP}, {@link prefuse.Constants#BOTTOM}, or
-   * {@link prefuse.Constants#CENTER}. The default is a centered icon.
+    * `Constants.TOP`, `Constants.BOTTOM`, or
+    * `Constants.CENTER`. The default is a centered icon.
    * @return the vertical icon alignment
    */
   def verticalIconAlignment: Int = m_vIconAlign
 
   /** Sets the vertical icon alignment within the layout. One of
-    * {@link prefuse.Constants#TOP}, {@link prefuse.Constants#BOTTOM}, or
-    * {@link prefuse.Constants#CENTER}. The default is a centered icon.
+    * `Constants.TOP`, `Constants.BOTTOM`, or
+    * `Constants.CENTER`. The default is a centered icon.
     * @param value the desired vertical icon alignment
     */
   def verticalIconAlignment_=(value: Int): Unit = {
@@ -484,17 +474,17 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
   }
 
   /** Gets the icon position, determining where the icon is placed with
-    * respect to the text. One of {@link Constants#LEFT},
-    * {@link Constants#RIGHT}, {@link Constants#TOP}, or
-    * {@link Constants#BOTTOM}.  The default is left.
+    * respect to the text. One of `Constants.LEFT`,
+    * `Constants.RIGHT`, `Constants.TOP`, or
+    * `Constants.BOTTOM`.  The default is left.
     * @return the icon position
     */
   def iconPosition: Int = m_iconPos
 
   /** Sets the icon position, determining where the icon is placed with
-    * respect to the text. One of {@link Constants#LEFT},
-    * {@link Constants#RIGHT}, {@link Constants#TOP}, or
-    * {@link Constants#BOTTOM}.  The default is left.
+    * respect to the text. One of `Constants.LEFT`,
+    * `Constants.RIGHT`, `Constants.TOP`, or
+    * `Constants.BOTTOM`.  The default is left.
     * @param value the desired icon position
     */
   def iconPosition_=(value: Int): Unit = {
@@ -577,7 +567,7 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
 
   protected var m_delim       : String = "\n"
   protected var m_labelName   : String = "label"
-  protected var m_iconName    : String = null
+  protected var m_iconName    : String = _
   protected var m_xAlign      : Int = Constants.CENTER
   protected var m_yAlign      : Int = Constants.CENTER
   protected var m_hTextAlign  : Int = Constants.CENTER
@@ -596,8 +586,8 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
   /** The holder for the currently computed bounding box */
   protected var m_bBox        : RectangularShape  = new Rectangle2D.Double
   protected var m_pt          : Point2D           = new Point2D.Double
-  protected var m_font        : Font              = null
-  protected var m_text        : String            = null
+  protected var m_font        : Font              = _
+  protected var m_text        : String            = _
   protected var m_textDim     : Dimension         = new Dimension
 }
 
