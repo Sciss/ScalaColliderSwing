@@ -13,7 +13,8 @@
 
 package de.sciss.synth.swing
 
-import de.sciss.scalainterpreter.{CodePane, LogPane, InterpreterPane, NamedParam, Interpreter}
+import de.sciss.{scalainterpreter => si}
+import de.sciss.scalainterpreter.{CodePane, LogPane, InterpreterPane, NamedParam}
 import java.io.{IOException, File, FileInputStream}
 import java.awt.GraphicsEnvironment
 
@@ -56,7 +57,7 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
       case e: IOException => e.printStackTrace()
     }
 
-    val intpCfg = Interpreter.Config()
+    val intpCfg = si.Interpreter.Config()
     intpCfg.imports = List(
       //         "Predef.{any2stringadd => _}",
       "scala.math._",

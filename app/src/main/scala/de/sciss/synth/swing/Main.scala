@@ -16,7 +16,7 @@ package de.sciss.synth.swing
 import java.awt.event._
 import java.awt.{Color, Font, GraphicsEnvironment, KeyboardFocusManager}
 import java.io.{FileOutputStream, OutputStreamWriter}
-import java.net.URL
+import java.net.{URI, URL}
 import javax.swing.event.{HyperlinkEvent, HyperlinkListener}
 import javax.swing.{KeyStroke, SwingUtilities, UIManager}
 
@@ -27,6 +27,7 @@ import bibliothek.gui.dock.common.theme.ThemeMap
 import bibliothek.gui.dock.common.{CControl, CLocation, DefaultSingleCDockable, SingleCDockable}
 import bibliothek.gui.dock.dockable.IconHandling
 import bibliothek.gui.dock.util.Priority
+import de.sciss.audiowidgets.Util
 import de.sciss.desktop.impl.{SwingApplicationImpl, WindowHandlerImpl, WindowImpl}
 import de.sciss.desktop.{Desktop, DialogSource, FileDialog, KeyStrokes, LogPane, Menu, OptionPane, RecentFiles, Window, WindowHandler}
 import de.sciss.file._
@@ -38,8 +39,8 @@ import org.pegdown.PegDownProcessor
 
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
-import scala.swing.event.{Key, MouseButtonEvent, MousePressed}
-import scala.swing.{Action, BorderPanel, BoxPanel, Component, EditorPane, MenuItem, Orientation, ScrollPane, Swing}
+import scala.swing.event.{Key, MouseButtonEvent, MouseClicked, MousePressed}
+import scala.swing.{Action, BorderPanel, BoxPanel, Component, EditorPane, Label, MenuItem, Orientation, ScrollPane, Swing}
 import scala.tools.nsc.interpreter.NamedParam
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -182,7 +183,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
   def dockControl: CControl = dockCtrl
 
-  def isDarkSkin: Boolean = UIManager.getBoolean("dark-skin")
+  def isDarkSkin: Boolean = Util.isDarkSkin
 
   private lazy val dockCtrl: CControl = {
     val jf  = SwingUtilities.getWindowAncestor(frame.component.peer.getRootPane).asInstanceOf[javax.swing.JFrame]
@@ -772,24 +773,60 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
   private lazy val fileActions = List(ActionFileClose, ActionFileSave, ActionFileSaveAs,
     actionEnlargeFont, actionShrinkFont, actionResetFont, ActionLookUpHelpCursor)
 
+  private[this] val baseURL = "https://sciss.github.io/ScalaCollider"
+
+  private def showAbout(): Unit = {
+    val jreInfo: String = {
+      val name    = sys.props.getOrElse("java.runtime.name"   , "?")
+      val version = sys.props.getOrElse("java.runtime.version", "?")
+      s"$name (build $version)"
+    }
+    val scVersion = Server.version(repl.config).toOption.fold {
+      "Unknown SuperCollider version"
+    } { case (v, b) =>
+      val bs = if (b.isEmpty) b else s" ($b)"
+      s"SuperCollider v$v$bs"
+    }
+    val url   = baseURL
+    val addr  = url // url.substring(math.min(url.length, url.indexOf("//") + 2))
+    val html =
+      s"""<html><center>
+          |<font size=+1><b>About $name</b></font><p>
+          |Copyright (c) 2008&ndash;2016 Hanns Holger Rutz. All rights reserved.<p>
+          |This software is published under the GNU General Public License v3+
+          |<p>&nbsp;<p><i>
+          |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
+          |ScalaCollider-Swing v${de.sciss.synth.swing.BuildInfo.version}<br>
+          |Scala v${de.sciss.synth.swing.BuildInfo.scalaVersion}<br>
+          |$jreInfo<br>
+          |$scVersion
+          |</i>
+          |<p>&nbsp;<p>
+          |<a href="$url">$addr</a>
+          |<p>&nbsp;
+          |""".stripMargin
+
+    val lb = new Label(html) {
+      // cf. http://stackoverflow.com/questions/527719/how-to-add-hyperlink-in-jlabel
+      // There is no way to directly register a HyperlinkListener, despite hyper links
+      // being rendered... A simple solution is to accept any mouse click on the label
+      // to open the corresponding website.
+      cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+      listenTo(mouse.clicks)
+      reactions += {
+        case MouseClicked(_, _, _, 1, false) => openURL(url)
+      }
+    }
+
+    OptionPane.message(message = lb.peer /*, icon = Logo.icon(128) */).show(Some(frame), title = "About")
+  }
+
   protected lazy val menuFactory: Menu.Root = {
     import KeyStrokes._
     import Menu._
     import de.sciss.synth.swing.{Main => App}
 
-    val itAbout = Item.About(App) {
-      val html =
-        s"""<html><center>
-           |<font size=+1><b>About $name</b></font><p>
-           |Copyright (c) 2008&ndash;2016 Hanns Holger Rutz. All rights reserved.<p>
-           |This software is published under the GNU General Public License v3+
-           |<p>&nbsp;<p><i>
-           |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
-           |ScalaCollider-Swing v${de.sciss.synth.swing.BuildInfo.version}<br>
-           |Scala v${de.sciss.synth.swing.BuildInfo.scalaVersion}
-           |</i>""".stripMargin
-      OptionPane.message(message = new javax.swing.JLabel(html)).show(Some(frame))
-    }
+    val itAbout = Item.About(App)(showAbout())
     val itPrefs = Item.Preferences(App)(ActionPreferences())
     val itQuit  = Item.Quit(App)
 
@@ -833,6 +870,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val gHelp = Group("help", "Help")
       .add(Item("help-for-cursor", ActionLookUpHelpCursor))
       .add(Item("help-query"     , ActionLookUpHelpQuery ))
+      .add(Item("help-api")("API Documentation")(openURL(s"$baseURL/latest/api")))
 
     if (itAbout.visible) gHelp.addLine().add(itAbout)
 

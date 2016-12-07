@@ -5,7 +5,8 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.32.1-SNAPSHOT"
+lazy val projectVersion         = "1.32.1"
+lazy val mimaVersion            = "1.32.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
 lazy val authorEMail            = "contact@sciss.de"
@@ -14,17 +15,17 @@ lazy val appDescription         = "Standalone application for ScalaCollider"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.22.1"
+lazy val scalaColliderVersion   = "1.22.2"
 lazy val prefuseVersion         = "1.0.1"
 lazy val audioWidgetsVersion    = "1.10.1"
-lazy val ugensVersion           = "1.16.2"
+lazy val ugensVersion           = "1.16.3"
 lazy val dotVersion             = "0.4.0"
 lazy val batikVersion           = "1.8"
 lazy val xmlGraphicsVersion     = "2.1"
 
 // ---- interpreter dependencies ----
 
-lazy val interpreterPaneVersion = "1.7.3"
+lazy val interpreterPaneVersion = "1.7.4"
 
 // ---- plotting dependencies ----
 
@@ -193,7 +194,8 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
       BuildInfoKey.map(homepage) { case (k, opt)           => k -> opt.get },
       BuildInfoKey.map(licenses) { case (_, Seq((lic, _))) => "license" -> lic }
     ),
-    buildInfoPackage := "de.sciss.synth.swing"
+    buildInfoPackage := "de.sciss.synth.swing",
+    mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-core" % mimaVersion)
   )
 
 lazy val interpreter = Project(id = s"$baseNameL-interpreter", base = file("interpreter")).
@@ -204,7 +206,8 @@ lazy val interpreter = Project(id = s"$baseNameL-interpreter", base = file("inte
     libraryDependencies ++= Seq(
       "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion,
       "org.scala-lang" %  "scala-compiler" % scalaVersion.value  // make sure we have the newest
-    )
+    ),
+    mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-interpreter" % mimaVersion)
   )
 
 lazy val plotting = Project(id = s"$baseNameL-plotting", base = file("plotting")).
@@ -215,7 +218,8 @@ lazy val plotting = Project(id = s"$baseNameL-plotting", base = file("plotting")
     libraryDependencies ++= Seq(
       "de.sciss"                 %% "pdflitz"     % pdflitzVersion,
       "com.github.wookietreiber" %% "scala-chart" % chartVersion
-    )
+    ),
+    mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-plotting" % mimaVersion)
   )
 
 lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
@@ -237,5 +241,6 @@ lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
       "de.sciss"    %% "scissdsp"                % dspVersion,
       "de.sciss"    %  "docking-frames"          % dockingVersion,
       "org.pegdown" %  "pegdown"                 % pegDownVersion
-    )
+    ),
+    mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-app" % mimaVersion)
   )

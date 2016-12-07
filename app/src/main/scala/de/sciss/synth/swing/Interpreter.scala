@@ -19,8 +19,20 @@ import scala.concurrent.Future
 import de.sciss.model.Model
 
 object Interpreter {
-  def apply(config: si.Interpreter.Config): Future[Interpreter] = Impl(config)
+  type Config     = si.Interpreter.Config
+  val  Config     = si.Interpreter.Config
 
-  case class Update(input: String, result: si.Interpreter.Result)
+  type Result     = si.Interpreter.Result
+  type Success    = si.Interpreter.Success
+  val  Success    = si.Interpreter.Success
+
+  type Error      = si.Interpreter.Error
+  val  Error      = si.Interpreter.Error
+
+  val  Incomplete = si.Interpreter.Incomplete
+
+  def apply(config: Config): Future[Interpreter] = Impl(config)
+
+  case class Update(input: String, result: Result)
 }
 trait Interpreter extends si.Interpreter with Model[Interpreter.Update]

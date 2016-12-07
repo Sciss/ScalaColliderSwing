@@ -15,31 +15,36 @@ package de.sciss.synth.swing
 package j
 
 import java.awt.geom.Point2D
+
 import collection.immutable.IntMap
-import prefuse.action.{ ActionList, RepaintAction }
+import prefuse.action.{ActionList, RepaintAction}
 import prefuse.action.animate.{ColorAnimator, LocationAnimator, VisibilityAnimator}
 import prefuse.render.{AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer}
 import prefuse.util.ColorLib
 import prefuse.visual.sort.TreeDepthItemSorter
-import de.sciss.synth.{message, Node, Group, Synth, NodeManager, Ops}
-import prefuse.{Visualization, Constants, Display}
+import de.sciss.synth.{Group, Node, NodeManager, Ops, Synth, message}
+import prefuse.{Constants, Display, Visualization}
 import prefuse.visual.{NodeItem, VisualItem}
-import de.sciss.synth.swing.impl.{IconLabelRenderer, DynamicTreeLayout}
+import de.sciss.synth.swing.impl.{DynamicTreeLayout, IconLabelRenderer}
 import prefuse.data.expression.AbstractPredicate
-import prefuse.data.{Tuple, Graph, Node => PNode}
+import prefuse.data.{Graph, Tuple, Node => PNode}
 import prefuse.visual.expression.InGroupPredicate
 import prefuse.data.event.TupleSetListener
 import prefuse.data.tuple.TupleSet
-import java.awt.{BasicStroke, Color, BorderLayout, EventQueue}
-import prefuse.action.assignment.{StrokeAction, ColorAction}
-import javax.swing.{Icon, JMenuItem, JOptionPane, Action, AbstractAction, JPopupMenu, WindowConstants, JFrame, JPanel}
-import java.awt.event.{MouseEvent, MouseAdapter, InputEvent, ActionEvent}
+import java.awt.{BasicStroke, BorderLayout, Color, EventQueue}
+
+import prefuse.action.assignment.{ColorAction, StrokeAction}
+import javax.swing.{AbstractAction, Action, Icon, JFrame, JMenuItem, JOptionPane, JPanel, JPopupMenu, WindowConstants}
+import java.awt.event.{ActionEvent, InputEvent, MouseAdapter, MouseEvent}
+
 import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomToFitControl}
 import javax.swing.event.{AncestorEvent, AncestorListener}
-import de.sciss.osc
-import annotation.tailrec
 
+import de.sciss.osc
+
+import annotation.tailrec
 import DynamicTreeLayout.{INFO, NodeInfo}
+import de.sciss.audiowidgets.Util
 
 trait NodeTreePanelLike {
   def nodeActionMenu: Boolean
@@ -67,13 +72,14 @@ object JNodeTreePanel {
   private val FADE_TIME     = 333
   private val COL_ICON      = "icon"
 
-  private val iconGroup = Shapes.Icon(extent = 16)(Shapes.Group)
-  private val iconSynth = Shapes.Icon(extent = 16)(Shapes.Synth)
-
   private final val ICON_SYNTH = "synth"
   private final val ICON_GROUP = "group"
 
   private class NodeLabelRenderer(label: String) extends IconLabelRenderer(label) {
+    private[this] val colrIcon    = if (Util.isDarkSkin) Color.black else Color.white
+    private[this] val iconGroup   = Shapes.Icon(extent = 16, fill = colrIcon)(Shapes.Group)
+    private[this] val iconSynth   = Shapes.Icon(extent = 16, fill = colrIcon)(Shapes.Synth)
+
     override protected def getIcon(item: VisualItem): Icon =
       item.get(COL_ICON) match {
         case ICON_SYNTH => iconSynth
@@ -144,14 +150,17 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     vis.setRendererFactory(rf)
 
     // colors
-    val actionNodeFill = new ColorAction(GROUP_NODES, VisualItem.FILLCOLOR, ColorLib.rgb(200, 200, 200))
+    val isDark        = Util.isDarkSkin
+    val colrBlock     = if (isDark) ColorLib.rgb(200, 200, 200) else ColorLib.rgb(56, 56, 56)
+    val actionNodeFill = new ColorAction(GROUP_NODES, VisualItem.FILLCOLOR, colrBlock)
     val predFocused = new InGroupPredicate(Visualization.FOCUS_ITEMS)
     actionNodeFill.add(new AbstractPredicate {
       override def getBoolean(t: Tuple): Boolean = t.getBoolean(COL_PAUSED)
     }, ColorLib.rgb(200, 0, 0))
 
-    val actionTextColor = new ColorAction(GROUP_NODES, VisualItem.TEXTCOLOR  , ColorLib.rgb(  0,   0,   0))
-    val actionEdgeColor = new ColorAction(GROUP_EDGES, VisualItem.STROKECOLOR, ColorLib.rgb(200, 200, 200))
+    val colrText        = if (isDark)  ColorLib.rgb(0, 0, 0) else ColorLib.rgb(255, 255, 255)
+    val actionTextColor = new ColorAction(GROUP_NODES, VisualItem.TEXTCOLOR  , colrText)
+    val actionEdgeColor = new ColorAction(GROUP_EDGES, VisualItem.STROKECOLOR, colrBlock)
     val actionNodeDraw  = new ColorAction(GROUP_NODES, VisualItem.STROKECOLOR, ColorLib.rgb(100, 100, 255))
     val actionRepaint   = new RepaintAction()
 
@@ -223,8 +232,10 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
 
     vis.run(ACTION_LAYOUT)
 
-    display.setForeground(Color.WHITE)
-    display.setBackground(Color.BLACK)
+    val colrFg = if (isDark) Color.white else Color.black // darkGray
+    val colrBg = if (isDark) Color.black else Color.white // lightGray
+    display.setForeground(colrFg)
+    display.setBackground(colrBg)
 
     add(display, BorderLayout.CENTER)
 
