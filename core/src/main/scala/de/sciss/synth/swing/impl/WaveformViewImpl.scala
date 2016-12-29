@@ -44,7 +44,8 @@ object WaveformViewImpl {
       import ugen._
       val rate = ins.map(_.rate).max
       val signal: GE = if (rate == audio) ins else K2A.ar(ins)
-      val buf = "$buf".ir
+      val bufKey: String = "$buf" // bug in Scala 2.12 - need to specify return type
+      val buf = bufKey.ir
       //         val dur        = "$dur".ir
       //         val out        = Out.ar( bus, signal )
 

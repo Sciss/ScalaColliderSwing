@@ -17,20 +17,22 @@ package impl
 import scala.concurrent.{ExecutionContext, Future}
 import de.sciss.{scalainterpreter => si}
 import de.sciss.scalainterpreter.Interpreter.Result
-import scala.tools.nsc.interpreter.Completion.ScalaCompleter
 import de.sciss.model.impl.ModelImpl
 import java.awt.EventQueue
+
+import de.sciss.scalainterpreter.Completer
+
 import scala.swing.Swing
 
 object InterpreterImpl {
   def apply(config: si.Interpreter.Config): Future[Interpreter] = {
     val peerFut = si.Interpreter.async(config)
     import ExecutionContext.Implicits.global
-    peerFut.map { peer => new Impl(peer) }
+    peerFut.map { peer => new Impl(peer) } (global)
   }
 
   private final class Impl(peer: si.Interpreter) extends Interpreter with ModelImpl[Interpreter.Update] {
-    def completer: ScalaCompleter = peer.completer
+    def completer: Completer = peer.completer
 
     private def defer(body: => Unit): Unit =
       if (EventQueue.isDispatchThread) body else Swing.onEDT(body)

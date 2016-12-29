@@ -11,7 +11,7 @@
 
 ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://github.com/Sciss/ScalaCollider). ScalaCollider is a client for the [SuperCollider](http://supercollider.sourceforge.net/) sound synthesis server.
 
-(C)opyright 2008-2015 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+(C)opyright 2008&ndash;2017 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 Please see the `licenses` folder for details. It contains the license headers for all dependencies and transitive dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the respective OSS project pages, as indicated in the license files, or&mdash;in compliance with GPL/LGPL&mdash;on request via E-Mail. All source code with group-ID `de.sciss` is available from [github.com/Sciss](https://github.com/Sciss).
 
@@ -25,7 +25,7 @@ Please see the `licenses` folder for details. It contains the license headers fo
 
 ## building from source
 
-ScalaCollider-Swing compiles against Scala 2.11 and 2.10 using sbt 0.13.
+ScalaCollider-Swing compiles against Scala 2.12, 2.11, 2.10 using sbt 0.13.
 
 -`sbt assembly` creates a fully self-contained jar (platform neutral)
 
@@ -42,7 +42,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current stable version `v` is `"1.32.1"`.
+The current stable version `v` is `"1.32.2"`.
 
 ## contributing
 

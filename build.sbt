@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.32.1"
+lazy val projectVersion         = "1.32.2"
 lazy val mimaVersion            = "1.32.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
@@ -15,41 +15,45 @@ lazy val appDescription         = "Standalone application for ScalaCollider"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.22.2"
+lazy val scalaColliderVersion   = "1.22.3"
 lazy val prefuseVersion         = "1.0.1"
-lazy val audioWidgetsVersion    = "1.10.1"
-lazy val ugensVersion           = "1.16.3"
-lazy val dotVersion             = "0.4.0"
+lazy val audioWidgetsVersion    = "1.10.2"
+lazy val ugensVersion           = "1.16.4"
+lazy val dotVersion             = "0.4.1"
 lazy val batikVersion           = "1.8"
 lazy val xmlGraphicsVersion     = "2.1"
 
 // ---- interpreter dependencies ----
 
-lazy val interpreterPaneVersion = "1.7.4"
+lazy val interpreterPaneVersion = "1.7.5"
 
 // ---- plotting dependencies ----
 
-lazy val pdflitzVersion         = "1.2.1"
+lazy val pdflitzVersion         = "1.2.2"
 lazy val chartVersion           = "0.5.1"
 
 // ---- app dependencies ----
 
-lazy val desktopVersion         = "0.7.2"
+lazy val desktopVersion         = "0.7.3"
 lazy val fileUtilVersion        = "1.1.2"
-lazy val kollFlitzVersion       = "0.2.0"
+lazy val kollFlitzVersion       = "0.2.1"
 lazy val subminVersion          = "0.2.1"
 lazy val dockingVersion         = "2.0.0"
 lazy val pegDownVersion         = "1.6.0"
-lazy val dspVersion             = "1.2.2"
+lazy val dspVersion             = "1.2.3"
 
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.11.8",
-  crossScalaVersions := Seq("2.11.8", "2.10.6"),
+  scalaVersion       := "2.12.1",
+  crossScalaVersions := Seq("2.12.1", "2.11.8", "2.10.6"),
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
-  scalacOptions     ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
+  scalacOptions ++= {
+    val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture")
+    val ys = if (scalaVersion.value.startsWith("2.10")) xs else xs :+ "-Xlint:-stars-align,-missing-interpolator,_"  // syntax not supported in Scala 2.10
+    if (isSnapshot.value) ys else ys ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
+  },
   aggregate in assembly := false   // https://github.com/sbt/sbt-assembly/issues/147
 ) ++ publishSettings
 
