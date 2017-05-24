@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.32.2"
+lazy val projectVersion         = "1.32.3-SNAPSHOT"
 lazy val mimaVersion            = "1.32.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
@@ -20,8 +20,8 @@ lazy val prefuseVersion         = "1.0.1"
 lazy val audioWidgetsVersion    = "1.10.2"
 lazy val ugensVersion           = "1.16.4"
 lazy val dotVersion             = "0.4.1"
-lazy val batikVersion           = "1.8"
-lazy val xmlGraphicsVersion     = "2.1"
+lazy val batikVersion           = "1.9"
+lazy val xmlGraphicsVersion     = "2.2"
 
 // ---- interpreter dependencies ----
 
@@ -45,8 +45,8 @@ lazy val dspVersion             = "1.2.3"
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.1",
-  crossScalaVersions := Seq("2.12.1", "2.11.8", "2.10.6"),
+  scalaVersion       := "2.12.2",
+  crossScalaVersions := Seq("2.12.2", "2.11.11", "2.10.6"),
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {

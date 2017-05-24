@@ -2,7 +2,7 @@
  *  JNodeTreePanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -127,8 +127,8 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     case NodeGo   (group: Group, info)  => deferIfNeeded(nlAddGroup   (group, info))
     case NodeEnd  (node, info)          => deferIfNeeded(nlRemoveNode (node , info))
     case NodeMove (node, info)          => deferIfNeeded(nlMoveChild  (node , info))
-    case NodeOn   (node, info)          => deferIfNeeded(nlPauseChild (node , paused = false))
-    case NodeOff  (node, info)          => deferIfNeeded(nlPauseChild (node , paused = true ))
+    case NodeOn   (node, _   )          => deferIfNeeded(nlPauseChild (node , paused = false))
+    case NodeOff  (node, _   )          => deferIfNeeded(nlPauseChild (node , paused = true ))
     case Cleared                        => deferIfNeeded(nlClear())
   }
 
@@ -456,13 +456,15 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
       val oldEdge = t.getEdge(iNode.parent, pNode)
       removeChild(pNode)
       t.removeEdge(oldEdge)
-      map.get(info.parentID).map { pParent =>
-        insertChild(pNode, pParent, info, iNode)
-        t.addEdge(pParent, pNode)
-      } getOrElse {
-        // disappeared from the radar
-        t.removeNode(pNode)
-        map -= node.id
+      map.get(info.parentID) match {
+        case Some(pParent) =>
+          insertChild(pNode, pParent, info, iNode)
+          t.addEdge(pParent, pNode)
+
+        case None =>
+          // disappeared from the radar
+          t.removeNode(pNode)
+          map -= node.id
       }
     })
   }
@@ -668,7 +670,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     def selection_=(nodeOption: Option[Node]): Unit = {
       selectionVar = nodeOption
       val (n, g) = nodeOption match {
-        case Some(g: Group) => (true , true )
+        case Some(_: Group) => (true , true )
         case Some(_)        => (true , false)
         case _              => (false, false)
       }

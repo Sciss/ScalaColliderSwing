@@ -2,7 +2,7 @@
  *  WaveformViewImpl.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -148,8 +148,8 @@ object WaveformViewImpl {
         //println( "... read " + num + " frames from " + path.getAbsolutePath )
         val pntSrc  = MultiResolution.Source.wrap(data)
         val display = new WavePainter.Display {
-          def numChannels = numCh
-          def numFrames   = numFr
+          def numChannels : Int   = numCh
+          def numFrames   : Long  = numFr
 
           def refreshAllChannels(): Unit = ggWave.repaint()
 

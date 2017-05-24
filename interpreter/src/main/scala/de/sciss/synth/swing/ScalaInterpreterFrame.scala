@@ -2,7 +2,7 @@
  *  ScalaInterpreterFrame.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -13,13 +13,14 @@
 
 package de.sciss.synth.swing
 
-import de.sciss.{scalainterpreter => si}
-import de.sciss.scalainterpreter.{CodePane, LogPane, InterpreterPane, NamedParam}
-import java.io.{IOException, File, FileInputStream}
 import java.awt.GraphicsEnvironment
+import java.io.{File, FileInputStream, IOException}
 
-import scala.swing.{Swing, Frame, SplitPane}
-import Swing._
+import de.sciss.scalainterpreter.{CodePane, InterpreterPane, LogPane, NamedParam}
+import de.sciss.{scalainterpreter => si}
+
+import scala.swing.Swing._
+import scala.swing.{Frame, SplitPane}
 
 class ScalaInterpreterFrame(replSupport: REPLSupport)
   extends Frame {
@@ -32,7 +33,7 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
 
   title = "ScalaCollider Interpreter"
 
-  val pane = {
+  val pane: InterpreterPane = {
     //      val paneCfg = InterpreterPane.Config()
     // note: for the auto-completion in the pane to work, we must
     // import de.sciss.synth.ugen._ instead of ugen._

@@ -2,7 +2,7 @@
  *  ActionPreferences.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -30,7 +30,28 @@ object ActionPreferences extends Action("Preferences...") {
   def apply(): Unit = {
     import PrefsGUI._
 
-    import language.reflectiveCalls
+    val lbLookAndFeel   = label("Look-and-Feel")
+    val ggLookAndFeel   = combo(Prefs.lookAndFeel, Prefs.LookAndFeel.default,
+      Prefs.LookAndFeel.all)(_.description)
+
+    val lbColorScheme   = label("Color Scheme")
+    val ggColorScheme   = combo(Prefs.colorScheme, Prefs.ColorSchemeNames.default, Prefs.ColorSchemeNames.all)
+
+    val lbSuperCollider = label("SuperCollider (scsynth)")
+    val ggSuperCollider = pathField(Prefs.superCollider, Prefs.defaultSuperCollider,
+      title = "SuperCollider Server Location (scsynth)")
+
+    val lbAudioDevice   = label("Audio Device")
+    val ggAudioDevice   = textField(Prefs.audioDevice   , Prefs.defaultAudioDevice    )
+    val lbNumInputs     = label("Input Channels")
+    val ggNumInputs     = intField(Prefs.audioNumInputs , Prefs.defaultAudioNumInputs )
+    val lbNumOutputs    = label("Output Channels")
+    val ggNumOutputs    = intField(Prefs.audioNumOutputs, Prefs.defaultAudioNumOutputs)
+
+    // val lbHeadphones    = label("Headphones Bus")
+    // val ggHeadphones    = intField(Prefs.headphonesBus  , Prefs.defaultHeadphonesBus  )
+
+    val sep1 = Separator()
 
     val box = new GridBagPanel {
       import GridBagPanel.{Anchor, Fill}
@@ -40,29 +61,6 @@ object ActionPreferences extends Action("Preferences...") {
       val cGG = new Constraints()
       cGG.gridx = 1; cGG.gridy = 0; cGG.anchor = Anchor.LineStart; cGG.fill = Fill.Horizontal
       cGG.ipadx = 2; /* cGG.ipady = 2; */ cGG.insets = new Insets(2, 2, 2, 2)
-
-      val lbLookAndFeel   = label("Look-and-Feel")
-      val ggLookAndFeel   = combo(Prefs.lookAndFeel, Prefs.LookAndFeel.default,
-        Prefs.LookAndFeel.all)(_.description)
-
-      val lbColorScheme   = label("Color Scheme")
-      val ggColorScheme   = combo(Prefs.colorScheme, Prefs.ColorSchemeNames.default, Prefs.ColorSchemeNames.all)
-
-      val lbSuperCollider = label("SuperCollider (scsynth)")
-      val ggSuperCollider = pathField(Prefs.superCollider, Prefs.defaultSuperCollider,
-        title = "SuperCollider Server Location (scsynth)")
-
-      val lbAudioDevice   = label("Audio Device")
-      val ggAudioDevice   = textField(Prefs.audioDevice   , Prefs.defaultAudioDevice    )
-      val lbNumInputs     = label("Input Channels")
-      val ggNumInputs     = intField(Prefs.audioNumInputs , Prefs.defaultAudioNumInputs )
-      val lbNumOutputs    = label("Output Channels")
-      val ggNumOutputs    = intField(Prefs.audioNumOutputs, Prefs.defaultAudioNumOutputs)
-
-      // val lbHeadphones    = label("Headphones Bus")
-      // val ggHeadphones    = intField(Prefs.headphonesBus  , Prefs.defaultHeadphonesBus  )
-
-      val sep1 = Separator()
 
       def add(lb: Component, gg: Component): Unit = {
         layout(lb) = cLb

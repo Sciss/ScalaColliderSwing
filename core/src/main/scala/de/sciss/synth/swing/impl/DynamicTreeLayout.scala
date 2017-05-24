@@ -2,7 +2,7 @@
  *  DynamicTreeLayout.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -59,13 +59,13 @@ object DynamicTreeLayout {
 
   /** Wrapper class holding parameters used for each node in this layout. */
   private final class Params extends Cloneable {
-    var prelim  = 0.0
-    var mod     = 0.0
-    var shift   = 0.0
-    var change  = 0.0
-    var number  = -2
-    var ancestor: NodeItem = _
-    var thread  : NodeItem = _
+    var prelim  : Double    = 0.0
+    var mod     : Double    = 0.0
+    var shift   : Double    = 0.0
+    var change  : Double    = 0.0
+    var number  : Int       = -2
+    var ancestor: NodeItem  = _
+    var thread  : NodeItem  = _
 
     def init(item: NodeItem): Unit = {
       ancestor  = item

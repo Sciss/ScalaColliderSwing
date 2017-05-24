@@ -2,7 +2,7 @@
  *  REPLSupport.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -48,7 +48,7 @@ class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
         case ServerConnection.Preparing(srv) =>
           if (ntp != null) ntp.group = Some(srv.rootNode)
 
-        case ServerConnection.Running(srv) =>
+        case ServerConnection.Running(_) =>
           sync.synchronized {
             booting = null
           }

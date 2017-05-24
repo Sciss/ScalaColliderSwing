@@ -2,7 +2,7 @@
  *  Main.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -16,9 +16,9 @@ package de.sciss.synth.swing
 import java.awt.event._
 import java.awt.{Color, Font, GraphicsEnvironment, KeyboardFocusManager}
 import java.io.{FileOutputStream, OutputStreamWriter}
-import java.net.{URI, URL}
+import java.net.URL
 import javax.swing.event.{HyperlinkEvent, HyperlinkListener}
-import javax.swing.{KeyStroke, SwingUtilities, UIManager}
+import javax.swing.{KeyStroke, SwingUtilities}
 
 import bibliothek.gui.dock.common.event.CFocusListener
 import bibliothek.gui.dock.common.intern.CDockable
@@ -33,13 +33,13 @@ import de.sciss.desktop.{Desktop, DialogSource, FileDialog, KeyStrokes, LogPane,
 import de.sciss.file._
 import de.sciss.swingplus.PopupMenu
 import de.sciss.syntaxpane.TokenType
-import de.sciss.synth.{Server, UGenSpec, UndefinedRate, ugen}
+import de.sciss.synth.{Server, UGenSpec, UndefinedRate}
 import de.sciss.{scalainterpreter => si}
 import org.pegdown.PegDownProcessor
 
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
-import scala.swing.event.{Key, MouseButtonEvent, MouseClicked, MousePressed}
+import scala.swing.event.{Key, MouseButtonEvent, MouseClicked}
 import scala.swing.{Action, BorderPanel, BoxPanel, Component, EditorPane, Label, MenuItem, Orientation, ScrollPane, Swing}
 import scala.tools.nsc.interpreter.NamedParam
 import scala.util.control.NonFatal
@@ -269,7 +269,7 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
 
     res.addFocusListener(new CFocusListener {
       def focusLost(dockable: CDockable): Unit = dockable match {
-        case tvd: TextViewDockable =>
+        case _: TextViewDockable =>
           fileActions.foreach(_.view = None)
         case _ =>
       }
@@ -650,7 +650,8 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     _: Action =>
 
     protected var _view: Option[TextViewDockable] = None
-    def view = _view
+
+    def view: Option[TextViewDockable] = _view
     def view_=(value: Option[TextViewDockable]): Unit = if (_view != value) {
       _view   = value
       enabled = value.isDefined

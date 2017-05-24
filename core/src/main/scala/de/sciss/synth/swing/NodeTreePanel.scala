@@ -2,7 +2,7 @@
  *  NodeTreePanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -33,7 +33,7 @@ class NodeTreePanel extends Component with NodeTreePanelLike {
     require(EventQueue.isDispatchThread)
     frame getOrElse {
       val fr = new Frame() {
-        override def toString() = "NodeTreeFrame@" + hashCode().toHexString
+        override def toString = s"NodeTreeFrame@${hashCode().toHexString}"
       }
       fr.peer.setDefaultCloseOperation(
         if (disposeOnClose) WindowConstants.DISPOSE_ON_CLOSE else WindowConstants.DO_NOTHING_ON_CLOSE

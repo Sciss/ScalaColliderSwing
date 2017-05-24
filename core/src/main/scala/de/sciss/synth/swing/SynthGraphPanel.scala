@@ -2,7 +2,7 @@
  *  SynthGraphPanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -13,25 +13,27 @@
 
 package de.sciss.synth.swing
 
-import java.awt.{BorderLayout, Color, Point}
 import java.awt.event.{WindowAdapter, WindowEvent}
+import java.awt.{BorderLayout, Color, Point}
 import java.util.Locale
 import javax.swing.{JComponent, JFrame, JPanel, JSplitPane, WindowConstants}
-import de.sciss.synth.ugen.{UnaryOpUGen, BinaryOpUGen}
-import prefuse.{Constants, Display, Visualization}
-import prefuse.action.{ActionList, RepaintAction}
+
+import de.sciss.synth._
+import de.sciss.synth.ugen.{BinaryOpUGen, UnaryOpUGen}
 import prefuse.action.assignment.ColorAction
+import prefuse.action.layout.Layout
 import prefuse.action.layout.graph._
+import prefuse.action.{ActionList, RepaintAction}
 import prefuse.activity.Activity
 import prefuse.controls.{DragControl, PanControl, WheelZoomControl, ZoomControl, ZoomToFitControl}
 import prefuse.data.{Graph => PGraph, Node => PNode}
 import prefuse.render.{AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer, LabelRenderer}
 import prefuse.util.ColorLib
 import prefuse.util.ui.JForcePanel
-import prefuse.visual.VisualItem
 import prefuse.visual.expression.InGroupPredicate
 import prefuse.visual.sort.TreeDepthItemSorter
-import de.sciss.synth._
+import prefuse.visual.{VisualGraph, VisualItem}
+import prefuse.{Constants, Display, Visualization}
 
 object SynthGraphPanel {
   def viewGraph(g: UGenGraph, forceDirected: Boolean = true): SynthGraphPanel =
@@ -65,24 +67,24 @@ class SynthGraphPanel(name: String, graph: UGenGraph, forceDirected: Boolean)
   //   private val ACTION_COLOR_ANIM    = "layout-anim"
   //   private val FADE_TIME            = 20000
 
-  val colorMap = Map[Any, Int](
+  val colorMap: Map[Any, Int] = Map(
     scalar  -> ColorLib.rgb(200, 200, 200),
     control -> ColorLib.rgb( 50,  50, 250),
     audio   -> ColorLib.rgb(220,  50,  50),
     demand  -> ColorLib.rgb( 50, 200,  50)
   )
 
-  val g = {
-    val g     = new PGraph(true)
-    val nodes = g.getNodeTable
+  val g: PGraph = {
+    val res   = new PGraph(true)
+    val nodes = res.getNodeTable
     nodes.addColumn(COL_LABEL, classOf[String])
     nodes.addColumn(COL_RATE, classOf[Rate])
-    val edges = g.getEdgeTable
+    val edges = res.getEdgeTable
     edges.addColumn(COL_RATE, classOf[Rate])
     //      PrefuseHelper.addColumn( nodes, COL_ICON,   classOf[ String ])
     //      PrefuseHelper.addColumn( nodes, COL_PAUSED, classOf[ Boolean ])
     //      FIELDS.foreach( PrefuseHelper.addColumn( nodes, _, classOf[ PNode ]))
-    g
+    res
   }
   val vis = new Visualization()
 
@@ -115,9 +117,9 @@ class SynthGraphPanel(name: String, graph: UGenGraph, forceDirected: Boolean)
     }
   }
 
-  val display = new Display( vis )
-  val vg      = vis.addGraph(GROUP_GRAPH, g)
-  val lay     = if (forceDirected)
+  val display           = new Display( vis )
+  val vg  : VisualGraph = vis.addGraph(GROUP_GRAPH, g)
+  val lay : Layout      = if (forceDirected)
     new ForceDirectedLayout(GROUP_GRAPH)
   else
     new NodeLinkTreeLayout(GROUP_GRAPH, Constants.ORIENT_TOP_BOTTOM, 24, 2, 8)
@@ -204,7 +206,7 @@ class SynthGraphPanel(name: String, graph: UGenGraph, forceDirected: Boolean)
 
   private class RateColorAction(group: String, field: String)
     extends ColorAction(group, field) {
-    override def getColor(vi: VisualItem) = colorMap(vi.get(COL_RATE))
+    override def getColor(vi: VisualItem): Int = colorMap(vi.get(COL_RATE))
   }
 
   def makeWindow(): JFrame = {

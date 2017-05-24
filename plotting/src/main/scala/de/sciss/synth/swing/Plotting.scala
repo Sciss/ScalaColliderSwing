@@ -2,7 +2,7 @@
  *  Plotting.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -153,7 +153,7 @@ object Plotting {
     val renderer  = plot.getRenderer
     // renderer.setBasePaint(Color.black)
     // renderer.setBaseOutlinePaint(Color.black)
-    series.zipWithIndex.foreach { case (s, i) =>
+    series.zipWithIndex.foreach { case (_, i) =>
       // plot.setDataset(i, dataset)
       // val renderer  = plot.getRendererForDataset(dataset)
       renderer.setSeriesPaint (i, Color.black) // if (i == 0) Color.black else Color.red)
@@ -209,18 +209,18 @@ object Plotting {
     val res: Plot = new Plot {
       override def toString = s"Plot($title)@${hashCode().toHexString}"
 
-      def frame     = if (__frame != null) __frame else sys.error("Plot was defined without frame")
-      val chart     = _chart
-      val component = _panel
+      def frame     : Frame     = if (__frame != null) __frame else sys.error("Plot was defined without frame")
+      val chart     : Chart     = _chart
+      val component : Component = _panel
     }
 
     _panel.listenTo(_panel)
     _panel.reactions += {
-      case ChartMouseClicked(trig, opt) =>
+      case ChartMouseClicked(trig, _) =>
         // println("clicked") // s"clicked x=$chartX, y = $chartY")
         res.publish(Plot.Clicked(res, trig, mkChartPoint(plot, _panelJ, trig.point)))
 
-      case ChartMouseMoved(trig, opt) =>
+      case ChartMouseMoved(trig, _) =>
         // println("moved")
         res.publish(Plot.Moved(res, trig, mkChartPoint(plot, _panelJ, trig.point)))
     }

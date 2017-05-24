@@ -2,7 +2,7 @@
  *  Prefs.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -77,9 +77,9 @@ object Prefs {
     private val blueForest  = "blue-forest"
     private val light       = "light"
 
-    def all = Seq(blueForest, light)
+    def all: Seq[String] = Seq(blueForest, light)
 
-    def default = light // blueForest
+    def default: String = light // blueForest
 
     def apply(name: String): ColorScheme = name match {
       case `blueForest` => ColorScheme.BlueForest
@@ -96,11 +96,11 @@ object Prefs {
 
   // ---- audio ----
 
-  final val defaultSuperCollider    = file("<SC_HOME>")
-  final val defaultAudioDevice      = "<default>"
-  final val defaultAudioNumInputs   = 8
-  final val defaultAudioNumOutputs  = 8
-  final val defaultHeadphonesBus    = 0
+  final val defaultSuperCollider  : File    = file("<SC_HOME>")
+  final val defaultAudioDevice    : String  = "<default>"
+  final val defaultAudioNumInputs : Int     = 8
+  final val defaultAudioNumOutputs: Int     = 8
+  final val defaultHeadphonesBus  : Int     = 0
 
   def superCollider  : Entry[File  ] = userPrefs("supercollider"    )
   def audioDevice    : Entry[String] = userPrefs("audio-device"     )

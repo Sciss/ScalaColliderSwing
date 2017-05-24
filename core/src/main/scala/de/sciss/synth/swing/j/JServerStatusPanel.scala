@@ -2,7 +2,7 @@
  *  JServerStatusPanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -57,8 +57,8 @@ object JServerStatusPanel {
     // ---- constructor ----
     {
       addAncestorListener(new AncestorListener {
-        def ancestorAdded(e: AncestorEvent) = ()
-        def ancestorMoved(e: AncestorEvent) = ()
+        def ancestorAdded(e: AncestorEvent): Unit = ()
+        def ancestorMoved(e: AncestorEvent): Unit = ()
 
         def ancestorRemoved(e: AncestorEvent): Unit = {
           imgGaugeEmpty.flush()
@@ -166,7 +166,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
   private var _server = Option.empty[Server]
 
-  def server = sync.synchronized {
+  def server: Option[Server] = sync.synchronized {
     _server
   }
   def server_=(s: Option[Server]): Unit =
@@ -183,7 +183,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
   private var _booting = Option.empty[ServerConnection]
 
-  def booting = sync.synchronized {
+  def booting: Option[ServerConnection] = sync.synchronized {
     _booting
   }
   def booting_=(b: Option[ServerConnection]): Unit =
@@ -200,7 +200,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
   private var _bootAction = Option.empty[() => Unit]
 
-  def bootAction = sync.synchronized {
+  def bootAction: Option[() => Unit] = sync.synchronized {
     _bootAction
   }
   def bootAction_=(a: Option[() => Unit]): Unit =
@@ -277,7 +277,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       def ancestorRemoved(e: AncestorEvent): Unit =
         stopListening()
 
-      def ancestorMoved(e: AncestorEvent) = ()
+      def ancestorMoved(e: AncestorEvent): Unit = ()
     })
   }
 

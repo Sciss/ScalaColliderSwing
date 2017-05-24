@@ -2,7 +2,7 @@
  *  TextViewImpl.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -42,7 +42,8 @@ object TextViewImpl {
     override def toString = s"TextView(file = ${file.map(_.getName)}, dirty = $dirty)"
 
     private var _file = Option.empty[File]
-    def file = _file
+
+    def file: Option[File] = _file
     def file_=(value: Option[File]): Unit = if (_file != value) {
       val old = _file
       _file = value
@@ -50,7 +51,8 @@ object TextViewImpl {
     }
 
     private var _dirty = false
-    def dirty = _dirty
+
+    def dirty: Boolean = _dirty
     def dirty_=(value: Boolean): Unit = if (_dirty != value) {
       _dirty = value
       dispatch(TextView.DirtyChange(value))
