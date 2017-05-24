@@ -5,8 +5,8 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.32.3-SNAPSHOT"
-lazy val mimaVersion            = "1.32.0"
+lazy val projectVersion         = "1.33.0"
+lazy val mimaVersion            = "1.33.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
 lazy val authorEMail            = "contact@sciss.de"
@@ -25,7 +25,7 @@ lazy val xmlGraphicsVersion     = "2.2"
 
 // ---- interpreter dependencies ----
 
-lazy val interpreterPaneVersion = "1.7.5"
+lazy val interpreterPaneVersion = "1.8.1"
 
 // ---- plotting dependencies ----
 

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=ScalaCollider
-Version=1.32.2
+Version=1.33.0
 GenericName=ScalaCollider
 Comment=ScalaCollider Standalone Application
 Exec=/usr/share/scalacollider/bin/scalacollider %F
