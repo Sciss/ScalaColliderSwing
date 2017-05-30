@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.33.0"
+lazy val projectVersion         = "1.33.1"
 lazy val mimaVersion            = "1.33.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
@@ -38,6 +38,7 @@ lazy val desktopVersion         = "0.7.3"
 lazy val fileUtilVersion        = "1.1.2"
 lazy val kollFlitzVersion       = "0.2.1"
 lazy val subminVersion          = "0.2.1"
+lazy val webLaFVersion          = "2.1.3"
 lazy val dockingVersion         = "2.0.0"
 lazy val pegDownVersion         = "1.6.0"
 lazy val dspVersion             = "1.2.3"
@@ -242,6 +243,7 @@ lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
       "de.sciss"    %% "fileutil"                % fileUtilVersion,
       "de.sciss"    %% "kollflitz"               % kollFlitzVersion,
       "de.sciss"    %  "submin"                  % subminVersion,
+      "de.sciss"    %  "weblaf"                  % webLaFVersion,
       "de.sciss"    %% "scissdsp"                % dspVersion,
       "de.sciss"    %  "docking-frames"          % dockingVersion,
       "org.pegdown" %  "pegdown"                 % pegDownVersion
