@@ -5,5 +5,4 @@ project/boot/
 .idea/
 .idea_modules/
 *.app
-_creation
 ScalaCollider.jar
