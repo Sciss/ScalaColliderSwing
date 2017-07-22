@@ -16,18 +16,23 @@ package impl
 
 import de.sciss.scalainterpreter.InterpreterPane
 
-import scala.swing.{Swing, Action, Component}
+import scala.swing.{Action, Component, Swing}
 import de.sciss.{scalainterpreter => si}
 import de.sciss.swingplus.Implicits._
+
 import scala.concurrent.{ExecutionContext, Future}
 import java.awt.EventQueue
+
 import de.sciss.syntaxpane.SyntaxDocument
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
-import javax.swing.{KeyStroke, AbstractAction, JComponent}
+import javax.swing.{AbstractAction, JComponent, KeyStroke}
 import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
+
 import de.sciss.model.impl.ModelImpl
 import de.sciss.model.Change
 import de.sciss.file.File
+
+import scala.util.Success
 
 object TextViewImpl {
   def apply(intp: Future[si.Interpreter], config: si.CodePane.Config): TextView = {
@@ -148,11 +153,14 @@ object TextViewImpl {
       //      }
 
       import ExecutionContext.Implicits.global
-      interpreter.onSuccess { case intp =>
-        defer {
-          codePane.installAutoCompletion(intp)
-          installExecutionAction(intp)
-        }
+      interpreter.onComplete{
+        case Success(intp) =>
+          defer {
+            codePane.installAutoCompletion(intp)
+            installExecutionAction(intp)
+          }
+
+        case _ =>
       }
 
       //      val progressPane = new OverlayPanel {

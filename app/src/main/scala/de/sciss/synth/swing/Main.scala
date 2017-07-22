@@ -45,7 +45,7 @@ import scala.tools.nsc.interpreter.NamedParam
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-object Main extends SwingApplicationImpl("ScalaCollider") {
+object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
   type Document = TextViewDockable
 
   override lazy val windowHandler: WindowHandler = new WindowHandlerImpl(this, menuFactory) {
@@ -162,7 +162,9 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     closeOperation = Window.CloseIgnore
 
     reactions += {
-      case Window.Closing(_) => if (Desktop.mayQuit()) quit()
+      case Window.Closing(_) =>
+        import ExecutionContext.Implicits.global
+        Desktop.mayQuit().foreach(_ => quit())
     }
 
     def init(c: Component): Unit = {
@@ -831,7 +833,9 @@ object Main extends SwingApplicationImpl("ScalaCollider") {
     val itPrefs = Item.Preferences(App)(ActionPreferences())
     val itQuit  = Item.Quit(App)
 
-    Desktop.addQuitAcceptor(closeAll())
+    Desktop.addQuitAcceptor {
+      if (closeAll()) Future.successful(()) else Future.failed(new Exception("Aborted"))
+    }
 
     val gFile = Group("file", "File")
       .add(Item("new" )("New"     -> (menu1 + Key.N))(TextViewDockable.empty()))

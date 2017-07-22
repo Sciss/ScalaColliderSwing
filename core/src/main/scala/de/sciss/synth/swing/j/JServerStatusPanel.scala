@@ -123,24 +123,24 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     this(0x03)
   }
 
-  private val actionBoot  = new ActionBoot()
-  private val ggBoot      = new JButton(actionBoot)
-  private val ggBusy      = new JProgressBar()
+  private[this] val actionBoot  = new ActionBoot()
+  private[this] val ggBoot      = new JButton(actionBoot)
+  private[this] val ggBusy      = new JProgressBar()
 
   // subclasses may override this
   protected def txtBoot    = "Boot"  // XXX getResource
   protected def txtStop    = "Stop"  // XXX getResource
   protected def frameTitle = "Server Status"
 
-  private val lbCPU       = new CPUIndicator
-  private val lbNumUGens  = new CountLabel
-  private val lbNumSynths = new CountLabel
-  private val lbNumGroups = new CountLabel
-  private val lbNumDefs   = new CountLabel
+  private[this] val lbCPU       = new CPUIndicator
+  private[this] val lbNumUGens  = new CountLabel
+  private[this] val lbNumSynths = new CountLabel
+  private[this] val lbNumGroups = new CountLabel
+  private[this] val lbNumDefs   = new CountLabel
 
-  private val sync = new AnyRef
+  private[this] val sync = new AnyRef
 
-  private val bootingUpdate: ServerConnection.Listener = {
+  private[this] val bootingUpdate: ServerConnection.Listener = {
     case ServerConnection.Running(srv) =>
       server_=(Some(srv))
       updateCounts(srv.counts)
@@ -153,7 +153,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     //      case msg => actionBoot.serverUpdate( msg )
   }
 
-  private val serverUpdate: Model.Listener[Any] = {
+  private[this] val serverUpdate: Model.Listener[Any] = {
     case Server.Counts(cnt) => if (isShowing) updateCounts(cnt)
 
     case msg @ Server.Offline =>
@@ -164,7 +164,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     case msg => actionBoot.serverUpdate(msg)
   }
 
-  private var _server = Option.empty[Server]
+  private[this] var _server = Option.empty[Server]
 
   def server: Option[Server] = sync.synchronized {
     _server
@@ -181,7 +181,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       }
     }
 
-  private var _booting = Option.empty[ServerConnection]
+  private[this] var _booting = Option.empty[ServerConnection]
 
   def booting: Option[ServerConnection] = sync.synchronized {
     _booting
@@ -198,7 +198,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
       }
     }
 
-  private var _bootAction = Option.empty[() => Unit]
+  private[this] var _bootAction = Option.empty[() => Unit]
 
   def bootAction: Option[() => Unit] = sync.synchronized {
     _bootAction
@@ -285,7 +285,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     bootAction.isDefined
   }
 
-  private var frame: Option[JFrame] = None
+  private[this] var frame: Option[JFrame] = None
 
   private def updateFrameTitle(): Unit =
     defer {
@@ -315,7 +315,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     }
   }
 
-  private var listening = false
+  private[this] var listening = false
 
   private def startListening(): Unit =
     sync.synchronized {
@@ -378,7 +378,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
 
     import Server._
 
-    private var cond: Any = Offline
+    private[this] var cond: Any = Offline
 
     def actionPerformed(e: ActionEvent): Unit =
       if (cond == Offline) {
