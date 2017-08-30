@@ -471,7 +471,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
   private def openFile(file: File): Unit =
     try {
       // val file = file0.getCanonicalFile
-      val src = io.Source.fromFile(file)
+      val src = scala.io.Source.fromFile(file)
       try {
         val text0 = src.mkString
         // If the current window is empty and untitled, simply close it first

@@ -14,6 +14,7 @@
 package de.sciss.synth
 package swing
 
+import java.awt.FileDialog
 import java.io.{ByteArrayInputStream, File}
 import javax.swing.JButton
 
@@ -23,7 +24,7 @@ import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, G
 import org.apache.batik.swing.JSVGCanvas
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.swing.{BorderPanel, Component, FlowPanel, Frame, Label, ScrollPane}
+import scala.swing.{BorderPanel, Button, Component, FlowPanel, Frame, Label, ScrollPane}
 
 object GUI {
   var windowOnTop = false
@@ -71,14 +72,19 @@ object GUI {
       config.rateColors = true
       config.graphName  = sd.name
       config.input      = sd.graph
-      val dot           = ScalaColliderDOT(config)
-      val dotIn         = new ByteArrayInputStream(dot.getBytes("UTF-8"))
-      val svgOut        = File.createTempFile("temp", "svg")
-//      println(svgOut)
+
+      def saveSVG(f: File): Unit = {
+        import scala.sys.process._
+        val dot   = ScalaColliderDOT(config)
+        val dotIn = new ByteArrayInputStream(dot.getBytes("UTF-8"))
+        val res   = Seq("dot", "-Tsvg").#<(dotIn).#>(f).!
+        if (res != 0) sys.error(s"'dot' failed with code $res")
+      }
+
+      val svgOut = File.createTempFile("temp", "svg")
       svgOut.deleteOnExit()
-      import scala.sys.process._
-      val res           = Seq("dot", "-Tsvg").#<(dotIn).#>(svgOut).!
-      if (res != 0) sys.error(s"'dot' failed with code $res")
+      saveSVG(svgOut)
+
       // XXX TODO --- zoom http://stackoverflow.com/questions/10838971
       // XXX TODO --- font quality: http://stackoverflow.com/questions/32272822/
       val svgCanvas     = new JSVGCanvas(null, true, false)
@@ -91,12 +97,25 @@ object GUI {
       val scroll  = new ScrollPane(Component.wrap(svgCanvas))
       scroll.peer.putClientProperty("styleId", "undecorated")
       val lbInfo  = new Label("Shift-Drag = Pan, Ctrl-Drag = Zoom, Ctrl-T = Reset")
-      val panel   = new BorderPanel {
+      lazy val ggSave: Button = Button("Save…") {
+        val dlg = new FileDialog(f.peer, "Save Diagram as SVG", FileDialog.SAVE)
+        dlg.setFile("ugen-graph.svg")
+        dlg.setVisible(true)
+        for {
+          dir  <- Option(dlg.getDirectory)
+          name <- Option(dlg.getFile)
+        } {
+          val fOut = new File(dir, name)
+          saveSVG(fOut)
+        }
+      }
+      lazy val panel   = new BorderPanel {
         add(scroll, BorderPanel.Position.Center)
-        add(new FlowPanel(Component.wrap(ggZoomIn), Component.wrap(ggZoomOut), lbInfo), BorderPanel.Position.South)
+        add(new FlowPanel(ggSave, Component.wrap(ggZoomIn), Component.wrap(ggZoomOut), lbInfo), BorderPanel.Position.South)
       }
       svgCanvas.loadSVGDocument(svgOut.toURI.toURL.toExternalForm)
-      makeFrame(sd.name, s"SynthDef($sd.name)(...).gui.diagram", panel)(svgOut.delete())
+      lazy val f = makeFrame(sd.name, s"SynthDef($sd.name)(...).gui.diagram", panel)(svgOut.delete())
+      f
     }
   }
 

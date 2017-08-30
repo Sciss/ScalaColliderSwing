@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.34.0"
+lazy val projectVersion         = "1.34.1"
 lazy val mimaVersion            = "1.34.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
@@ -20,7 +20,7 @@ lazy val prefuseVersion         = "1.0.1"
 lazy val audioWidgetsVersion    = "1.11.0"
 lazy val ugensVersion           = "1.16.4"
 lazy val dotVersion             = "0.4.1"
-lazy val batikVersion           = "1.9"
+lazy val batikVersion           = "1.9.1"
 lazy val xmlGraphicsVersion     = "2.2"
 
 // ---- interpreter dependencies ----
@@ -35,7 +35,7 @@ lazy val chartVersion           = "0.5.1"
 // ---- app dependencies ----
 
 lazy val desktopVersion         = "0.8.0"
-lazy val fileUtilVersion        = "1.1.2"
+lazy val fileUtilVersion        = "1.1.3"
 lazy val kollFlitzVersion       = "0.2.1"
 lazy val subminVersion          = "0.2.1"
 lazy val webLaFVersion          = "2.1.3"
@@ -46,8 +46,8 @@ lazy val dspVersion             = "1.2.3"
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.2",
-  crossScalaVersions := Seq("2.12.2", "2.11.11", "2.10.6"),
+  scalaVersion       := "2.12.3",
+  crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6"),
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {
@@ -191,8 +191,9 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
       "de.sciss"               %  "prefuse-core"               % prefuseVersion,
       "de.sciss"               %% "audiowidgets-swing"         % audioWidgetsVersion,
       "at.iem"                 %% "scalacollider-dot"          % dotVersion,
-      "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion,
-      "org.apache.xmlgraphics" %  "xmlgraphics-commons"        % xmlGraphicsVersion // bloody Apache Batik does not declare its dependencies
+      // "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion  exclude("org.apache.xmlgraphics", "batik-script")
+      "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion exclude("org.mozilla", "rhino") exclude("org.python", "jython") // mother***
+      // "org.apache.xmlgraphics" %  "xmlgraphics-commons"        % xmlGraphicsVersion // bloody Apache Batik does not declare its dependencies
     ),
     // ---- build info ----
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
