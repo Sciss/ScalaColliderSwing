@@ -5,7 +5,7 @@ lazy val appNameL               = appName.toLowerCase
 lazy val baseName               = s"${appName}Swing"
 lazy val baseNameL              = baseName.toLowerCase
 
-lazy val projectVersion         = "1.34.1"
+lazy val projectVersion         = "1.34.2-SNAPSHOT"
 lazy val mimaVersion            = "1.34.0"
 
 lazy val authorName             = "Hanns Holger Rutz"
@@ -15,10 +15,10 @@ lazy val appDescription         = "Standalone application for ScalaCollider"
 
 // ---- core dependencies ----
 
-lazy val scalaColliderVersion   = "1.22.3"
+lazy val scalaColliderVersion   = "1.22.4"
 lazy val prefuseVersion         = "1.0.1"
-lazy val audioWidgetsVersion    = "1.11.0"
-lazy val ugensVersion           = "1.16.4"
+lazy val audioWidgetsVersion    = "1.11.1"
+lazy val ugensVersion           = "1.16.7"
 lazy val dotVersion             = "0.4.1"
 lazy val batikVersion           = "1.9.1"
 lazy val xmlGraphicsVersion     = "2.2"
@@ -37,7 +37,7 @@ lazy val chartVersion           = "0.5.1"
 lazy val desktopVersion         = "0.8.0"
 lazy val fileUtilVersion        = "1.1.3"
 lazy val kollFlitzVersion       = "0.2.1"
-lazy val subminVersion          = "0.2.1"
+lazy val subminVersion          = "0.2.2"
 lazy val webLaFVersion          = "2.1.3"
 lazy val dockingVersion         = "2.0.0"
 lazy val pegDownVersion         = "1.6.0"
@@ -46,8 +46,8 @@ lazy val dspVersion             = "1.2.3"
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.3",
-  crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6"),
+  scalaVersion       := "2.12.4",
+  crossScalaVersions := Seq("2.12.4", "2.11.11"),
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {
@@ -146,7 +146,7 @@ lazy val pkgDebianSettings = Seq(
 
 lazy val assemblySettings = Seq(
   // ---- assembly ----
-  test            in assembly := (),
+  test            in assembly := {},
   mainClass       in assembly := appMainClass,
   target          in assembly := baseDirectory.value,
   assemblyJarName in assembly := "ScalaCollider.jar",
