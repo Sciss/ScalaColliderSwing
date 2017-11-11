@@ -24,7 +24,7 @@ Please see the `licenses` folder for details. It contains the license headers fo
 
 ## building from source
 
-ScalaCollider-Swing compiles against Scala 2.12, 2.11, 2.10 using sbt 0.13.
+ScalaCollider-Swing compiles against Scala 2.12, 2.11 using sbt.
 
 -`sbt assembly` creates a fully self-contained jar (platform neutral)
 
@@ -41,7 +41,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current stable version `v` is `"1.34.1"`.
+The current stable version `v` is `"1.35.0"`.
 
 ## contributing
 

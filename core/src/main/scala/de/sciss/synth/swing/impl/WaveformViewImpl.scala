@@ -37,7 +37,7 @@ object WaveformViewImpl {
 
     protected def makeUGens: Unit = unwrap(this, in.expand.outputs)
 
-    private[synth] def makeUGen(ins: Vec[UGenIn]): Unit = {
+    protected def makeUGen(ins: Vec[UGenIn]): Unit = {
       if (ins.isEmpty) return
 
       import synth._
