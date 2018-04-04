@@ -2,7 +2,7 @@
  *  ScalaInterpreterFrame.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2018 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -42,13 +42,17 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
 
     val codeCfg = CodePane.Config()
 
-    val file = new File(/* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.txt")
+    val file = new File(/* new File( "" ).getAbsoluteFile.getParentFile, */ "interpreter.sc")
     if (file.isFile) try {
       val fis = new FileInputStream(file)
       val txt = try {
         val arr = new Array[Byte](fis.available())
         fis.read(arr)
-        new String(arr, "UTF-8")
+        val s0  = new String(arr, "UTF-8")
+        val s1  = "////////\n"
+        val i   = s0.indexOf(s1)
+        s0.substring(if (i < 0) 0 else i + s1.length)
+
       } finally {
         fis.close()
       }

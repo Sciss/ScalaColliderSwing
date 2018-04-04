@@ -8,11 +8,17 @@
 
 ## statement
 
-ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://github.com/Sciss/ScalaCollider). ScalaCollider is a client for the [SuperCollider](http://supercollider.sourceforge.net/) sound synthesis server.
+ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://github.com/Sciss/ScalaCollider). ScalaCollider
+is a client for the [SuperCollider](http://supercollider.sourceforge.net/) sound synthesis server.
 
-(C)opyright 2008&ndash;2017 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt) v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+(C)opyright 2008&ndash;2018 by Hanns Holger Rutz. All rights reserved. It is released under
+the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt)
+v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
-Please see the `licenses` folder for details. It contains the license headers for all dependencies and transitive dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the respective OSS project pages, as indicated in the license files, or&mdash;in compliance with GPL/LGPL&mdash;on request via E-Mail. All source code with group-ID `de.sciss` is available from [github.com/Sciss](https://github.com/Sciss).
+Please see the `licenses` folder for details. It contains the license headers for all dependencies and transitive
+dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the
+respective OSS project pages, as indicated in the license files, or&mdash;in compliance with GPL/LGPL&mdash;on
+request via E-Mail. All source code with group-ID `de.sciss` is available from [github.com/Sciss](https://github.com/Sciss).
 
 <img src="screenshot.png" alt="screenshot" width="574" height="382"/>
 
@@ -28,7 +34,8 @@ ScalaCollider-Swing compiles against Scala 2.12, 2.11 using sbt.
 
 -`sbt assembly` creates a fully self-contained jar (platform neutral)
 
-A the `sbt` shell script by [paulp](https://github.com/paulp/sbt-extras), made available under a BSD-style license, is now included. So if you do not want to install `sbt` directly on your system, you can just use that script: `./sbt`.
+A the `sbt` shell script by [paulp](https://github.com/paulp/sbt-extras), made available under a BSD-style license,
+is now included. So if you do not want to install `sbt` directly on your system, you can just use that script: `./sbt`.
 
 To link to ScalaCollider-Swing:
 
@@ -41,7 +48,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current stable version `v` is `"1.35.0"`.
+The current version `v` is `"1.36.0"`.
 
 ## contributing
 
@@ -49,7 +56,8 @@ Please see the file [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## running
 
-The standalone jar, created via `sbt assembly` produces `ScalaCollider.jar` which is double-clickable and can be run via:
+The standalone jar, created via `sbt assembly` produces `ScalaCollider.jar` which is double-clickable and can be
+run via:
 
     $ java -jar ScalaCollider.jar
 
@@ -59,11 +67,13 @@ Runnable packages can be created via `sbt universal:packageBin` (all platforms) 
 
  - There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://www.screencast.com/t/YjUwNDZjMT)
  - ScalaCollider was also presented at [Scala Days 2012](http://skillsmatter.com/podcast/scala/scalacollider)
- - See the [ScalaCollider](https://github.com/Sciss/ScalaCollider) site for mailing-list information, Wiki, and additional resources
+ - See the [ScalaCollider](https://github.com/Sciss/ScalaCollider) site for mailing-list information, Wiki, and
+   additional resources
 
 ### GUI commands
 
-The GUI extensions are available by calling the special `.gui` method on supported objects. The extensions are imported with `import de.sciss.synth.swing.Implicits._`.
+The GUI extensions are available by calling the special `.gui` method on supported objects. The extensions are
+imported with `import de.sciss.synth.swing.Implicits._`.
 
 ```scala
 
@@ -85,7 +95,8 @@ The GUI extensions are available by calling the special `.gui` method on support
     fun.gui.waveform(dur)       // record and plot graph function for duration in seconds
 ```
 
-Experimental support for JFreeChart is added (app sub-project only). Extensions are imported with `import de.sciss.synth.swing.Plotting.Implicits._`.
+Experimental support for JFreeChart is added (app sub-project only). Extensions are imported
+with `import de.sciss.synth.swing.Plotting.Implicits._`.
 
 ```scala
 

@@ -1,59 +1,57 @@
 import com.typesafe.sbt.packager.linux.LinuxPackageMapping
 
-lazy val appName                = "ScalaCollider"
-lazy val appNameL               = appName.toLowerCase
-lazy val baseName               = s"${appName}Swing"
-lazy val baseNameL              = baseName.toLowerCase
+lazy val appName        = "ScalaCollider"
+lazy val appNameL       = appName.toLowerCase
+lazy val baseName       = s"${appName}Swing"
+lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion         = "1.35.0"
-lazy val mimaVersion            = "1.35.0"
+lazy val projectVersion = "1.36.0-SNAPSHOT"
+lazy val mimaVersion    = "1.36.0"
 
-lazy val authorName             = "Hanns Holger Rutz"
-lazy val authorEMail            = "contact@sciss.de"
+lazy val authorName     = "Hanns Holger Rutz"
+lazy val authorEMail    = "contact@sciss.de"
 
-lazy val appDescription         = "Standalone application for ScalaCollider"
+lazy val appDescription = "Standalone application for ScalaCollider"
 
-// ---- core dependencies ----
-
-lazy val scalaColliderVersion   = "1.23.0"
-lazy val ugensVersion           = "1.17.1"
-lazy val prefuseVersion         = "1.0.1"
-lazy val audioWidgetsVersion    = "1.11.1"
-lazy val dotVersion             = "0.5.0"
-lazy val batikVersion           = "1.9.1"
-lazy val xmlGraphicsVersion     = "2.2"
-
-// ---- interpreter dependencies ----
-
-lazy val interpreterPaneVersion = "1.8.1"
-
-// ---- plotting dependencies ----
-
-lazy val pdflitzVersion         = "1.2.2"
-lazy val chartVersion           = "0.5.1"
-
-// ---- app dependencies ----
-
-lazy val desktopVersion         = "0.8.0"
-lazy val fileUtilVersion        = "1.1.3"
-lazy val kollFlitzVersion       = "0.2.1"
-lazy val subminVersion          = "0.2.2"
-lazy val webLaFVersion          = "2.1.3"
-lazy val dockingVersion         = "2.0.0"
-lazy val pegDownVersion         = "1.6.0"
-lazy val dspVersion             = "1.2.3"
+lazy val deps = new {
+  val core = new {
+    val scalaCollider   = "1.24.0"
+    val ugens           = "1.18.0"
+    val prefuse         = "1.0.1"
+    val audioWidgets    = "1.11.2"
+    val dot             = "0.6.0"
+    val batik           = "1.9.1"
+    val xmlGraphics     = "2.2"
+  }
+  val intp = new {
+    val interpreterPane = "1.8.1"
+  }
+  val plot = new {
+    val pdflitz         = "1.2.2"
+    val chart           = "0.5.1"
+  }
+  val app = new {
+    val desktop         = "0.8.1"
+    val fileUtil        = "1.1.3"
+    val kollFlitz       = "0.2.2"
+    val submin          = "0.2.2"
+    val webLaF          = "2.1.3"
+    val docking         = "2.0.0"
+    val pegDown         = "1.6.0"
+    val dsp             = "1.2.3"
+  }
+}
 
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.4",
-  crossScalaVersions := Seq("2.12.4", "2.11.11"),
+  scalaVersion       := "2.12.5",
+  crossScalaVersions := Seq("2.12.5", "2.11.12"),
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {
-    val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture")
-    val ys = if (scalaVersion.value.startsWith("2.10")) xs else xs :+ "-Xlint:-stars-align,-missing-interpolator,_"  // syntax not supported in Scala 2.10
-    if (isSnapshot.value) ys else ys ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
+    val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint:-stars-align,-missing-interpolator,_" )
+    if (isSnapshot.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
   },
   aggregate in assembly := false   // https://github.com/sbt/sbt-assembly/issues/147
 ) ++ publishSettings
@@ -162,7 +160,7 @@ lazy val assemblySettings = Seq(
 
 // ---- projects ----
 
-lazy val root = Project(id = baseNameL, base = file("."))
+lazy val root = project.withId(baseNameL).in(file("."))
   .aggregate(core, interpreter, plotting, app)
   .dependsOn(core, interpreter, plotting, app)
   .enablePlugins(JavaAppPackaging, DebianPlugin)
@@ -178,21 +176,21 @@ lazy val root = Project(id = baseNameL, base = file("."))
   .settings(useNativeZip) // cf. https://github.com/sbt/sbt-native-packager/issues/334
   .settings(pkgDebianSettings)
 
-lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
-  enablePlugins(BuildInfoPlugin).
-  settings(commonSettings).
-  settings(
+lazy val core = project.withId(s"$baseNameL-core").in(file("core"))
+  .enablePlugins(BuildInfoPlugin)
+  .settings(commonSettings)
+  .settings(
     name           := s"$baseName-core",
     description    := "Swing components for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss"               %% "scalacollider"              % scalaColliderVersion,
-      "de.sciss"               %% "scalacolliderugens-core"    % ugensVersion,
-      "de.sciss"               %% "scalacolliderugens-plugins" % ugensVersion,  // NB: sc3-plugins
-      "de.sciss"               %  "prefuse-core"               % prefuseVersion,
-      "de.sciss"               %% "audiowidgets-swing"         % audioWidgetsVersion,
-      "at.iem"                 %% "scalacollider-dot"          % dotVersion,
+      "de.sciss"               %% "scalacollider"              % deps.core.scalaCollider,
+      "de.sciss"               %% "scalacolliderugens-core"    % deps.core.ugens,
+      "de.sciss"               %% "scalacolliderugens-plugins" % deps.core.ugens,  // NB: sc3-plugins
+      "de.sciss"               %  "prefuse-core"               % deps.core.prefuse,
+      "de.sciss"               %% "audiowidgets-swing"         % deps.core.audioWidgets,
+      "at.iem"                 %% "scalacollider-dot"          % deps.core.dot,
       // "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion  exclude("org.apache.xmlgraphics", "batik-script")
-      "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion exclude("org.mozilla", "rhino") exclude("org.python", "jython") // mother***
+      "org.apache.xmlgraphics" %  "batik-swing"                % deps.core.batik exclude("org.mozilla", "rhino") exclude("org.python", "jython") // mother***
       // "org.apache.xmlgraphics" %  "xmlgraphics-commons"        % xmlGraphicsVersion // bloody Apache Batik does not declare its dependencies
     ),
     // ---- build info ----
@@ -204,34 +202,34 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
     mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-core" % mimaVersion)
   )
 
-lazy val interpreter = Project(id = s"$baseNameL-interpreter", base = file("interpreter")).
-  dependsOn(core).
-  settings(commonSettings).
-  settings(
+lazy val interpreter = project.withId(s"$baseNameL-interpreter").in(file("interpreter"))
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
     description    := "REPL for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss" %% "scalainterpreterpane" % interpreterPaneVersion,
+      "de.sciss" %% "scalainterpreterpane" % deps.intp.interpreterPane,
       "org.scala-lang" %  "scala-compiler" % scalaVersion.value  // make sure we have the newest
     ),
     mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-interpreter" % mimaVersion)
   )
 
-lazy val plotting = Project(id = s"$baseNameL-plotting", base = file("plotting")).
-  dependsOn(core).
-  settings(commonSettings).
-  settings(
+lazy val plotting = project.withId(s"$baseNameL-plotting").in(file("plotting"))
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
     description := "Plotting functions for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss"                 %% "pdflitz"     % pdflitzVersion,
-      "com.github.wookietreiber" %% "scala-chart" % chartVersion
+      "de.sciss"                 %% "pdflitz"     % deps.plot.pdflitz,
+      "com.github.wookietreiber" %% "scala-chart" % deps.plot.chart
     ),
     mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-plotting" % mimaVersion)
   )
 
-lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
-  dependsOn(core, interpreter, plotting).
-  settings(commonSettings).
-  settings(
+lazy val app = project.withId(s"$baseNameL-app").in(file("app"))
+  .dependsOn(core, interpreter, plotting)
+  .settings(commonSettings)
+  .settings(
     description    := appDescription,
     libraryDependencies ++= Seq(
       // experiment with making sources and docs available.
@@ -239,15 +237,15 @@ lazy val app = Project(id = s"$baseNameL-app", base = file("app")).
       //     "de.sciss" %% "scalacollider" % scalaColliderVersion,
       //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "javadoc",
       //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
-      "de.sciss"    %  "scalacolliderugens-spec" % ugensVersion,
-      "de.sciss"    %% "desktop"                 % desktopVersion, // withJavadoc() withSources(),
-      "de.sciss"    %% "fileutil"                % fileUtilVersion,
-      "de.sciss"    %% "kollflitz"               % kollFlitzVersion,
-      "de.sciss"    %  "submin"                  % subminVersion,
-      "de.sciss"    %  "weblaf"                  % webLaFVersion,
-      "de.sciss"    %% "scissdsp"                % dspVersion,
-      "de.sciss"    %  "docking-frames"          % dockingVersion,
-      "org.pegdown" %  "pegdown"                 % pegDownVersion
+      "de.sciss"    %  "scalacolliderugens-spec" % deps.core.ugens,
+      "de.sciss"    %% "desktop"                 % deps.app.desktop, // withJavadoc() withSources(),
+      "de.sciss"    %% "fileutil"                % deps.app.fileUtil,
+      "de.sciss"    %% "kollflitz"               % deps.app.kollFlitz,
+      "de.sciss"    %  "submin"                  % deps.app.submin,
+      "de.sciss"    %  "weblaf"                  % deps.app.webLaF,
+      "de.sciss"    %% "scissdsp"                % deps.app.dsp,
+      "de.sciss"    %  "docking-frames"          % deps.app.docking,
+      "org.pegdown" %  "pegdown"                 % deps.app.pegDown
     ),
     mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-app" % mimaVersion)
   )

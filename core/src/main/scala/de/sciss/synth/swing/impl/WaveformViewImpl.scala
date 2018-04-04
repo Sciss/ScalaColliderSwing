@@ -2,7 +2,7 @@
  *  WaveformViewImpl.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2018 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -18,15 +18,16 @@ package impl
 import java.awt.event.MouseEvent
 import java.awt.{Color, Dimension, Font, Graphics, Graphics2D, Point, RenderingHints}
 import java.io.File
+
 import javax.swing.JComponent
 import javax.swing.event.MouseInputAdapter
-
 import de.sciss.audiowidgets.j.WavePainter
 import de.sciss.audiowidgets.{Axis, AxisFormat}
 import de.sciss.synth.Ops.stringToControl
 import de.sciss.{osc, synth}
 
 import scala.swing.{BorderPanel, BoxPanel, Component, Frame, Orientation, Swing}
+import scala.util.Failure
 
 object WaveformViewImpl {
   private final case class GUIRecordOut(in: GE)(chanFun: Int => Unit)
@@ -255,7 +256,7 @@ object WaveformViewImpl {
       // println(s"----onEnd...")
       val syncMsg   = server.syncMsg()
       val syncReply = syncMsg.reply
-      // println(s"----onEnd $syncID")
+      // println(s"----onEnd $syncId")
       val writeMsg  = buf.writeMsg(path.getAbsolutePath, completion = osc.Bundle.now(buf.freeMsg, syncMsg))
       val fut       = server.!!(writeMsg) {
         case `syncReply` =>
@@ -264,8 +265,9 @@ object WaveformViewImpl {
       }
       val c = server.clientConfig
       import c.executionContext
-      fut.onFailure {
-        case message.Timeout() => println("Timeout!")
+      fut.onComplete {
+        case Failure(message.Timeout()) => println("Timeout!")
+        case _ =>
       }
       // println("----aqui")
     }

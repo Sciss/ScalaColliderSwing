@@ -2,7 +2,7 @@
  *  JNodeTreePanel.scala
  *  (ScalaCollider-Swing)
  *
- *  Copyright (c) 2008-2017 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2018 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v3+
  *
@@ -39,12 +39,13 @@ import java.awt.event.{ActionEvent, InputEvent, MouseAdapter, MouseEvent}
 
 import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomToFitControl}
 import javax.swing.event.{AncestorEvent, AncestorListener}
-
 import de.sciss.osc
 
 import annotation.tailrec
 import DynamicTreeLayout.{INFO, NodeInfo}
 import de.sciss.audiowidgets.Util
+
+import scala.util.Failure
 
 trait NodeTreePanelLike {
   def nodeActionMenu: Boolean
@@ -263,47 +264,48 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
               updateFrameTitle()
               val iter = rest.iterator
 
-              @tailrec def loop(parentID: Int, predID: Int, numChildren: Int): Unit = {
+              @tailrec def loop(parentId: Int, predId: Int, numChildren: Int): Unit = {
                 if (numChildren == 0) return // pop
-                val nodeID = iter.next().asInstanceOf[Int]
+                val nodeId = iter.next().asInstanceOf[Int]
                 val subChildren = iter.next().asInstanceOf[Int]
                 val (node, info, icon) = if (subChildren < 0) {
                   val _info = message.NodeInfo.SynthData(
-                    parentID = parentID, predID = predID, succID = -1
+                    parentId = parentId, predId = predId, succId = -1
                   )
                   /* val defName = */ iter.next().toString
-                  val synth = Synth(server, nodeID)
+                  val synth = Synth(server, nodeId)
                   (synth, _info, ICON_SYNTH)
                   // stupid way to set the defName: XXX TODO : synth.newMsg( defName )
                   //                        nlAddSynth( synth, info )
 
                 } else {
                   val _info = message.NodeInfo.GroupData(
-                    parentID = parentID, predID = predID, succID = -1, headID = -1, tailID = -1
+                    parentId = parentId, predId = predId, succId = -1, headId = -1, tailId = -1
                   )
-                  val group = Group(server, nodeID)
+                  val group = Group(server, nodeId)
                   (group, _info, ICON_GROUP)
                 }
-                map.get(parentID).foreach { p =>
+                map.get(parentId).foreach { p =>
                   addNode(node, info, p, icon)
                 }
 
                 if (subChildren > 0)
-                  loop(parentID = nodeID, predID = -1, numChildren = subChildren) // push
+                  loop(parentId = nodeId, predId = -1, numChildren = subChildren) // push
                 else
-                  loop(parentID = parentID, predID = nodeID, numChildren = numChildren - 1) // iter
+                  loop(parentId = parentId, predId = nodeId, numChildren = numChildren - 1) // iter
 
               } // def loop
 
-              loop(parentID = g.id, predID = -1, numChildren = _numChildren)
+              loop(parentId = g.id, predId = -1, numChildren = _numChildren)
               server.nodeManager.addListener(nodeListener)
             }
           }
       }
       val c = server.clientConfig
       import c.executionContext
-      fut.onFailure {
-        case message.Timeout() => println(s"${queryMsg.name} : timeout!")
+      fut.onComplete {
+        case Failure(message.Timeout()) => println(s"${queryMsg.name} : timeout!")
+        case _ =>
       }
     }
   }
@@ -351,22 +353,22 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
 
   private def insertChild(pNode: PNode, pParent: PNode, info: message.NodeInfo.Data, iNode: NodeInfo): Unit = {
     val iParent = pParent.get(INFO).asInstanceOf[NodeInfo]
-    val pPred = if (info.predID == -1) {
+    val pPred = if (info.predId == -1) {
       iParent.head = pNode
       null
     } else {
-      map.get(info.predID).orNull
+      map.get(info.predId).orNull
     }
     if (pPred != null) {
       val iPred = pPred.get(INFO).asInstanceOf[NodeInfo]
       iPred.succ = pNode
       iNode.pred = pPred
     }
-    val pSucc = if (info.succID == -1) {
+    val pSucc = if (info.succId == -1) {
       iParent.tail = pNode
       null
     } else {
-      map.get(info.succID).orNull
+      map.get(info.succId).orNull
     }
     if (pSucc != null) {
       val iSucc = pSucc.get(INFO).asInstanceOf[NodeInfo]
@@ -423,14 +425,14 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
   }
 
   private def nlAddSynth(synth: Synth, info: message.NodeInfo.Data): Unit = {
-    val pNodeOpt = map.get(info.parentID)
+    val pNodeOpt = map.get(info.parentId)
     pNodeOpt.foreach(pParent => visDo(ACTION_ADD) {
       addNode(synth, info, pParent, ICON_SYNTH)
     })
   }
 
   private def nlAddGroup(group: Group, info: message.NodeInfo.Data): Unit = {
-    val pNodeOpt = map.get(info.parentID)
+    val pNodeOpt = map.get(info.parentId)
     pNodeOpt.foreach(pParent => visDo(ACTION_ADD) {
       addNode(group, info, pParent, ICON_GROUP)
     })
@@ -456,7 +458,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
       val oldEdge = t.getEdge(iNode.parent, pNode)
       removeChild(pNode)
       t.removeEdge(oldEdge)
-      map.get(info.parentID) match {
+      map.get(info.parentId) match {
         case Some(pParent) =>
           insertChild(pNode, pParent, info, iNode)
           t.addEdge(pParent, pNode)
@@ -581,24 +583,24 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
 
     import Ops._
 
-    private var selectionVar = Option.empty[Node]
+    private[this]  var selectionVar = Option.empty[Node]
 
-    val actionNodeFree = new AbstractAction {
+    private[this] val actionNodeFree = new AbstractAction {
       def actionPerformed(e: ActionEvent): Unit =
         selectionVar.foreach(n => confirm(this, "Free node " + n.id + "?")(n.free()))
     }
 
-    val actionNodeRun = new AbstractAction("Run") {
+    private[this] val actionNodeRun = new AbstractAction("Run") {
       def actionPerformed(e: ActionEvent): Unit =
         selectionVar.foreach(n => n.run(isPaused(n)))
     }
 
-    val actionNodeTrace = new AbstractAction("Trace") {
+    private[this] val actionNodeTrace = new AbstractAction("Trace") {
       def actionPerformed(e: ActionEvent): Unit =
         selectionVar.foreach(_.trace())
     }
 
-    val actionGroupFreeAll = new AbstractAction {
+    private[this] val actionGroupFreeAll = new AbstractAction {
       def actionPerformed(e: ActionEvent): Unit =
         selectionVar match {
           case Some(g: Group) => confirm(this, "Free all nodes in group " + g.id + "?")(g.freeAll())
@@ -606,7 +608,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
         }
     }
 
-    val actionGroupDeepFree = new AbstractAction {
+    private[this] val actionGroupDeepFree = new AbstractAction {
       def actionPerformed(e: ActionEvent): Unit =
         selectionVar match {
           case Some(g: Group) => confirm(this, "Free all synths in group " + g.id + " and its sub-groups?")(g.deepFree())
@@ -614,7 +616,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
         }
     }
 
-    val actionGroupDumpTree = new AbstractAction("Dump tree") {
+    private[this] val actionGroupDumpTree = new AbstractAction("Dump tree") {
       def actionPerformed(e: ActionEvent): Unit =
         selectionVar match {
           case Some(g: Group) => g.dumpTree((e.getModifiers & InputEvent.ALT_MASK) != 0)
@@ -622,7 +624,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
         }
     }
 
-    val popupTrigger = new MouseAdapter {
+    private[this] val popupTrigger = new MouseAdapter {
       private def process(e: MouseEvent): Unit =
         if (e.isPopupTrigger) {
           pop.show(e.getComponent, e.getX, e.getY)
