@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.36.0-SNAPSHOT"
+lazy val projectVersion = "1.36.0"
 lazy val mimaVersion    = "1.36.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -15,30 +15,28 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val scalaCollider   = "1.24.0"
-    val ugens           = "1.18.0"
-    val prefuse         = "1.0.1"
     val audioWidgets    = "1.11.2"
     val dot             = "0.6.0"
-    val batik           = "1.9.1"
-    val xmlGraphics     = "2.2"
+    val fileUtil        = "1.1.3"
+    val prefuse         = "1.0.1"
+    val scalaCollider   = "1.24.0"
+    val ugens           = "1.18.0"
   }
   val intp = new {
     val interpreterPane = "1.8.1"
   }
   val plot = new {
-    val pdflitz         = "1.2.2"
     val chart           = "0.5.1"
+    val pdflitz         = "1.2.2" // incurs GPL
   }
   val app = new {
     val desktop         = "0.8.1"
-    val fileUtil        = "1.1.3"
-    val kollFlitz       = "0.2.2"
-    val submin          = "0.2.2"
-    val webLaF          = "2.1.3"
     val docking         = "2.0.0"
-    val pegDown         = "1.6.0"
     val dsp             = "1.2.3"
+    val kollFlitz       = "0.2.2"
+    val pegDown         = "1.6.0"
+    val submin          = "0.2.2" // incurs GPL
+    val webLaF          = "2.1.3" // incurs GPL
   }
 }
 
@@ -150,8 +148,8 @@ lazy val assemblySettings = Seq(
   assemblyJarName in assembly := "ScalaCollider.jar",
   assemblyMergeStrategy in assembly := {
     case "logback.xml" => MergeStrategy.last
-    case PathList("org", "xmlpull", xs @ _*)              => MergeStrategy.first
-    case PathList("org", "w3c", "dom", "events", xs @ _*) => MergeStrategy.first // bloody Apache Batik
+    case PathList("org", "xmlpull", _ @ _*)              => MergeStrategy.first
+    case PathList("org", "w3c", "dom", "events", _ @ _*) => MergeStrategy.first // bloody Apache Batik
     case x =>
       val old = (assemblyMergeStrategy in assembly).value
       old(x)
@@ -183,15 +181,13 @@ lazy val core = project.withId(s"$baseNameL-core").in(file("core"))
     name           := s"$baseName-core",
     description    := "Swing components for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss"               %% "scalacollider"              % deps.core.scalaCollider,
-      "de.sciss"               %% "scalacolliderugens-core"    % deps.core.ugens,
-      "de.sciss"               %% "scalacolliderugens-plugins" % deps.core.ugens,  // NB: sc3-plugins
-      "de.sciss"               %  "prefuse-core"               % deps.core.prefuse,
-      "de.sciss"               %% "audiowidgets-swing"         % deps.core.audioWidgets,
-      "at.iem"                 %% "scalacollider-dot"          % deps.core.dot,
-      // "org.apache.xmlgraphics" %  "batik-swing"                % batikVersion  exclude("org.apache.xmlgraphics", "batik-script")
-      "org.apache.xmlgraphics" %  "batik-swing"                % deps.core.batik exclude("org.mozilla", "rhino") exclude("org.python", "jython") // mother***
-      // "org.apache.xmlgraphics" %  "xmlgraphics-commons"        % xmlGraphicsVersion // bloody Apache Batik does not declare its dependencies
+      "de.sciss"  %% "scalacollider"              % deps.core.scalaCollider,
+      "de.sciss"  %% "scalacolliderugens-core"    % deps.core.ugens,
+      "de.sciss"  %% "scalacolliderugens-plugins" % deps.core.ugens,  // NB: sc3-plugins
+      "de.sciss"  %% "fileutil"                   % deps.core.fileUtil,
+      "de.sciss"  %  "prefuse-core"               % deps.core.prefuse,
+      "de.sciss"  %% "audiowidgets-swing"         % deps.core.audioWidgets,
+      "at.iem"    %% "scalacollider-dot"          % deps.core.dot
     ),
     // ---- build info ----
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
@@ -208,8 +204,8 @@ lazy val interpreter = project.withId(s"$baseNameL-interpreter").in(file("interp
   .settings(
     description    := "REPL for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss" %% "scalainterpreterpane" % deps.intp.interpreterPane,
-      "org.scala-lang" %  "scala-compiler" % scalaVersion.value  // make sure we have the newest
+      "de.sciss"        %% "scalainterpreterpane" % deps.intp.interpreterPane,
+      "org.scala-lang"  %  "scala-compiler"       % scalaVersion.value  // make sure we have the newest
     ),
     mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-interpreter" % mimaVersion)
   )
@@ -239,7 +235,6 @@ lazy val app = project.withId(s"$baseNameL-app").in(file("app"))
       //     "de.sciss" %% "scalacollider" % scalaColliderVersion classifier "sources",
       "de.sciss"    %  "scalacolliderugens-spec" % deps.core.ugens,
       "de.sciss"    %% "desktop"                 % deps.app.desktop, // withJavadoc() withSources(),
-      "de.sciss"    %% "fileutil"                % deps.app.fileUtil,
       "de.sciss"    %% "kollflitz"               % deps.app.kollFlitz,
       "de.sciss"    %  "submin"                  % deps.app.submin,
       "de.sciss"    %  "weblaf"                  % deps.app.webLaF,

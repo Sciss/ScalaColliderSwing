@@ -795,7 +795,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     val html =
       s"""<html><center>
           |<font size=+1><b>About $name</b></font><p>
-          |Copyright (c) 2008&ndash;2017 Hanns Holger Rutz. All rights reserved.<p>
+          |Copyright (c) 2008&ndash;2018 Hanns Holger Rutz. All rights reserved.<p>
           |This software is published under the GNU General Public License v3+
           |<p>&nbsp;<p><i>
           |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
