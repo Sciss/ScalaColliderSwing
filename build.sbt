@@ -5,8 +5,8 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.36.0"
-lazy val mimaVersion    = "1.36.0"
+lazy val projectVersion = "1.37.0-SNAPSHOT"
+lazy val mimaVersion    = "1.37.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
 lazy val authorEMail    = "contact@sciss.de"
@@ -15,24 +15,24 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "1.11.2"
-    val dot             = "0.6.0"
+    val audioWidgets    = "1.12.0-SNAPSHOT"
+    val dot             = "0.7.0-SNAPSHOT"
     val fileUtil        = "1.1.3"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "1.24.0"
+    val scalaCollider   = "1.25.0-SNAPSHOT"
     val ugens           = "1.18.0"
   }
   val intp = new {
-    val interpreterPane = "1.8.1"
+    val interpreterPane = "1.9.0-SNAPSHOT"
   }
   val plot = new {
-    val chart           = "0.5.1"
-    val pdflitz         = "1.2.2" // incurs GPL
+    val chart           = "0.6.0"
+    val pdflitz         = "1.3.0-SNAPSHOT" // incurs GPL
   }
   val app = new {
-    val desktop         = "0.8.1"
+    val desktop         = "0.9.0-SNAPSHOT"
     val docking         = "2.0.0"
-    val dsp             = "1.2.3"
+    val dsp             = "1.3.0-SNAPSHOT"
     val kollFlitz       = "0.2.2"
     val pegDown         = "1.6.0"
     val submin          = "0.2.2" // incurs GPL
@@ -216,8 +216,8 @@ lazy val plotting = project.withId(s"$baseNameL-plotting").in(file("plotting"))
   .settings(
     description := "Plotting functions for ScalaCollider",
     libraryDependencies ++= Seq(
-      "de.sciss"                 %% "pdflitz"     % deps.plot.pdflitz,
-      "com.github.wookietreiber" %% "scala-chart" % deps.plot.chart
+      "de.sciss" %% "pdflitz"     % deps.plot.pdflitz,
+      "de.sciss" %% "scala-chart" % deps.plot.chart
     ),
     mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-plotting" % mimaVersion)
   )

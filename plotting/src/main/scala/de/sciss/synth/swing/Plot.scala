@@ -13,10 +13,12 @@
 
 package de.sciss.synth.swing
 
-import scala.swing.{Publisher, Component, Frame}
-import scalax.chart.Chart
-import scala.swing.event.{MouseMoved, MouseEvent, MouseClicked}
 import java.awt.geom.Point2D
+
+import de.sciss.chart.Chart
+
+import scala.swing.event.{MouseClicked, MouseEvent, MouseMoved}
+import scala.swing.{Component, Frame, Publisher}
 
 object Plot {
   //  object Source {

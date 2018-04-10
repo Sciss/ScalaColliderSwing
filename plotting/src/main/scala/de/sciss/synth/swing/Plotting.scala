@@ -15,9 +15,12 @@ package de.sciss.synth.swing
 
 import java.awt.geom.{AffineTransform, Ellipse2D, Point2D, Rectangle2D}
 import java.awt.{BasicStroke, Color}
-import javax.swing.JMenu
 
+import de.sciss.chart.Chart
+import de.sciss.chart.api._
+import de.sciss.chart.event.{ChartMouseClicked, ChartMouseMoved}
 import de.sciss.pdflitz
+import javax.swing.JMenu
 import org.jfree.chart.plot.PlotOrientation
 import org.jfree.chart.{ChartFactory, ChartMouseEvent, ChartMouseListener, ChartPanel}
 import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
@@ -25,9 +28,6 @@ import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
 import scala.collection.immutable.{Seq => ISeq}
 import scala.swing.event.{MouseClicked, MouseMoved}
 import scala.swing.{Action, Component, Frame, Point}
-import scalax.chart.Chart
-import scalax.chart.api._
-import scalax.chart.event.{ChartMouseClicked, ChartMouseMoved}
 
 object Plotting {
   // var windowOnTop = false
