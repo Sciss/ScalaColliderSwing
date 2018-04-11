@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.37.0-SNAPSHOT"
+lazy val projectVersion = "1.37.0"
 lazy val mimaVersion    = "1.37.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -15,24 +15,24 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "1.12.0-SNAPSHOT"
-    val dot             = "0.7.0-SNAPSHOT"
+    val audioWidgets    = "1.12.0"
+    val dot             = "0.7.0"
     val fileUtil        = "1.1.3"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "1.25.0-SNAPSHOT"
+    val scalaCollider   = "1.25.0"
     val ugens           = "1.18.0"
   }
   val intp = new {
-    val interpreterPane = "1.9.0-SNAPSHOT"
+    val interpreterPane = "1.9.0"
   }
   val plot = new {
     val chart           = "0.6.0"
-    val pdflitz         = "1.3.0-SNAPSHOT" // incurs GPL
+    val pdflitz         = "1.3.0" // incurs GPL
   }
   val app = new {
-    val desktop         = "0.9.0-SNAPSHOT"
+    val desktop         = "0.9.0"
     val docking         = "2.0.0"
-    val dsp             = "1.3.0-SNAPSHOT"
+    val dsp             = "1.3.0"
     val kollFlitz       = "0.2.2"
     val pegDown         = "1.6.0"
     val submin          = "0.2.2" // incurs GPL
@@ -187,7 +187,7 @@ lazy val core = project.withId(s"$baseNameL-core").in(file("core"))
       "de.sciss"  %% "fileutil"                   % deps.core.fileUtil,
       "de.sciss"  %  "prefuse-core"               % deps.core.prefuse,
       "de.sciss"  %% "audiowidgets-swing"         % deps.core.audioWidgets,
-      "at.iem"    %% "scalacollider-dot"          % deps.core.dot
+      "de.sciss"  %% "scalacollider-dot"          % deps.core.dot
     ),
     // ---- build info ----
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
