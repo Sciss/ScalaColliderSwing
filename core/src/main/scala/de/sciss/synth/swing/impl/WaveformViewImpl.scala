@@ -213,13 +213,13 @@ object WaveformViewImpl {
         ggWave.repaint()
         ggWave.requestFocus()
 
-        val mia = new MouseInputAdapter {
+        val mia: MouseInputAdapter = new MouseInputAdapter {
           private def frame(e: MouseEvent): Long = {
             import synth._
             val w    = ggWave.getWidth
             val clip = e.getX.clip(0, w)
             // val f = clip.linlin(0, w, zoom.startFrame, zoom.stopFrame)
-            val f = clip.linlin(0, w, viewStart, viewStart + viewSpan)
+            val f = clip.linLin(0, w, viewStart, viewStart + viewSpan)
             (f + 0.5).toLong
           }
 

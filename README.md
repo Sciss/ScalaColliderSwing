@@ -30,12 +30,9 @@ request via E-Mail. All source code with group-ID `de.sciss` is available from [
 
 ## building from source
 
-ScalaCollider-Swing compiles against Scala 2.12, 2.11 using sbt.
+ScalaCollider-Swing compiles against Scala 2.12, 2.11 using [sbt](https://www.scala-sbt.org/).
 
--`sbt assembly` creates a fully self-contained jar (platform neutral)
-
-A the `sbt` shell script by [paulp](https://github.com/paulp/sbt-extras), made available under a BSD-style license,
-is now included. So if you do not want to install `sbt` directly on your system, you can just use that script: `./sbt`.
+- `sbt assembly` creates a fully self-contained jar (platform neutral)
 
 To link to ScalaCollider-Swing:
 
@@ -48,7 +45,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current version `v` is `"1.38.0"`.
+The current version `v` is `"1.39.0"`.
 
 ## contributing
 

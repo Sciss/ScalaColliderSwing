@@ -5,8 +5,8 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.38.0"
-lazy val mimaVersion    = "1.38.0"
+lazy val projectVersion = "1.39.0"
+lazy val mimaVersion    = "1.39.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
 lazy val authorEMail    = "contact@sciss.de"
@@ -16,11 +16,11 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 lazy val deps = new {
   val core = new {
     val audioWidgets    = "1.12.0"
-    val dot             = "0.8.0"
+    val dot             = "0.9.0"
     val fileUtil        = "1.1.3"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "1.26.0"
-    val ugens           = "1.18.0"
+    val scalaCollider   = "1.27.0"
+    val ugens           = "1.19.0"
   }
   val intp = new {
     val interpreterPane = "1.9.0"
@@ -30,7 +30,7 @@ lazy val deps = new {
     val pdflitz         = "1.3.0" // incurs GPL
   }
   val app = new {
-    val desktop         = "0.9.0"
+    val desktop         = "0.9.2"
     val docking         = "2.0.0"
     val dsp             = "1.3.0"
     val kollFlitz       = "0.2.2"
@@ -43,8 +43,8 @@ lazy val deps = new {
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.5",
-  crossScalaVersions := Seq("2.12.5", "2.11.12"),
+  scalaVersion       := "2.12.6",
+  crossScalaVersions := Seq("2.12.6", "2.11.12"),
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {
