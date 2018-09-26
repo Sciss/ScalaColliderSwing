@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.39.0"
+lazy val projectVersion = "1.40.0-SNAPSHOT"
 lazy val mimaVersion    = "1.39.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -15,12 +15,12 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "1.12.0"
+    val audioWidgets    = "1.13.0-SNAPSHOT"
     val dot             = "0.9.0"
     val fileUtil        = "1.1.3"
     val prefuse         = "1.0.1"
     val scalaCollider   = "1.27.0"
-    val ugens           = "1.19.0"
+    val ugens           = "1.19.1"
   }
   val intp = new {
     val interpreterPane = "1.9.0"
@@ -51,6 +51,7 @@ lazy val commonSettings = Seq(
     val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint:-stars-align,-missing-interpolator,_" )
     if (isSnapshot.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
   },
+  updateOptions := updateOptions.value.withLatestSnapshots(false),
   aggregate in assembly := false   // https://github.com/sbt/sbt-assembly/issues/147
 ) ++ publishSettings
 
@@ -182,6 +183,7 @@ lazy val core = project.withId(s"$baseNameL-core").in(file("core"))
     description    := "Swing components for ScalaCollider",
     libraryDependencies ++= Seq(
       "de.sciss"  %% "scalacollider"              % deps.core.scalaCollider,
+      "de.sciss"  %  "scalacolliderugens-spec"    % deps.core.ugens,  // sbt bug
       "de.sciss"  %% "scalacolliderugens-core"    % deps.core.ugens,
       "de.sciss"  %% "scalacolliderugens-plugins" % deps.core.ugens,  // NB: sc3-plugins
       "de.sciss"  %% "fileutil"                   % deps.core.fileUtil,
