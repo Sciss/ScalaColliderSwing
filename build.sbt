@@ -5,8 +5,8 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.40.0-SNAPSHOT"
-lazy val mimaVersion    = "1.39.0"
+lazy val projectVersion = "1.40.0"
+lazy val mimaVersion    = "1.40.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
 lazy val authorEMail    = "contact@sciss.de"
@@ -15,7 +15,7 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "1.13.0-SNAPSHOT"
+    val audioWidgets    = "1.13.0"
     val dot             = "0.9.0"
     val fileUtil        = "1.1.3"
     val prefuse         = "1.0.1"
@@ -43,9 +43,9 @@ lazy val deps = new {
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.6",
-  crossScalaVersions := Seq("2.12.6", "2.11.12"),
-  homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
+  scalaVersion       := "2.12.7",
+  crossScalaVersions := Seq("2.12.7", "2.11.12"),
+  homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {
     val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint:-stars-align,-missing-interpolator,_" )
@@ -67,8 +67,8 @@ lazy val publishSettings = Seq(
   pomIncludeRepository := { _ => false },
   pomExtra := { val n = baseName
     <scm>
-      <url>git@github.com:Sciss/{n}.git</url>
-      <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
+      <url>git@git.iem.at:sciss/{n}.git</url>
+      <connection>scm:git:git@git.iem.at:sciss/{n}.git</connection>
     </scm>
       <developers>
         <developer>

@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/wiki/Sciss/ScalaCollider/images/scalacollider_logo.png)
+![logo](https://git.iem.at/sciss/ScalaCollider/wikis/images/scalacollider_logo.png)
 
 # ScalaCollider-Swing
 
@@ -8,25 +8,27 @@
 
 ## statement
 
-ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://github.com/Sciss/ScalaCollider). ScalaCollider
-is a client for the [SuperCollider](http://supercollider.sourceforge.net/) sound synthesis server.
+ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://git.iem.at/sciss/ScalaCollider). ScalaCollider
+is a client for the [SuperCollider](https://supercollider.github.io/) sound synthesis server.
 
 (C)opyright 2008&ndash;2018 by Hanns Holger Rutz. All rights reserved. It is released under
-the [GNU General Public License](http://github.com/Sciss/ScalaColliderSwing/blob/master/licenses/ScalaColliderSwing-License.txt)
+the [GNU General Public License](https://git.iem.at/sciss/ScalaColliderSwing/raw/master/licenses/ScalaColliderSwing-License.txt)
 v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 Please see the `licenses` folder for details. It contains the license headers for all dependencies and transitive
 dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the
 respective OSS project pages, as indicated in the license files, or&mdash;in compliance with GPL/LGPL&mdash;on
-request via E-Mail. All source code with group-ID `de.sciss` is available from [github.com/Sciss](https://github.com/Sciss).
+request via E-Mail. All source code with group-ID `de.sciss` is available from [git.iem.at/sciss](https://git.iem.at/sciss).
 
 <img src="screenshot.png" alt="screenshot" width="574" height="382"/>
 
 ## downloading
 
-- A binary (executable) version is provided via [GitHub releases](https://github.com/Sciss/ScalaColliderSwing/releases/latest).
+- A binary (executable) version is provided via [archive.org](https://archive.org/details/ScalaColliderSwing) or
+  [GitHub releases](https://github.com/Sciss/ScalaColliderSwing/releases/latest).
   We provide a universal zip for all platforms as well as a dedicated Debian package.
-- The source code can be downloaded from [github.com/Sciss/ScalaColliderSwing](http://github.com/Sciss/ScalaColliderSwing).
+- The source code can be downloaded from [git.iem.at/sciss/ScalaColliderSwing](https://git.iem.at/sciss/ScalaColliderSwing) or 
+  [github.com/Sciss/ScalaColliderSwing](http://github.com/Sciss/ScalaColliderSwing).
 
 ## building from source
 
@@ -45,7 +47,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current version `v` is `"1.39.0"`.
+The current version `v` is `"1.40.0"`.
 
 ## contributing
 
@@ -64,7 +66,7 @@ Runnable packages can be created via `sbt universal:packageBin` (all platforms) 
 
  - There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://www.screencast.com/t/YjUwNDZjMT)
  - ScalaCollider was also presented at [Scala Days 2012](http://skillsmatter.com/podcast/scala/scalacollider)
- - See the [ScalaCollider](https://github.com/Sciss/ScalaCollider) site for mailing-list information, Wiki, and
+ - See the [ScalaCollider](https://git.iem.at/sciss/ScalaCollider) site for mailing-list information, Wiki, and
    additional resources
 
 ### GUI commands
