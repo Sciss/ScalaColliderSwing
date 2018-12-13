@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.40.0"
+lazy val projectVersion = "1.40.1-SNAPSHOT"
 lazy val mimaVersion    = "1.40.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -43,8 +43,8 @@ lazy val deps = new {
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.7",
-  crossScalaVersions := Seq("2.12.7", "2.11.12"),
+  scalaVersion       := "2.13.0-M5",
+  crossScalaVersions := Seq("2.12.8", "2.11.12", "2.13.0-M5"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {
