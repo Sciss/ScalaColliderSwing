@@ -371,8 +371,9 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     }
 
     lg.makeDefault()
-    Console.setOut(lg.outputStream)
-    Console.setErr(lg.outputStream)
+    // no longer needed (was perhaps Scala 2.10):
+//    Console.setOut(lg.outputStream)
+//    Console.setErr(lg.outputStream)
 
     val lgd = new DefaultSingleCDockable("log", "Log", lg.component.peer)
     lgd.setLocation(CLocation.base().normalSouth(0.25).east(0.333))

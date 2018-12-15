@@ -203,8 +203,8 @@ object WaveformViewImpl {
 
         zoom.startFrame     = 0L
         zoom.stopFrame      = numFr
-        zoom.magLow         = -1
-        zoom.magHigh        = 1
+        zoom.magLow         = -1d
+        zoom.magHigh        = 1d
         painter.peakColor   = Color.gray
         painter.rmsColor    = Color.white
         paintFun            = painter.paint
@@ -218,7 +218,7 @@ object WaveformViewImpl {
             import synth._
             val w    = ggWave.getWidth
             val clip = e.getX.clip(0, w)
-            // val f = clip.linlin(0, w, zoom.startFrame, zoom.stopFrame)
+            // val f = clip.linLin(0, w, zoom.startFrame, zoom.stopFrame)
             val f = clip.linLin(0, w, viewStart, viewStart + viewSpan)
             (f + 0.5).toLong
           }

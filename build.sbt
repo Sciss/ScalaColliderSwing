@@ -23,27 +23,27 @@ lazy val deps = new {
     val ugens           = "1.19.2-SNAPSHOT"
   }
   val intp = new {
-    val interpreterPane = "1.9.0"
+    val interpreterPane = "1.10.0-SNAPSHOT"
   }
   val plot = new {
     val chart           = "0.7.0-SNAPSHOT"
     val pdflitz         = "1.4.0-SNAPSHOT" // incurs GPL
   }
   val app = new {
-    val desktop         = "0.9.2"
+    val desktop         = "0.10.0-SNAPSHOT"
     val docking         = "2.0.0"
-    val dsp             = "1.3.0"
-    val kollFlitz       = "0.2.2"
+    val dsp             = "1.3.1-SNAPSHOT"
+    val kollFlitz       = "0.2.3-SNAPSHOT"
     val pegDown         = "1.6.0"
-    val submin          = "0.2.2" // incurs GPL
-    val webLaF          = "2.1.3" // incurs GPL
+    val submin          = "0.2.3" // incurs GPL
+    val webLaF          = "2.1.4" // incurs GPL
   }
 }
 
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.13.0-M5",
+  scalaVersion       := "2.12.8",
   crossScalaVersions := Seq("2.12.8", "2.11.12", "2.13.0-M5"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),

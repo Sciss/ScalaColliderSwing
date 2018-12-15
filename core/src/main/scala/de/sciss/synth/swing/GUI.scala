@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream
 import at.iem.scalacollider.ScalaColliderDOT
 import de.sciss.file._
 import de.sciss.synth.Ops.stringToControl
+import de.sciss.synth.swing.impl.WaveformViewImpl
 import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, Group => SGroup, Node => SNode, Server => SServer, SynthDef => SSynthDef}
 import javax.imageio.ImageIO
 
@@ -61,7 +62,7 @@ object GUI {
           import ugen._
           In.ar("$inbus".ir, bus.numChannels)
         })
-      val w = impl.WaveformViewImpl(data, duration = duration)
+      val w = WaveformViewImpl(data, duration = duration)
       configure(w)
     }
   }
@@ -183,7 +184,7 @@ object GUI {
       }
       val data = new GraphFunctionData(target = target, fadeTime = fadeTime, addAction = addAction,
         args = args, fun = resIn)
-      val w = impl.WaveformViewImpl(data, duration = duration)
+      val w = WaveformViewImpl(data, duration = duration)
       configure(w)
     }
 
