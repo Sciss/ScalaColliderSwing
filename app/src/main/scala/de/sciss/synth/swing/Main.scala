@@ -171,6 +171,9 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
       contents = c
       delegate.component.peer match {
         case jf: java.awt.Frame =>
+          // if we do not set a size, on Debian 9 / GNOME, moving the window
+          // out of maximized state results in zero width frame
+          size = delegate.component.preferredSize
           jf.setExtendedState(java.awt.Frame.MAXIMIZED_BOTH)
         case _ =>
           bounds = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
