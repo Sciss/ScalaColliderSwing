@@ -35,7 +35,7 @@ lazy val deps = new {
     val dsp             = "1.3.1-SNAPSHOT"
     val kollFlitz       = "0.2.3-SNAPSHOT"
     val pegDown         = "1.6.0"
-    val submin          = "0.2.3" // incurs GPL
+    val submin          = "0.2.4" // incurs GPL
     val webLaF          = "2.1.4" // incurs GPL
   }
 }
