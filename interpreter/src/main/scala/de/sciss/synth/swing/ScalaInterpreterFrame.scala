@@ -110,10 +110,7 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
     val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
     size = (b.width / 2, b.height * 7 / 8)
     sp.dividerLocation = b.height * 2 / 3
-    setLocationRelativeTo(null)
-    //      setLocation( x, getY )
-
-    //      setVisible( true )
+    centerOnScreen()
   }
 
   override def closeOperation(): Unit = sys.exit(0)

@@ -12,6 +12,19 @@ val config = Server.Config()
 def boot(): Unit = Server.boot(config = config)
 
 ////////
+
+/*---
+  You are supposed to execute the examples _step by step_.
+  If you are not familiar with the workings of SuperCollider,
+  as a visual indicator, whenever you see a blank line, this
+  is where a new execution block begins. For example,
+  execute the block `val x1 = play ... ` up to `.. }` as one
+  (it will start playing a sound), then in a second step execute
+  the block `x1 release 10` (it will stop that sound).
+
+  You can execute each bloc by selecting it and pressing shift-return.
+*/
+
 // boot
 
 config.program     = "scsynth"  // valid path here
@@ -54,10 +67,13 @@ val df3 = SynthDef("AnalogBubbles") {
   Out.ar(0, x)
 }
 val x3 = df3.play(args = List("freq2" -> 222.2))
+
 x3.set("freq1" -> 0.1)
+
 x3.set("detune" -> 0.44)
 
 x3 run false
+
 x3 run true
 
 val y = playWith(target = x3, addAction = addAfter) {
@@ -65,6 +81,7 @@ val y = playWith(target = x3, addAction = addAfter) {
 }
 
 y.set("freq" -> 10)
+
 s.freeAll()
 
 df3.gui.diagram()

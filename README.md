@@ -62,6 +62,8 @@ run via:
 
 Runnable packages can be created via `sbt universal:packageBin` (all platforms) or `sbt debian:packageBin` (Debian).
 
+You can also run the "old" multi-window demo using
+
 ## documentation
 
  - There is a small screencast intro at [www.screencast.com/t/YjUwNDZjMT](http://www.screencast.com/t/YjUwNDZjMT)
