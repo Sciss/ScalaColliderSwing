@@ -15,7 +15,6 @@ package de.sciss.synth.swing
 
 import java.awt.event.{WindowAdapter, WindowEvent}
 import java.awt.{BorderLayout, Color, Point}
-import java.util.Locale
 import javax.swing.{JComponent, JFrame, JPanel, JSplitPane, WindowConstants}
 
 import de.sciss.synth._
@@ -96,8 +95,8 @@ class SynthGraphPanel(name: String, graph: UGenGraph, forceDirected: Boolean)
       val pNode = g.addNode()
       val u     = ru.ugen
       val name = u.name match {
-        case "BinaryOpUGen" => BinaryOpUGen.Op(u.specialIndex).name.toLowerCase(Locale.US)
-        case "UnaryOpUGen"  => UnaryOpUGen .Op(u.specialIndex).name.toLowerCase(Locale.US)
+        case "BinaryOpUGen" => BinaryOpUGen.Op(u.specialIndex).name
+        case "UnaryOpUGen"  => UnaryOpUGen .Op(u.specialIndex).name
         case other          => other
       }
       pNode.setString(COL_LABEL, name  )

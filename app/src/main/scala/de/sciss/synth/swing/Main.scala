@@ -780,7 +780,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
   private lazy val fileActions = List(ActionFileClose, ActionFileSave, ActionFileSaveAs,
     actionEnlargeFont, actionShrinkFont, actionResetFont, ActionLookUpHelpCursor)
 
-  private[this] val baseURL = "https://sciss.github.io/ScalaCollider"
+  private[this] val baseURL = "https://www.sciss.de/scalaCollider"
 
   private def showAbout(): Unit = {
     val jreInfo: String = {
@@ -879,7 +879,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     val gHelp = Group("help", "Help")
       .add(Item("help-for-cursor", ActionLookUpHelpCursor))
       .add(Item("help-query"     , ActionLookUpHelpQuery ))
-      .add(Item("help-api")("API Documentation")(openURL(s"$baseURL/latest/api")))
+      .add(Item("help-api")("API Documentation")(openURL(s"$baseURL/latest/api/de/sciss/synth/index.html")))
 
     if (itAbout.visible) gHelp.addLine().add(itAbout)
 
