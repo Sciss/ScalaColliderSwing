@@ -16,9 +16,9 @@ package j
 
 import java.awt.event.ActionEvent
 import java.awt.{Color, Component, Dimension, EventQueue, Graphics, Image, Toolkit}
-import javax.swing.event.{AncestorEvent, AncestorListener}
-import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, Icon, JButton, JComponent, JFrame, JLabel, JPanel, JProgressBar, OverlayLayout, WindowConstants}
 
+import javax.swing.event.{AncestorEvent, AncestorListener}
+import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, Icon, JButton, JComponent, JFrame, JLabel, JPanel, JProgressBar, OverlayLayout, UIManager, WindowConstants}
 import de.sciss.model.Model
 import de.sciss.synth.{Server, ServerConnection, message}
 
@@ -215,7 +215,11 @@ class JServerStatusPanel(flags: Int) extends JPanel {
   {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS))
 
-    val colr      = getForeground
+    val colr      = {
+      val res = UIManager.getColor("Label.foreground")
+      if (res == null) Color.black else res
+      // getForeground
+    }
     val icnGroup  = Shapes.Icon(extent = 16, fill = colr)(Shapes.Group   )
     val icnSynth  = Shapes.Icon(extent = 16, fill = colr)(Shapes.Synth   )
     val icnUGen   = Shapes.Icon(extent = 16, fill = colr)(Shapes.UGen    )

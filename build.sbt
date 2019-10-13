@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.41.4"
+lazy val projectVersion = "1.41.5-SNAPSHOT"
 lazy val mimaVersion    = "1.41.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
