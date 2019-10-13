@@ -15,7 +15,7 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "1.14.3"
+    val audioWidgets    = "1.14.4"
     val dot             = "0.10.4"
     val fileUtil        = "1.1.3"
     val prefuse         = "1.0.1"
@@ -35,16 +35,16 @@ lazy val deps = new {
     val dsp             = "1.3.2"
     val kollFlitz       = "0.2.3"
     val pegDown         = "1.6.0"
-    val submin          = "0.2.5" // incurs GPL
-    val webLaF          = "2.1.5" // incurs GPL
+    val submin          = "0.3.1" // incurs GPL
+    val webLaF          = "2.2.0" // incurs GPL
   }
 }
 
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.12.8",
-  crossScalaVersions := Seq("2.12.8", "2.11.12", "2.13.0"),
+  scalaVersion       := "2.12.10",
+  crossScalaVersions := Seq("2.12.10", "2.13.0"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {

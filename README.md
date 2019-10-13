@@ -32,7 +32,7 @@ request via E-Mail. All source code with group-ID `de.sciss` is available from [
 
 ## building from source
 
-ScalaCollider-Swing compiles against Scala 2.13, 2.12, 2.11 using [sbt](https://www.scala-sbt.org/).
+ScalaCollider-Swing compiles against Scala 2.13, 2.12 using [sbt](https://www.scala-sbt.org/). The last version supporting Scala 2.11 was 1.41.4.
 
 - `sbt assembly` creates a fully self-contained jar (platform neutral)
 
