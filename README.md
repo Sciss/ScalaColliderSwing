@@ -5,6 +5,7 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Sciss/ScalaCollider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/Sciss/ScalaColliderSwing.svg?branch=master)](https://travis-ci.org/Sciss/ScalaColliderSwing)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.12)
+<a href="https://liberapay.com/sciss/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg" height="24"></a>
 
 ## statement
 
@@ -19,6 +20,8 @@ Please see the `licenses` folder for details. It contains the license headers fo
 dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the
 respective OSS project pages, as indicated in the license files, or&mdash;in compliance with GPL/LGPL&mdash;on
 request via E-Mail. All source code with group-ID `de.sciss` is available from [git.iem.at/sciss](https://git.iem.at/sciss).
+
+Please consider supporting this project through Liberapay (see badge above) – thank you!
 
 <img src="screenshot.png" alt="screenshot" width="574" height="382"/>
 
@@ -47,7 +50,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current version `v` is `"1.41.5"`.
+The current version `v` is `"1.41.6"`.
 
 ## contributing
 
