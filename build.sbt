@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.41.6"
+lazy val projectVersion = "1.41.7-SNAPSHOT"
 lazy val mimaVersion    = "1.41.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -20,7 +20,7 @@ lazy val deps = new {
     val fileUtil        = "1.1.3"
     val prefuse         = "1.0.1"
     val scalaCollider   = "1.28.5"
-    val ugens           = "1.19.5"
+    val ugens           = "1.19.6"
   }
   val intp = new {
     val interpreterPane = "1.10.1"
@@ -30,13 +30,14 @@ lazy val deps = new {
     val pdflitz         = "1.4.1" // incurs GPL
   }
   val app = new {
-    val desktop         = "0.10.4"
+    val desktop         = "0.10.6"
     val docking         = "2.0.0"
     val dsp             = "1.3.2"
     val kollFlitz       = "0.2.3"
     val pegDown         = "1.6.0"
-    val submin          = "0.3.3" // incurs GPL
-    val webLaF          = "2.2.1" // incurs GPL
+    val submin          = "0.3.4" // incurs GPL
+    // val webLaF          = "2.2.1" // incurs GPL
+    val webLaF          = "1.2.11" // incurs GPL
   }
 }
 
@@ -239,7 +240,9 @@ lazy val app = project.withId(s"$baseNameL-app").in(file("app"))
       "de.sciss"    %% "desktop"                 % deps.app.desktop, // withJavadoc() withSources(),
       "de.sciss"    %% "kollflitz"               % deps.app.kollFlitz,
       "de.sciss"    %  "submin"                  % deps.app.submin,
-      "de.sciss"    %  "weblaf"                  % deps.app.webLaF,
+ //     "de.sciss"    %  "weblaf"                  % deps.app.webLaF,
+      "com.weblookandfeel" % "weblaf-core"     % deps.app.webLaF,
+      "com.weblookandfeel" % "weblaf-ui"       % deps.app.webLaF,
       "de.sciss"    %% "scissdsp"                % deps.app.dsp,
       "de.sciss"    %  "docking-frames"          % deps.app.docking,
       "org.pegdown" %  "pegdown"                 % deps.app.pegDown
