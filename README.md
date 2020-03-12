@@ -12,7 +12,7 @@
 ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://git.iem.at/sciss/ScalaCollider). ScalaCollider
 is a client for the [SuperCollider](https://supercollider.github.io/) sound synthesis server.
 
-(C)opyright 2008&ndash;2019 by Hanns Holger Rutz. All rights reserved. It is released under
+(C)opyright 2008&ndash;2020 by Hanns Holger Rutz. All rights reserved. It is released under
 the [GNU General Public License](https://git.iem.at/sciss/ScalaColliderSwing/raw/master/licenses/ScalaColliderSwing-License.txt)
 v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
