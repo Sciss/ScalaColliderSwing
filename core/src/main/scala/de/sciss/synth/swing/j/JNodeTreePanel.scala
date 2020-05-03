@@ -126,7 +126,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
   private val nodeListener: NodeManager.Listener = {
     case NodeGo   (synth: Synth, info)  => deferIfNeeded(nlAddSynth   (synth, info))
     case NodeGo   (group: Group, info)  => deferIfNeeded(nlAddGroup   (group, info))
-    case NodeEnd  (node, info)          => deferIfNeeded(nlRemoveNode (node , info))
+    case NodeEnd  (node, _ /*info*/)    => deferIfNeeded(nlRemoveNode (node /*, info*/))
     case NodeMove (node, info)          => deferIfNeeded(nlMoveChild  (node , info))
     case NodeOn   (node, _   )          => deferIfNeeded(nlPauseChild (node , paused = false))
     case NodeOff  (node, _   )          => deferIfNeeded(nlPauseChild (node , paused = true ))
@@ -446,7 +446,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     initPos(pNode)
   }
 
-  private def nlRemoveNode(node: Node, info: message.NodeInfo.Data): Unit = {
+  private def nlRemoveNode(node: Node /*, info: message.NodeInfo.Data*/): Unit = {
     map.get(node.id).foreach(pNode => visDo(ACTION_LAYOUT) {
       deleteChild(node, pNode)
     })
@@ -624,7 +624,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
         }
     }
 
-    private[this] val popupTrigger = new MouseAdapter {
+    private[this] val popupTrigger: MouseAdapter = new MouseAdapter {
       private def process(e: MouseEvent): Unit =
         if (e.isPopupTrigger) {
           pop.show(e.getComponent, e.getX, e.getY)

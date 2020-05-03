@@ -565,7 +565,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
           val mid  = in.substring(j, k)
           val post = in.substring(m)
           val out  = s"$pre$replL${midF(mid)}$replR$post"
-          convert(in = out, findL = findL, findR = findR, replL = replL, replR = replR)
+          convert(in = out, findL = findL, findR = findR, replL = replL, replR = replR, midF = midF)
         } else in
       } else in
     }

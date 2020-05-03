@@ -53,7 +53,7 @@ object ActionPreferences extends Action("Preferences...") {
 
     val sep1 = Separator()
 
-    val box = new GridBagPanel {
+    val box: GridBagPanel = new GridBagPanel {
       import GridBagPanel.{Anchor, Fill}
       val cLb = new Constraints()
       cLb.gridx = 0; cLb.gridy = 0; cLb.anchor = Anchor.LineStart

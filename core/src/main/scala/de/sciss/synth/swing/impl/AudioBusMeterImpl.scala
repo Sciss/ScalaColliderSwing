@@ -18,9 +18,9 @@ package impl
 import java.awt.EventQueue
 
 import de.sciss.audiowidgets.PeakMeter
+import de.sciss.osc
 import de.sciss.osc.Message
 import de.sciss.synth.Ops.stringToControl
-import de.sciss.{osc, synth}
 
 import scala.collection.immutable.{IndexedSeq => Vec, Seq => ISeq}
 import scala.swing.{BoxPanel, Component, Orientation, Swing}
@@ -57,7 +57,6 @@ class AudioBusMeterImpl(val strips: ISeq[AudioBusMeter.Strip]) extends AudioBusM
 
     // group to send out synth defs per channel num
     strips1.groupBy(_.bus.numChannels).foreach { case (numChannels, strips2) =>
-      import synth._
       import ugen._
       val d = SynthDef("$swing_meter" + numChannels) {
         val sig   = In.ar("bus".ir, numChannels)

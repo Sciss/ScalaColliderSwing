@@ -41,7 +41,6 @@ object WaveformViewImpl {
     protected def makeUGen(ins: Vec[UGenIn]): Unit = {
       if (ins.isEmpty) return
 
-      import synth._
       import ugen._
       val rate = ins.map(_.rate).max
       val signal: GE = if (rate == audio) ins else K2A.ar(ins)
@@ -176,14 +175,14 @@ object WaveformViewImpl {
           def startFrame_=(value: Long): Unit = {
             painter.startFrame  = value
             // println(s"startFrame = $value")
-            ggAxisH.minimum     = value // .toDouble / sr
+            ggAxisH.minimum     = value.toDouble / sr
           }
 
           def stopFrame: Long = painter.stopFrame
           def stopFrame_=(value: Long): Unit = {
             painter.stopFrame  = value
             // println(s"stopFrame = $value")
-            ggAxisH.maximum    = value // .toDouble / sr
+            ggAxisH.maximum    = value.toDouble / sr
           }
 
           def magLow: Double = painter.magLow
@@ -215,11 +214,10 @@ object WaveformViewImpl {
 
         val mia: MouseInputAdapter = new MouseInputAdapter {
           private def frame(e: MouseEvent): Long = {
-            import synth._
             val w    = ggWave.getWidth
             val clip = e.getX.clip(0, w)
             // val f = clip.linLin(0, w, zoom.startFrame, zoom.stopFrame)
-            val f = clip.linLin(0, w, viewStart, viewStart + viewSpan)
+            val f = clip.linLin(0.0, w, viewStart.toDouble, (viewStart + viewSpan).toDouble)
             (f + 0.5).toLong
           }
 

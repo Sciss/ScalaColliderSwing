@@ -4,8 +4,8 @@
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Sciss/ScalaCollider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/Sciss/ScalaColliderSwing.svg?branch=master)](https://travis-ci.org/Sciss/ScalaColliderSwing)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.12)
-<a href="https://liberapay.com/sciss/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg" height="24"></a>
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.13)
+<a href="https://liberapay.com/sciss"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg" height="24"></a>
 
 ## statement
 
@@ -35,7 +35,8 @@ Please consider supporting this project through Liberapay (see badge above) – 
 
 ## building from source
 
-ScalaCollider-Swing compiles against Scala 2.13, 2.12 using [sbt](https://www.scala-sbt.org/). The last version supporting Scala 2.11 was 1.41.4.
+ScalaCollider-Swing compiles against Scala 2.13, 2.12 using [sbt](https://www.scala-sbt.org/).
+The last version supporting Scala 2.11 was 1.41.4.
 
 - `sbt assembly` creates a fully self-contained jar (platform neutral)
 

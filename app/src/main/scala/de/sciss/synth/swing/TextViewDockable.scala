@@ -66,7 +66,7 @@ object TextViewDockable {
       case TextView.DirtyChange(_) => updateTitle()
       case TextView.FileChange (_) => updateTitle()
     }
-    dockControl.addDockable(dock)
+    dockControl.addDockable[TextViewDockable](dock)
     dock.setVisible(true)
     documentHandler.addDocument(dock)
 

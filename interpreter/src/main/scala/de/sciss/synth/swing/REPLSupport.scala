@@ -26,7 +26,7 @@ class REPLSupport(ssp: ServerStatusPanel, ntp: NodeTreePanel) {
   // var s : Server = null
   def s: Server       = Server.default
 
-  val config          = Server.Config()
+  val config: Server.ConfigBuilder = Server.Config()
   config.transport    = TCP
   config.port         = 0
   private val sync    = new AnyRef
