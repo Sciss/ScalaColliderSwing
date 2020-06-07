@@ -25,7 +25,10 @@ import de.sciss.synth.{Buffer, Server}
 import javax.swing.JComponent
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.util.control.NonFatal
+
+trait ScopeViewOverlayPainter {
+  def paintScopeOverlay(g: Graphics2D, width: Int, height: Int): Unit
+}
 
 trait ScopeViewLike {
   var style: Int
@@ -46,9 +49,9 @@ object JScopeView {
   // warning: while scsynth seems to have been updated to 64K buffers,
   // the /b_setn is only sent for sizes <= 8K for some reason!!
   private val OSC_BUF_SIZE    = 8192
-  private val SLICE_SIZE      = (OSC_BUF_SIZE - 32) / 5 // 4 bytes per float, 1byte per type-tag : < 64K
-  private val COLOR_FG_DARK   = Color.yellow
-  private val COLOR_FG_LIGHT  = new Color(127, 127, 0)
+  private val SLICE_SIZE      = (OSC_BUF_SIZE - 32) / 5 // 4 bytes per float, 1 byte per type-tag : < 64K
+  private val COLOR_FG_DARK   = Color.lightGray // Color.yellow
+  private val COLOR_FG_LIGHT  = Color.darkGray  // new Color(127, 127, 0)
 
   final val STYLE_CHANNELS  = 0
   final val STYLE_OVERLAY   = 1
@@ -60,16 +63,6 @@ class JScopeView extends JComponent with ScopeViewLike {
 
   private[this] val isDark    = Util.isDarkSkin
   private[this] val colorFg   = if (isDark) COLOR_FG_DARK else COLOR_FG_LIGHT
-
-  // constructor
-  setOpaque(true)
-  setBackground(if (isDark) Color.black else Color.white)
-  setFocusable(true)
-  addMouseListener(new MouseAdapter() {
-    override def mousePressed(e: MouseEvent): Unit =
-      requestFocus()
-  })
-  setPreferredSize(new Dimension(250, 250))
 
   @volatile
   private[this] var vector        = null : Array[Float]
@@ -108,8 +101,8 @@ class JScopeView extends JComponent with ScopeViewLike {
   private[this] var recentWidth   = - 1
   private[this] var _xZoom        = 1.0f
   private[this] var _yZoom        = 1.0f
-  private[this] var overlay       = false
-  private[this] var lissajous     = false
+  private[this] var _overlay      = false
+  private[this] var _lissajous    = false
   private[this] var _style        = 0
 
   @volatile
@@ -120,7 +113,21 @@ class JScopeView extends JComponent with ScopeViewLike {
   private[this] var msgBufOff     = null : Array[Int]
   private[this] var responder     = null : Responder
 
-//  private[this] val timer  = {
+  private[this] var _overlayPnt   = null : ScopeViewOverlayPainter
+
+  // constructor
+  {
+    setOpaque(true)
+    setBackground(if (isDark) Color.black else Color.white)
+    setFocusable(true)
+    addMouseListener(new MouseAdapter() {
+      override def mousePressed(e: MouseEvent): Unit =
+        requestFocus()
+    })
+    setPreferredSize(new Dimension(250, 250))
+  }
+
+  //  private[this] val timer  = {
 //    val res = new Timer(1000, this)
 //    res.setRepeats(true)
 //    res
@@ -213,6 +220,13 @@ class JScopeView extends JComponent with ScopeViewLike {
 
   def buffer: Buffer = _buffer
 
+  def overlayPainter: ScopeViewOverlayPainter = _overlayPnt
+
+  def overlayPainter_=(value: ScopeViewOverlayPainter): Unit = {
+    _overlayPnt = value
+    repaint()
+  }
+
   private def createMessages(): Unit = {
     val _numSlices = (size + SLICE_SIZE - 1) / SLICE_SIZE
     if (_numSlices == 0) return
@@ -252,8 +266,8 @@ class JScopeView extends JComponent with ScopeViewLike {
 
   def style_=(value: Int): Unit = {
     this._style  = value
-    overlay     = value >= STYLE_OVERLAY
-    lissajous   = value == STYLE_LISSAJOUS
+    _overlay     = value >= STYLE_OVERLAY
+    _lissajous   = value == STYLE_LISSAJOUS
     recentWidth = -1
     repaint()
   }
@@ -280,7 +294,7 @@ class JScopeView extends JComponent with ScopeViewLike {
     repaint()
   }
 
-  def waveColors: ISeq[Color] = _waveColors.toSeq
+  def waveColors: ISeq[Color] = _waveColors.toList
 
   private def query(): Unit = {
     val _msgBufGetN = msgBufGetN
@@ -304,16 +318,6 @@ class JScopeView extends JComponent with ScopeViewLike {
 
   override def paintComponent(g: Graphics): Unit = {
     super.paintComponent(g)
-    try {
-      paintComponent1(g)
-    } catch {
-      case NonFatal(ex) =>
-        ex.printStackTrace()
-    }
-  }
-
-  private def paintComponent1(g: Graphics): Unit = {
-//    super.paintComponent(g)
     val g2          = g.asInstanceOf[Graphics2D]
     val w           = getWidth
     val h           = getHeight
@@ -330,7 +334,7 @@ class JScopeView extends JComponent with ScopeViewLike {
 
     var sah = false
 
-    if (lissajous) {
+    if (_lissajous) {
       // the interpretation of the xZoom value is completely
       // stupid in cocoa scope. in lissajous mode increasing zoom
       // will increase scale, while in normal mode it's the other way round
@@ -379,7 +383,7 @@ class JScopeView extends JComponent with ScopeViewLike {
     }
 
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-    if (overlay) {
+    if (_overlay) {
       offY  = h * 0.5f
       sy    = -(h << 1) * _yZoom
     }
@@ -387,11 +391,11 @@ class JScopeView extends JComponent with ScopeViewLike {
       sy    = -(h << 1) * _yZoom / numChannels
     }
 
-    var ch = if (lissajous) 1 else 0
+    var ch = if (_lissajous) 1 else 0
     while (ch < numChannels) {
       g2.setColor(if (_waveColors.length > ch) _waveColors(ch) else colorFg)
       g2.setStroke(strokePoly)
-      if (overlay) g2.translate(0, offY)
+      if (_overlay) g2.translate(0, offY)
       else {
         offY = (((ch << 1) + 1) * h).toFloat / (numChannels << 1)
         g2.translate(0, offY)
@@ -429,6 +433,8 @@ class JScopeView extends JComponent with ScopeViewLike {
 
       ch += 1
     }
+
+    if (_overlayPnt != null) _overlayPnt.paintScopeOverlay(g2, w, h)
   }
 
 //  // called upon timeout

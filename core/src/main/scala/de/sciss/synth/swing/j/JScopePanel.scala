@@ -13,14 +13,16 @@
 
 package de.sciss.synth.swing.j
 
-import java.awt.event.{ItemEvent, ItemListener}
-import java.awt.{BorderLayout, Color}
+import java.awt.event.{ActionEvent, InputEvent, ItemEvent, ItemListener, KeyEvent}
+import java.awt.{BorderLayout, Color, Graphics2D}
 
+import de.sciss.audiowidgets.j.Axis
 import de.sciss.osc
 import de.sciss.synth.{AddAction, AudioBus, Buffer, Bus, ControlBus, GraphFunction, Group, Ops, Synth, addToTail, audio}
 import javax.swing.event.{ChangeEvent, ChangeListener}
-import javax.swing.{Box, BoxLayout, JComboBox, JComponent, JPanel, JSpinner, SpinnerNumberModel}
+import javax.swing.{AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSpinner, KeyStroke, SpinnerNumberModel, SwingConstants}
 
+import scala.collection.immutable.{Seq => ISeq}
 import scala.math.{max, min}
 import scala.swing.Swing
 import scala.util.control.NonFatal
@@ -36,11 +38,26 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   private[this] val ggStyle       = {
     val res = new JComboBox(Array("Channels", "Overlay", "Lissajous"))
     res.addItemListener(new ItemListener {
-      def itemStateChanged(e: ItemEvent): Unit =
-        view.style = res.getSelectedIndex
+      def itemStateChanged(e: ItemEvent): Unit = setStyleFromUI(res.getSelectedIndex)
     })
     res
   }
+
+  private[this] val ggYAxis = {
+    val a = new Axis(SwingConstants.VERTICAL)
+    a.fixedBounds = true
+    a.minimum     = -1.0
+    a.maximum     = +1.0
+    a
+  }
+
+  private[this] var _bus        : Bus       = null
+  private[this] var _target     : Group     = null
+  private[this] var _addAction  : AddAction = addToTail
+  private[this] var _bufSize    : Int       = 4096
+
+  private[this] var syn         : Synth     = null
+  private[this] var synOnline               = false
 
   private def fix(c: JComponent): c.type = {  // WTF
     c.setMaximumSize(c.getPreferredSize)
@@ -68,7 +85,127 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   private[this] val lBusType: ItemListener = new ItemListener {
     def itemStateChanged(e: ItemEvent): Unit = {
       val t = max(0, ggBusType.getSelectedIndex)
-      setBusTypeFromUI(t, mBusOff.getNumber.intValue(), mBusNum.getNumber.intValue())
+      setBusTypeFromUI(t)
+    }
+  }
+
+  // constructor
+  {
+    // install key actions
+    val im        = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+    val am        = this.getActionMap
+    val ksIncY    = KeyStroke.getKeyStroke(KeyEvent.VK_UP   , InputEvent.CTRL_MASK)
+    val ksDecY    = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , InputEvent.CTRL_MASK)
+    val ksIncX    = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.CTRL_MASK)
+    val ksDecX    = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , InputEvent.CTRL_MASK)
+    val ksDecCh   = KeyStroke.getKeyStroke(KeyEvent.VK_J, 0)
+    val ksIncCh   = KeyStroke.getKeyStroke(KeyEvent.VK_L, 0)
+    val ksSwRate  = KeyStroke.getKeyStroke(KeyEvent.VK_K, 0)
+    val ksSwIn    = KeyStroke.getKeyStroke(KeyEvent.VK_I, 0)
+    val ksSwOut   = KeyStroke.getKeyStroke(KeyEvent.VK_O, 0)
+    val ksSwOver  = KeyStroke.getKeyStroke(KeyEvent.VK_S, 0)
+    val ksSwXY    = KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.SHIFT_MASK)
+    val ksStart   = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)
+    val ksStop    = KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, 0)
+
+    val aIncY = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        yZoom = yZoom * 2f
+    }
+    val aDecY = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        yZoom = yZoom * 0.5f
+    }
+    val aIncX = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        xZoom = xZoom * 2f
+    }
+    val aDecX = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        xZoom = xZoom * 0.5f
+    }
+    val aIncCh = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        Option(mBusOff.getNextValue).foreach(mBusOff.setValue)
+    }
+    val aDecCh = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        Option(mBusOff.getPreviousValue).foreach(mBusOff.setValue)
+    }
+    val aSwRate = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit = {
+        val newTpe = if (busType < 3) 3 else 2
+        setBusTypeFromUI(newTpe)
+      }
+    }
+    val aSwIn = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit = if (_bus != null) {
+        val numAudioIn = _bus.server.config.inputBusChannels
+        setBusTypeFromUI(0, 0, numAudioIn)
+      }
+    }
+    val aSwOut = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit = if (_bus != null) {
+        val numAudioOut = _bus.server.config.outputBusChannels
+        setBusTypeFromUI(1, 0, numAudioOut)
+      }
+    }
+    val aSwOver = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        style = if (style == 0) 1 else 0
+    }
+    val aSwXY = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        style = if (style == 2) 0 else 2
+    }
+    val aStart = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        if (isRunning) stop() else start()
+    }
+    val aStop = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        stop()
+    }
+
+    am.put("y-inc", aIncY)
+    im.put(ksIncY, "y-inc")
+    am.put("y-dec", aDecY)
+    im.put(ksDecY, "y-dec")
+    am.put("x-inc", aIncX)
+    im.put(ksIncX, "x-inc")
+    am.put("x-dec", aDecX)
+    im.put(ksDecX, "x-dec")
+    am.put("ch-inc", aIncCh)
+    im.put(ksIncCh, "ch-inc")
+    am.put("ch-dec", aDecCh)
+    im.put(ksDecCh, "ch-dec")
+    am.put("switch-rate", aSwRate)
+    im.put(ksSwRate, "switch-rate")
+    am.put("switch-in", aSwIn)
+    im.put(ksSwIn, "switch-in")
+    am.put("switch-out", aSwOut)
+    im.put(ksSwOut, "switch-out")
+    am.put("switch-over", aSwOver)
+    im.put(ksSwOver, "switch-over")
+    am.put("switch-xy", aSwXY)
+    im.put(ksSwXY, "switch-xy")
+    am.put("start", aStart)
+    im.put(ksStart, "start")
+    am.put("stop", aStop)
+    im.put(ksStop, "stop")
+
+    add(pTop    , BorderLayout.NORTH  )
+    add(ggYAxis , BorderLayout.WEST   )
+    add(view    , BorderLayout.CENTER )
+    addBusListeners()
+
+    view.overlayPainter = new ScopeViewOverlayPainter {
+      def paintScopeOverlay(g: Graphics2D, width: Int, height: Int): Unit =
+        if (!isRunning) {
+          g.setColor(Color.orange)
+          g.fillRect( 4, 4, 4, 16)
+          g.fillRect(12, 4, 4, 16)
+        }
     }
   }
 
@@ -84,20 +221,18 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     ggBusType.addItemListener(lBusType)
   }
 
-  private[this] var _bus        : Bus       = null
-  private[this] var _target     : Group     = null
-  private[this] var _addAction  : AddAction = addToTail
-  private[this] var _bufSize    : Int       = 4096
-
-  add(pTop , BorderLayout.NORTH )
-  add(view , BorderLayout.CENTER)
-  addBusListeners()
-
   def style: Int = view.style
 
   def style_=(value: Int): Unit = {
     ggStyle.setSelectedIndex(value)
+    setStyleFromUI(value)
+  }
+
+  private def setStyleFromUI(value: Int): Unit = {
     view.style = value
+    if (value == 2 && mBusNum.getNumber.intValue() != 2) {
+      setBusFromUI(mBusOff.getNumber.intValue(), 2)
+    }
   }
 
   def xZoom: Float = view.xZoom
@@ -107,16 +242,26 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
 
   def yZoom: Float = view.yZoom
 
-  def yZoom_=(value: Float): Unit =
-    view.yZoom = value
+  def yZoom_=(value: Float): Unit = {
+    view.yZoom          = value
+    val max             = 1.0 / value
+    val min             = -max
+    ggYAxis.minimum     = min
+    ggYAxis.maximum     = max
+    ggYAxis.fixedBounds = max >= 0.5
+  }
 
-  def waveColors: Seq[Color] = view.waveColors
+  def waveColors: ISeq[Color] = view.waveColors
 
-  def waveColors_=(value: Seq[Color]): Unit =
+  def waveColors_=(value: ISeq[Color]): Unit =
     view.waveColors = value
 
-  def start (): Unit = view.start()
-  def stop  (): Unit = view.stop()
+  def start(): Unit = view.start()
+
+  def stop(): Unit = {
+    view.stop()
+    view.repaint()
+  }
 
   def isRunning: Boolean = view.isRunning
 
@@ -143,9 +288,6 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     require (value > 0)
     _bufSize = value
   }
-
-  private[this] var syn: Synth = null
-  private[this] var synOnline = false
 
   def dispose(): Unit = {
     view.dispose()
@@ -203,10 +345,13 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
         ControlBus(s, index, numChannels)
     }
 
-    println(s"setBusFromUI($off, $num) index $index numChannels $numChannels")
+//    println(s"setBusFromUI($off, $num) index $index numChannels $numChannels")
 
     bus = newBus
   }
+
+  private def setBusTypeFromUI(tpeIdx: Int): Unit =
+    setBusTypeFromUI(tpeIdx, mBusOff.getNumber.intValue(), mBusNum.getNumber.intValue())
 
   private def setBusTypeFromUI(tpeIdx: Int, off: Int, num: Int): Unit = if (_bus != null) {
     val oldTpe      = busType
@@ -247,7 +392,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
         numChannels = min(numChannels, numControl)
     }
 
-    println(s"setBusTypeFromUI($tpeIdx, $off, $num) offset $offset numChannels $numChannels")
+//    println(s"setBusTypeFromUI($tpeIdx) offset $offset numChannels $numChannels")
 
     setBusFromUI(off = offset, num = numChannels)
   }
@@ -266,12 +411,15 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
       val gf = new GraphFunction(() => {
         import de.sciss.synth.ugen._
         val inOff = "out".kr
-        val in = if (value.rate == audio) {
-          In.ar(inOff, numChannels)
-        } else K2A.ar(
-          In.kr(inOff, numChannels)
-        )
-        RecordBuf.ar(in, buf = "buf".kr, run = 1)
+        val buf   = "buf".kr
+        if (value.rate == audio) {
+          val in = In.ar(inOff, numChannels)
+          RecordBuf.ar(in, buf = buf)
+        } else {
+          // XXX TODO --- should use RecordBuf.kr with shorter buffers
+          val in = In.kr(inOff, numChannels)
+          RecordBuf.ar(K2A.ar(in), buf = buf)
+        }
         ()
       })
       val synDef    = GraphFunction.mkSynthDef(gf)
@@ -330,7 +478,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
         (3, cb.index, s.config.controlBusChannels)
     }
 
-    println(s"tpeIdx $tpeIdx index ${value.index} num ${value.numChannels} numAudioOut $numAudioOut numAudioIn $numAudioIn newTpe $newTpe numMax $numMax")
+//    println(s"tpeIdx $tpeIdx index ${value.index} num ${value.numChannels} numAudioOut $numAudioOut numAudioIn $numAudioIn newTpe $newTpe numMax $numMax")
 
     removeBusListeners()
     ggBusType.setSelectedIndex(newTpe)
