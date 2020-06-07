@@ -21,6 +21,7 @@ import at.iem.scalacollider.ScalaColliderDOT
 import de.sciss.file._
 import de.sciss.synth.Ops.stringToControl
 import de.sciss.synth.swing.impl.WaveformViewImpl
+import de.sciss.synth.swing.j.JScopePanel
 import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, Group => SGroup, Node => SNode, Server => SServer, SynthDef => SSynthDef}
 import javax.imageio.ImageIO
 
@@ -40,15 +41,15 @@ object GUI {
   }
 
   final class Group private[swing](group: SGroup) {
-    def tree() : Frame = {
+    def tree(): Frame = {
       val ntp                       = new NodeTreePanel()
       ntp.nodeActionMenu            = true
       ntp.confirmDestructiveActions = true
       ntp.group                     = Some(group)
-      val ntpw                      = ntp.makeWindow()
-      configure(ntpw)
-      ntpw.open()
-      ntpw
+      val w                         = ntp.makeWindow()
+      configure(w)
+      w.open()
+      w
     }
   }
 
@@ -63,6 +64,25 @@ object GUI {
           In.ar("$inbus".ir, bus.numChannels)
         })
       val w = WaveformViewImpl(data, duration = duration)
+      configure(w)
+    }
+
+    def scope(style: Int = 0, bufSize: Int = 4096, zoom: Double = 1.0, target: SGroup = bus.server.rootNode,
+              addAction: AddAction = addToTail): Frame = {
+      val s = bus.server
+      require (s == target.server)
+      val p         = new JScopePanel
+      p.style       = style
+      p.yZoom       = zoom.toFloat
+      p.target      = target
+      p.addAction   = addAction
+      p.bufferSize  = bufSize
+      p.bus         = bus
+      p.start()
+
+      val w = makeFrame(s"Oscilloscope", "Oscilloscope", Component.wrap(p)) {
+        p.dispose()
+      }
       configure(w)
     }
   }
@@ -221,10 +241,11 @@ object GUI {
   }
 
   final class Server private[swing](server: SServer) {
-    def tree(): Frame = {
-      val w = new Group(server.rootNode).tree()
-      configure(w)
-    }
+    def tree(): Frame =
+      new Group(server.rootNode).tree()
+
+    def scope(): Frame =
+      new AudioBus(SAudioBus(server, 0, server.config.outputBusChannels)).scope()
 
     def meter(): Frame = {
       val opt         = server.config

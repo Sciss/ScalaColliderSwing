@@ -17,8 +17,6 @@ import java.awt.event._
 import java.awt.{Color, Font, GraphicsEnvironment, KeyboardFocusManager}
 import java.io.{FileOutputStream, OutputStreamWriter}
 import java.net.URL
-import javax.swing.event.{HyperlinkEvent, HyperlinkListener}
-import javax.swing.{KeyStroke, SwingUtilities}
 
 import bibliothek.gui.dock.common.event.CFocusListener
 import bibliothek.gui.dock.common.intern.CDockable
@@ -35,6 +33,8 @@ import de.sciss.swingplus.PopupMenu
 import de.sciss.syntaxpane.TokenType
 import de.sciss.synth.{Server, UGenSpec, UndefinedRate}
 import de.sciss.{scalainterpreter => si}
+import javax.swing.event.{HyperlinkEvent, HyperlinkListener}
+import javax.swing.{KeyStroke, SwingUtilities}
 import org.pegdown.PegDownProcessor
 
 import scala.annotation.tailrec
@@ -496,15 +496,17 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
       case NonFatal(e) => DialogSource.Exception(e -> s"Open '${file.name}'").show(Some(frame))
     }
 
+  private def serverOption: Option[Server] = sp.server
+
   private def bootServer(): Unit =
-    if (sp.booting.isEmpty && sp.server.isEmpty) rebootServer()
+    if (sp.booting.isEmpty && serverOption.isEmpty) rebootServer()
 
   private def rebootServer() :Unit =
     sp.peer.boot()
 
   private def serverMeters(): Unit = {
     import de.sciss.synth.swing.Implicits._
-    sp.server.foreach { s =>
+    serverOption.foreach { s =>
       val f = s.gui.meter()
       f.peer.setAlwaysOnTop(true)
     }
@@ -512,21 +514,29 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
 
   private def showNodes(): Unit = {
     import de.sciss.synth.swing.Implicits._
-    sp.server.foreach { s =>
+    serverOption.foreach { s =>
       val f = s.gui.tree()
+      f.peer.setAlwaysOnTop(true)
+    }
+  }
+
+  private def showScope(): Unit = {
+    import de.sciss.synth.swing.Implicits._
+    serverOption.foreach { s =>
+      val f = s.gui.scope()
       f.peer.setAlwaysOnTop(true)
     }
   }
 
   private def stopSynths(): Unit = {
     import de.sciss.synth.Ops._
-    sp.server.foreach(_.defaultGroup.freeAll())
+    serverOption.foreach(_.defaultGroup.freeAll())
   }
 
   private def clearLog(): Unit = lg.clear()
 
   private def dumpNodes(controls: Boolean): Unit =
-    sp.server.foreach(_.dumpTree(controls = controls))
+    serverOption.foreach(_.dumpTree(controls = controls))
 
   private lazy val _recent = RecentFiles(Main.userPrefs("recent-docs"))(checkOpenFile)
 
@@ -868,7 +878,8 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
       .add(Item("boot-server"   )("Boot Server"       -> (menu1 + Key.B))(bootServer()))
       .add(Item("reboot-server" )("Reboot Server"                       )(rebootServer()))
       .add(Item("server-meters" )("Show Server Meter" -> (menu1 + Key.M))(serverMeters()))
-      .add(Item("show-tree"     )("Show Node Tree")(showNodes()))
+      .add(Item("show-scope"    )("Show Oscilloscope" -> (menu1 + shift + Key.M))(showScope()))
+      .add(Item("show-tree"     )("Show Node Tree"    -> (menu1 + alt   + Key.T))(showNodes()))
       .add(Item("dump-tree"     )("Dump Node Tree"               -> (menu1         + Key.T))(dumpNodes(controls = false)))
       .add(Item("dump-tree-ctrl")("Dump Node Tree with Controls" -> (menu1 + shift + Key.T))(dumpNodes(controls = true )))
       .addLine()
