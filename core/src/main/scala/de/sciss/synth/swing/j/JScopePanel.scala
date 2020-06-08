@@ -13,13 +13,14 @@
 
 package de.sciss.synth.swing.j
 
-import java.awt.event.{ActionEvent, InputEvent, ItemEvent, ItemListener, KeyEvent}
+import java.awt.event.{ActionEvent, ComponentAdapter, ComponentEvent, InputEvent, ItemEvent, ItemListener, KeyEvent}
 import java.awt.{BorderLayout, Color, Graphics2D}
 
+import de.sciss.audiowidgets.AxisFormat
 import de.sciss.audiowidgets.j.Axis
 import de.sciss.osc
 import de.sciss.synth.{AddAction, AudioBus, Buffer, Bus, ControlBus, GraphFunction, Group, Ops, Synth, addToTail, audio}
-import javax.swing.event.{ChangeEvent, ChangeListener}
+import javax.swing.event.{AncestorEvent, AncestorListener, ChangeEvent, ChangeListener}
 import javax.swing.{AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSpinner, KeyStroke, SpinnerNumberModel, SwingConstants}
 
 import scala.collection.immutable.{Seq => ISeq}
@@ -43,6 +44,17 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     res
   }
 
+  private[this] val ggXAxis = {
+    val a = new Axis(SwingConstants.HORIZONTAL)
+    a.minimum = 0.0
+    a.format  = AxisFormat.Integer
+    a.addComponentListener(new ComponentAdapter {
+      override def componentResized(e: ComponentEvent): Unit =
+        updateXAxis()
+    })
+    a
+  }
+
   private[this] val ggYAxis = {
     val a = new Axis(SwingConstants.VERTICAL)
     a.fixedBounds = true
@@ -64,7 +76,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     c
   }
 
-  private[this] val pTop: JPanel = {
+  private[this] val pTop1: JPanel = {
     val p = new JPanel
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS))
     p.add(fix(ggBusType))
@@ -74,6 +86,22 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     ggBusNum.setToolTipText("No. of Channels")
     p.add(Box.createHorizontalGlue())
     p.add(fix(ggStyle))
+    p
+  }
+
+  private[this] val pTop2: JPanel = {
+    val p = new JPanel
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS))
+    p.add(Box.createHorizontalStrut(ggYAxis.getPreferredSize.width))
+    p.add(ggXAxis)
+    p
+  }
+
+  private[this] val pTop: JPanel = {
+    val p = new JPanel
+    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS))
+    p.add(pTop1)
+    p.add(pTop2)
     p
   }
 
@@ -118,11 +146,11 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     }
     val aIncX = new AbstractAction() {
       def actionPerformed(e: ActionEvent): Unit =
-        xZoom = xZoom * 2f
+        xZoom = xZoom * (if (style == 2) 2f else 0.5f)
     }
     val aDecX = new AbstractAction() {
       def actionPerformed(e: ActionEvent): Unit =
-        xZoom = xZoom * 0.5f
+        xZoom = xZoom * (if (style == 2) 0.5f else 2f)
     }
     val aIncCh = new AbstractAction() {
       def actionPerformed(e: ActionEvent): Unit =
@@ -194,6 +222,11 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     am.put("stop", aStop)
     im.put(ksStop, "stop")
 
+//    am.put("DUMP", new AbstractAction() {
+//      def actionPerformed(e: ActionEvent): Unit = view.DUMP = !view.DUMP
+//    })
+//    im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "DUMP")
+
     add(pTop    , BorderLayout.NORTH  )
     add(ggYAxis , BorderLayout.WEST   )
     add(view    , BorderLayout.CENTER )
@@ -207,18 +240,31 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
           g.fillRect(12, 4, 4, 16)
         }
     }
+
+    view.addAncestorListener(new AncestorListener {
+      def ancestorAdded(e: AncestorEvent): Unit =
+        view.requestFocus()
+
+      def ancestorRemoved (e: AncestorEvent): Unit = ()
+      def ancestorMoved   (e: AncestorEvent): Unit = ()
+    })
+
+//    view.addComponentListener(new ComponentAdapter {
+//      override def componentShown(e: ComponentEvent): Unit =
+//        view.requestFocus()
+//    })
   }
 
   private def removeBusListeners(): Unit = {
-    ggBusOff.removeChangeListener(lBusOffNum)
-    ggBusNum.removeChangeListener(lBusOffNum)
-    ggBusType.removeItemListener(lBusType)
+    ggBusOff  .removeChangeListener (lBusOffNum )
+    ggBusNum  .removeChangeListener (lBusOffNum )
+    ggBusType .removeItemListener   (lBusType   )
   }
 
   private def addBusListeners(): Unit = {
-    ggBusOff.addChangeListener(lBusOffNum)
-    ggBusNum.addChangeListener(lBusOffNum)
-    ggBusType.addItemListener(lBusType)
+    ggBusOff  .addChangeListener    (lBusOffNum )
+    ggBusNum  .addChangeListener    (lBusOffNum )
+    ggBusType .addItemListener      (lBusType   )
   }
 
   def style: Int = view.style
@@ -233,22 +279,41 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     if (value == 2 && mBusNum.getNumber.intValue() != 2) {
       setBusFromUI(mBusOff.getNumber.intValue(), 2)
     }
+    updateXAxis()
   }
 
   def xZoom: Float = view.xZoom
 
-  def xZoom_=(value: Float): Unit =
+  def xZoom_=(value: Float): Unit = {
     view.xZoom = value
+    updateXAxis()
+  }
+
+  private def updateXAxis(): Unit = {
+    if (style == 2) {
+      val maxVal          = 1.0 / xZoom
+      val minVal          = -maxVal
+      ggXAxis.minimum     = minVal
+      ggXAxis.maximum     = maxVal
+      ggXAxis.fixedBounds = maxVal >= 0.5
+      ggXAxis.format      = AxisFormat.Decimal
+    } else {
+      val numFrames       = view.getWidth * xZoom
+      ggXAxis.maximum     = numFrames
+      ggXAxis.fixedBounds = false
+      ggXAxis.format      = AxisFormat.Integer
+    }
+  }
 
   def yZoom: Float = view.yZoom
 
   def yZoom_=(value: Float): Unit = {
     view.yZoom          = value
-    val max             = 1.0 / value
-    val min             = -max
-    ggYAxis.minimum     = min
-    ggYAxis.maximum     = max
-    ggYAxis.fixedBounds = max >= 0.5
+    val maxVal          = 1.0 / value
+    val minVal          = -maxVal
+    ggYAxis.minimum     = minVal
+    ggYAxis.maximum     = maxVal
+    ggYAxis.fixedBounds = maxVal >= 0.5
   }
 
   def waveColors: ISeq[Color] = view.waveColors

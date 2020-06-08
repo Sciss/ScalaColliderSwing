@@ -100,6 +100,8 @@ class JScopeView extends JComponent with ScopeViewLike {
   private[this] val strokePoly    = new BasicStroke(4f)
   private[this] var recentWidth   = - 1
   private[this] var _xZoom        = 1.0f
+  private[this] var _xZoomNorm    = 1.0f
+  private[this] var _xZoomLissa   = 1.0f
   private[this] var _yZoom        = 1.0f
   private[this] var _overlay      = false
   private[this] var _lissajous    = false
@@ -265,9 +267,19 @@ class JScopeView extends JComponent with ScopeViewLike {
 //  }
 
   def style_=(value: Int): Unit = {
-    this._style  = value
-    _overlay     = value >= STYLE_OVERLAY
-    _lissajous   = value == STYLE_LISSAJOUS
+    val wasLissa  = _style == STYLE_LISSAJOUS
+    _style        = value
+    _overlay      = value >= STYLE_OVERLAY
+    _lissajous    = value == STYLE_LISSAJOUS
+    if (wasLissa) {
+      if (!_lissajous) {
+        _xZoom = _xZoomNorm
+      }
+    } else {
+      if (_lissajous) {
+        _xZoom = _xZoomLissa
+      }
+    }
     recentWidth = -1
     repaint()
   }
@@ -275,7 +287,8 @@ class JScopeView extends JComponent with ScopeViewLike {
   def style: Int = _style
 
   def xZoom_=(value: Float): Unit = {
-    _xZoom       = value
+    _xZoom = value
+    if (_lissajous) _xZoomLissa = value else _xZoomNorm = value
     recentWidth = -1 // triggers recalculation
     repaint()
   }
@@ -316,6 +329,8 @@ class JScopeView extends JComponent with ScopeViewLike {
 //    timer.restart()
   }
 
+//  var DUMP = false
+
   override def paintComponent(g: Graphics): Unit = {
     super.paintComponent(g)
     val g2          = g.asInstanceOf[Graphics2D]
@@ -340,7 +355,8 @@ class JScopeView extends JComponent with ScopeViewLike {
       // will increase scale, while in normal mode it's the other way round
       val offX  = w << 1
       val sx    = offX * _xZoom
-      polySize  = numFrames
+//      polySize  = numFrames
+      polySize  = Math.min(numFrames, w * 2)
       polySizeC = polySize * numChannels
 
       var i  = 0
@@ -353,33 +369,47 @@ class JScopeView extends JComponent with ScopeViewLike {
         k += numChannels
       }
       recentWidth = w
-    }
-    else if (w != recentWidth) { // have to recalculate horizontal coordinate
+
+    } else {
       val sx    = 4 / _xZoom
-      polySize  = Math.min(numFrames, (w * _xZoom).toInt + 1)
-      polySizeC = polySize * numChannels
       sah       = sx > 12
-      if (sah) {
-        x = 0
-        var i  = 0
-        var j  = 0
-        while (i < polySize) {
-          polyX(j) = x
-          j += 1
-          x = (i * sx).toInt
-          polyX(j) = x
-          j += 1
-          i += 1
+
+      if (w != recentWidth) { // have to recalculate horizontal coordinate
+        polySize  = Math.min(numFrames, (w * _xZoom).toInt + 1)
+        polySizeC = polySize * numChannels
+
+//        if (DUMP) {
+//          println(s"polySize $polySize, polySizeC $polySizeC, sah $sah, _xZoom ${_xZoom}, sx $sx")
+//          //        DUMP = false
+//        }
+
+        if (sah) {
+          x = 0
+          var i  = 0
+          var j  = 0
+          while (i < polySize) {
+            polyX(j) = x
+            j += 1
+            x = (i * sx).toInt
+            polyX(j) = x
+            j += 1
+            i += 1
+          }
+        } else {
+          var i = 0
+          while (i < polySize) {
+            x = (i * sx).toInt
+            polyX(i) = x
+            i += 1
+          }
         }
-      } else {
-        var i = 0
-        while (i < polySize) {
-          x = (i * sx).toInt
-          polyX(i) = x
-          i += 1
-        }
+
+//        if (DUMP) {
+//          println(s"now x is $x")
+//        }
+
+        recentWidth = w
       }
-      recentWidth = w
     }
 
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
@@ -414,7 +444,13 @@ class JScopeView extends JComponent with ScopeViewLike {
           i += 1
           k += numChannels
         }
+//        val n = polySize << 1
+//        if (DUMP) {
+//          println(s"polyX.last = ${polyX(n - 1)}, n = $n")
+//        }
         g2.drawPolyline(polyX, polyY, polySize << 1)
+//        g2.setColor(Color.red)
+//        g2.drawLine(0, 0, polyX(n - 1), h)
       }
       else {
         var i  = 0
@@ -427,6 +463,8 @@ class JScopeView extends JComponent with ScopeViewLike {
           k += numChannels
         }
         g2.drawPolyline(polyX, polyY, polySize)
+//        g2.setColor(Color.blue)
+//        g2.drawLine(0, h, polyX(polySize - 1), 0)
       }
       g2.setTransform(atOrig)
       g2.setStroke(strokeOrig)
@@ -443,34 +481,48 @@ class JScopeView extends JComponent with ScopeViewLike {
 
   // ------------- OSCListener interface -------------
   private[this] val handler: PartialFunction[Message, Unit] = {
-    case BufferSetn(id, (idx, values)) if id == bufNum /*&& idx == sliceOff*/ =>
-      val stop  = idx + values.size
-      val vec   = vector
-      if (vec != null) {
-        val num = Math.min(vec.length, stop) - idx
-        if (num > 0) {
-//          println(s"baap idx $idx num $num polySizeC $polySizeC")
-          var i = 0
-          var j = idx
-          while (i < num) {
-            vec(j) = values(i)  // XXX TODO --- or is toArray faster?
-            i += 1
-            j += 1
-          }
-//          System.arraycopy(values /* NOT AN ARRAY */, 0, vec, idx, num)
-          if (idx + num >= polySizeC /*|| idx + 1 == numSlices*/) {
-//            println("boop")
-            val pnt = pntVector
-            if (pnt != null) {
-              val n   = Math.min(vec.length, pnt.length)
-              val m   = pnt.length - n
-              System.arraycopy(vec, 0, pnt, 0, n)
-              if (m > 0) util.Arrays.fill(pnt, n, m, 0f)
-              repaint() // paint complete waveform
+        // N.B.: do not add a guard like `if id == bufNum` here
+        // because the PartialFunction is invoked twice with `isDefinedAt` and `apply`,
+        // and `bufNum` may change in the mean time!
+    case BufferSetn(id, (idx, values)) /*&& idx == sliceOff*/ =>
+      if (id == bufNum) {
+        val stop  = idx + values.size
+        val vec   = vector
+        if (vec != null) {
+          val num = Math.min(vec.length, stop) - idx
+          if (num > 0) {
+            //          println(s"baap idx $idx num $num polySizeC $polySizeC")
+            var i = 0
+            var j = idx
+            while (i < num) {
+              vec(j) = values(i)  // XXX TODO --- or is toArray faster?
+              i += 1
+              j += 1
+            }
+            //          System.arraycopy(values /* NOT AN ARRAY */, 0, vec, idx, num)
+            if (idx + num >= polySizeC /*|| idx + 1 == numSlices*/) {
+              //            println("boop")
+              val pnt = pntVector
+              if (pnt != null) {
+                val n   = Math.min(vec.length, pnt.length)
+                val m   = pnt.length - n
+                //              java.awt.EventQueue.invokeLater(new Runnable {
+                //                def run(): Unit = {
+                System.arraycopy(vec, 0, pnt, 0, n)
+                if (m > 0) {
+//                  println(s"CLEAR $m")
+                  util.Arrays.fill(pnt, n, m, 0f)
+                }
+                repaint() // paint complete waveform
+                //                  paintImmediately(0, 0, getWidth, getHeight)
+                getToolkit.sync()
+                //                }
+                //              })
+              }
             }
           }
         }
+        if (_isRunning) query()
       }
-      if (_isRunning) query()
   }
 }
