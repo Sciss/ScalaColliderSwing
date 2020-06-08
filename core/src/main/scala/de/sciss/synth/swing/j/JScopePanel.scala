@@ -18,26 +18,43 @@ import java.awt.{BorderLayout, Color, Graphics2D}
 
 import de.sciss.audiowidgets.AxisFormat
 import de.sciss.audiowidgets.j.Axis
+import de.sciss.numbers.Implicits._
 import de.sciss.osc
 import de.sciss.synth.{AddAction, AudioBus, Buffer, Bus, ControlBus, GraphFunction, Group, Ops, Synth, addToTail, audio}
 import javax.swing.event.{AncestorEvent, AncestorListener, ChangeEvent, ChangeListener}
 import javax.swing.{AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSpinner, KeyStroke, SpinnerNumberModel, SwingConstants}
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.math.{max, min}
+import scala.math.{max, min, ceil}
 import scala.swing.Swing
 import scala.util.control.NonFatal
 
+/** Component to view an oscilloscope for a real-time signal.
+  *
+  * The following keyboard shortcuts exist:
+  *
+  * - <kbd>Ctrl</kbd>-<kbd>Up</kbd>/<kdb>Down</kbd>: increase or decrease vertical zoom
+  * - <kbd>Ctrl</kbd>-<kbd>Right</kbd>/<kdb>Left</kbd>: increase or decrease horizontal zoom
+  * - <kbd>Space</kbd>: toggle run/pause
+  * - <kbd>Period</kbd>: pause
+  * - <kbd>J</kbd>/<kbd>L</kbd>: decrease or increase channel offset
+  * - <kbd>K</kbd>: switch between audio and control rate buses
+  * - <kbd>I</kbd>/<kbd>O</kbd>: switch to audio inputs and audio outputs
+  * - <kbd>S</kbd>: switch between parallel and overlay mode
+  * - <kbd>Shift</kbd>-<kbd>S</kbd>: switch between Lissajous (X/Y) and normal (X over time) mode
+  */
 class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
-  private[this] val view = new JScopeView
+  private[this] val view          = new JScopeView
 
   private[this] val ggBusType     = new JComboBox(Array("Audio In", "Audio Out", "Audio Bus", "Control Bus"))
   private[this] val mBusOff       = new SpinnerNumberModel(0, 0, 8192, 1)
   private[this] val mBusNum       = new SpinnerNumberModel(1, 0 /*1*/, 8192, 1)
+//  private[this] val mBufSize      = new SpinnerNumberModel(4096, 32, 65536, 1)
   private[this] val ggBusOff      = new JSpinner(mBusOff)
   private[this] val ggBusNum      = new JSpinner(mBusNum)
+//  private[this] val ggBufSize     = new JSpinner(mBufSize)
   private[this] val ggStyle       = {
-    val res = new JComboBox(Array("Channels", "Overlay", "Lissajous"))
+    val res = new JComboBox(Array("Parallel", "Overlay", "Lissajous"))
     res.addItemListener(new ItemListener {
       def itemStateChanged(e: ItemEvent): Unit = setStyleFromUI(res.getSelectedIndex)
     })
@@ -55,18 +72,55 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     a
   }
 
-  private[this] val ggYAxis = {
-    val a = new Axis(SwingConstants.VERTICAL)
-    a.fixedBounds = true
-    a.minimum     = -1.0
-    a.maximum     = +1.0
-    a
+  private[this] var ggYAxes = new Array[Axis](0)
+
+//  {
+//    val a = new Axis(SwingConstants.VERTICAL)
+//    a.fixedBounds = true
+//    a.minimum     = -1.0
+//    a.maximum     = +1.0
+//    a
+//  }
+
+  private def setNumChannels(): Unit = {
+    val num   = if (style == 0 && _bus != null) max(1, _bus.numChannels) else 1
+    val oldCh = ggYAxes.length
+    if (num != oldCh) {
+      val axesNew = new Array[Axis](num)
+      System.arraycopy(ggYAxes, 0, axesNew, 0, min(num, oldCh))
+      if (num < oldCh) {
+        var ch = oldCh
+        while (ch > num) {
+          ch -= 1
+          pYAxes.remove(ch)
+        }
+      } else {
+        var ch = oldCh
+        while (ch < num) {
+          val a = new Axis(SwingConstants.VERTICAL)
+          setYZoom(a)
+          axesNew(ch) = a
+          pYAxes.add(a)
+          ch += 1
+        }
+      }
+      ggYAxes = axesNew
+      pYAxes.revalidate()
+      pYAxes.repaint()
+    }
+  }
+
+  private[this] val pYAxes = {
+    val p = new JPanel
+    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS))
+    p
   }
 
   private[this] var _bus        : Bus       = null
   private[this] var _target     : Group     = null
   private[this] var _addAction  : AddAction = addToTail
   private[this] var _bufSize    : Int       = 4096
+  private[this] var _bufSizeSet : Boolean   = false
 
   private[this] var syn         : Synth     = null
   private[this] var synOnline               = false
@@ -84,6 +138,9 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     ggBusOff.setToolTipText("Bus Offset")
     p.add(fix(ggBusNum))
     ggBusNum.setToolTipText("No. of Channels")
+//    p.add(Box.createHorizontalStrut(8))
+//    p.add(fix(ggBufSize))
+//    ggBufSize.setToolTipText("Buffer Size")
     p.add(Box.createHorizontalGlue())
     p.add(fix(ggStyle))
     p
@@ -92,7 +149,8 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   private[this] val pTop2: JPanel = {
     val p = new JPanel
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS))
-    p.add(Box.createHorizontalStrut(ggYAxis.getPreferredSize.width))
+    setNumChannels() // init
+    p.add(Box.createHorizontalStrut(ggYAxes(0).getPreferredSize.width))
     p.add(ggXAxis)
     p
   }
@@ -227,10 +285,15 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
 //    })
 //    im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "DUMP")
 
-    add(pTop    , BorderLayout.NORTH  )
-    add(ggYAxis , BorderLayout.WEST   )
-    add(view    , BorderLayout.CENTER )
+    add(pTop  , BorderLayout.NORTH  )
+    add(pYAxes, BorderLayout.WEST   )
+    add(view  , BorderLayout.CENTER )
     addBusListeners()
+
+//    ggBufSize.addChangeListener(new ChangeListener {
+//      def stateChanged(e: ChangeEvent): Unit =
+//        bufferSize = mBufSize.getNumber.intValue()
+//    })
 
     view.overlayPainter = new ScopeViewOverlayPainter {
       def paintScopeOverlay(g: Graphics2D, width: Int, height: Int): Unit =
@@ -280,6 +343,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
       setBusFromUI(mBusOff.getNumber.intValue(), 2)
     }
     updateXAxis()
+    setNumChannels()
   }
 
   def xZoom: Float = view.xZoom
@@ -290,6 +354,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   }
 
   private def updateXAxis(): Unit = {
+    var bestBufSize = view.getWidth
     if (style == 2) {
       val maxVal          = 1.0 / xZoom
       val minVal          = -maxVal
@@ -297,23 +362,38 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
       ggXAxis.maximum     = maxVal
       ggXAxis.fixedBounds = maxVal >= 0.5
       ggXAxis.format      = AxisFormat.Decimal
+      bestBufSize *= 4
     } else {
-      val numFrames       = view.getWidth * xZoom
-      ggXAxis.maximum     = numFrames
+      val numFramesF      = bestBufSize * xZoom
+      ggXAxis.maximum     = numFramesF
       ggXAxis.fixedBounds = false
       ggXAxis.format      = AxisFormat.Integer
+      bestBufSize = ceil(numFramesF).toInt
+    }
+
+    if (!_bufSizeSet) {
+      bestBufSize = bestBufSize.nextPowerOfTwo.clip(64, 65536)
+      setBufferSize(bestBufSize)
     }
   }
 
   def yZoom: Float = view.yZoom
 
   def yZoom_=(value: Float): Unit = {
-    view.yZoom          = value
-    val maxVal          = 1.0 / value
-    val minVal          = -maxVal
-    ggYAxis.minimum     = minVal
-    ggYAxis.maximum     = maxVal
-    ggYAxis.fixedBounds = maxVal >= 0.5
+    view.yZoom = value
+    var ch = 0
+    while (ch < ggYAxes.length) {
+      setYZoom(ggYAxes(ch))
+      ch += 1
+    }
+  }
+
+  private def setYZoom(a: Axis): Unit = {
+    val maxVal    = 1.0 / yZoom
+    val minVal    = -maxVal
+    a.minimum     = minVal
+    a.maximum     = maxVal
+    a.fixedBounds = maxVal >= 0.5
   }
 
   def waveColors: ISeq[Color] = view.waveColors
@@ -347,11 +427,37 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     _addAction = value
   }
 
+  /** The default buffer size is dynamically
+    * updated according to the number of frames
+    * currently displayed (in Lissajous mode
+    * four times the width). If it is set
+    * explicitly, the dynamic adjustment is turned off.
+    * It can be turned on by setting it to zero.
+    */
   def bufferSize: Int = _bufSize
 
-  def bufferSize_=(value: Int): Unit = {
-    require (value > 0)
-    _bufSize = value
+  /** The default buffer size is dynamically
+    * updated according to the number of frames
+    * currently displayed (in Lissajous mode
+    * four times the width). If it is set
+    * explicitly, the dynamic adjustment is turned off.
+    * It can be turned on by setting it to zero.
+    */
+  def bufferSize_=(value: Int): Unit =
+    if (value > 0) {
+      _bufSizeSet = true
+      setBufferSize(value)
+    } else if (_bufSizeSet) {
+      _bufSizeSet = false
+      updateXAxis()
+    }
+
+  private def setBufferSize(value: Int): Unit = {
+    if (_bufSize != value) {
+      require (value > 0)
+      _bufSize    = value
+      if (isRunning) bus = bus
+    }
   }
 
   def dispose(): Unit = {
@@ -552,6 +658,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     mBusNum.setMaximum(numMax)
     mBusNum.setValue(numChannels)
     busType = newTpe
+    setNumChannels()
     addBusListeners()
   }
 }

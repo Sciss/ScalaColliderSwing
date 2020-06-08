@@ -67,7 +67,7 @@ object GUI {
       configure(w)
     }
 
-    def scope(style: Int = 0, bufSize: Int = 4096, zoom: Double = 1.0, target: SGroup = bus.server.rootNode,
+    def scope(style: Int = 0, bufSize: Int = 0, zoom: Double = 1.0, target: SGroup = bus.server.rootNode,
               addAction: AddAction = addToTail): Frame = {
       val s = bus.server
       require (s == target.server)

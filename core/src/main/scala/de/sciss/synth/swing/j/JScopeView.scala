@@ -31,6 +31,17 @@ trait ScopeViewOverlayPainter {
 }
 
 trait ScopeViewLike {
+  /** The drawing style can be one of
+    * `0` (or `JScopeView.STYLE_PARALLEL`),
+    * `1` (or `JScopeView.STYLE_OVERLAY`),
+    * `2` (or `JScopeView.STYLE_LISSAJOUS`).
+    *
+    * In parallel or "normal" style, each channel is drawn separately
+    * in a vertical per-channel arrangement. In overlay mode, all channels
+    * are drawn superimposed on each other. In Lissajous or X/Y style,
+    * the first channel specifies the x-coordinate, and the second channel
+    * specifies the y-coordinate.
+    */
   var style: Int
   var xZoom: Float
   var yZoom: Float
@@ -53,7 +64,7 @@ object JScopeView {
   private val COLOR_FG_DARK   = Color.lightGray // Color.yellow
   private val COLOR_FG_LIGHT  = Color.darkGray  // new Color(127, 127, 0)
 
-  final val STYLE_CHANNELS  = 0
+  final val STYLE_PARALLEL  = 0
   final val STYLE_OVERLAY   = 1
   final val STYLE_LISSAJOUS = 2
 }
@@ -101,11 +112,12 @@ class JScopeView extends JComponent with ScopeViewLike {
   private[this] var recentWidth   = - 1
   private[this] var _xZoom        = 1.0f
   private[this] var _xZoomNorm    = 1.0f
-  private[this] var _xZoomLissa   = 1.0f
+  private[this] var _xZoomLissa   = -1.0f
   private[this] var _yZoom        = 1.0f
   private[this] var _overlay      = false
   private[this] var _lissajous    = false
   private[this] var _style        = 0
+  private[this] var sah           = false
 
   @volatile
   private[this] var _isRunning    = false
@@ -277,7 +289,7 @@ class JScopeView extends JComponent with ScopeViewLike {
       }
     } else {
       if (_lissajous) {
-        _xZoom = _xZoomLissa
+        _xZoom = if (_xZoomLissa > 0f) _xZoomLissa else _yZoom
       }
     }
     recentWidth = -1
@@ -338,16 +350,12 @@ class JScopeView extends JComponent with ScopeViewLike {
     val h           = getHeight
     val atOrig      = g2.getTransform
     val strokeOrig  = g2.getStroke
-    var sy          = 0.0
-    var offY        = 0f
     var x           = 0
     var y           = 0
     g2.setColor(getBackground)
     g2.fillRect(0, 0, w, h)
 
     if ((pntVector == null) || (numChannels == 0)) return
-
-    var sah = false
 
     if (_lissajous) {
       // the interpretation of the xZoom value is completely
@@ -356,7 +364,7 @@ class JScopeView extends JComponent with ScopeViewLike {
       val offX  = w << 1
       val sx    = offX * _xZoom
 //      polySize  = numFrames
-      polySize  = Math.min(numFrames, w * 2)
+      polySize  = Math.min(numFrames, w * 4)
       polySizeC = polySize * numChannels
 
       var i  = 0
@@ -370,66 +378,62 @@ class JScopeView extends JComponent with ScopeViewLike {
       }
       recentWidth = w
 
-    } else {
+    } else if (w != recentWidth) { // have to recalculate horizontal coordinate
+      polySize  = Math.min(numFrames, (w * _xZoom).toInt + 1)
+      polySizeC = polySize * numChannels
       val sx    = 4 / _xZoom
       sah       = sx > 12
-
-      if (w != recentWidth) { // have to recalculate horizontal coordinate
-        polySize  = Math.min(numFrames, (w * _xZoom).toInt + 1)
-        polySizeC = polySize * numChannels
 
 //        if (DUMP) {
 //          println(s"polySize $polySize, polySizeC $polySizeC, sah $sah, _xZoom ${_xZoom}, sx $sx")
 //          //        DUMP = false
 //        }
 
-        if (sah) {
-          x = 0
-          var i  = 0
-          var j  = 0
-          while (i < polySize) {
-            polyX(j) = x
-            j += 1
-            x = (i * sx).toInt
-            polyX(j) = x
-            j += 1
-            i += 1
-          }
-        } else {
-          var i = 0
-          while (i < polySize) {
-            x = (i * sx).toInt
-            polyX(i) = x
-            i += 1
-          }
+      if (sah) {
+        x = 0
+        var i  = 0
+        var j  = 0
+        while (i < polySize) {
+          polyX(j) = x
+          j += 1
+          x = (i * sx).toInt
+          polyX(j) = x
+          j += 1
+          i += 1
         }
+      } else {
+        var i = 0
+        while (i < polySize) {
+          x = (i * sx).toInt
+          polyX(i) = x
+          i += 1
+        }
+      }
 
 //        if (DUMP) {
 //          println(s"now x is $x")
 //        }
 
-        recentWidth = w
-      }
+      recentWidth = w
     }
 
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-    if (_overlay) {
-      offY  = h * 0.5f
-      sy    = -(h << 1) * _yZoom
-    }
-    else {
-      sy    = -(h << 1) * _yZoom / numChannels
-    }
 
-    var ch = if (_lissajous) 1 else 0
-    while (ch < numChannels) {
+    // note: the integer divisions for `hCh` and `offY` are so that
+    // the zero position aligns with the y-Axis views in JScopePanel
+    val numChEff  = if (_overlay || _lissajous) 1 else numChannels
+    val hCh       = h / numChEff
+    val sy        = -(h << 1) * _yZoom / numChEff
+    var offY      = -hCh/2
+    val numChDraw = if (_lissajous) 1 else numChannels
+    val yChOff    = if (_lissajous) 1 else 0
+
+    var ch = 0
+    while (ch < numChDraw) {
       g2.setColor(if (_waveColors.length > ch) _waveColors(ch) else colorFg)
       g2.setStroke(strokePoly)
-      if (_overlay) g2.translate(0, offY)
-      else {
-        offY = (((ch << 1) + 1) * h).toFloat / (numChannels << 1)
-        g2.translate(0, offY)
-      }
+      if (ch < numChEff) offY += hCh
+      g2.translate(0, offY)
       g2.scale(0.25f, 0.25f)
       if (sah) { // sample-and-hold
         var i  = 0
@@ -454,7 +458,7 @@ class JScopeView extends JComponent with ScopeViewLike {
       }
       else {
         var i  = 0
-        var k  = ch
+        var k  = ch + yChOff
         while (i < polySize) {
           y = (pntVector(k) * sy).toInt
           polyY(i) = y
