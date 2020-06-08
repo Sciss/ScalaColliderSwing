@@ -43,8 +43,14 @@ import scala.util.control.NonFatal
   * - <kbd>S</kbd>: switch between parallel and overlay mode
   * - <kbd>Shift</kbd>-<kbd>S</kbd>: switch between Lissajous (X/Y) and normal (X over time) mode
   */
-class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
-  private[this] val view          = new JScopeView
+abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
+  // ---- abstract ----
+
+  protected def mkBusSynth(b: Bus): Unit
+
+  // ---- impl ----
+
+  private[this] val _view         = new JScopeView
 
   private[this] val ggBusType     = new JComboBox(Array("Audio In", "Audio Out", "Audio Bus", "Control Bus"))
   private[this] val mBusOff       = new SpinnerNumberModel(0, 0, 8192, 1)
@@ -82,34 +88,6 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
 //    a
 //  }
 
-  private def setNumChannels(): Unit = {
-    val num   = if (style == 0 && _bus != null) max(1, _bus.numChannels) else 1
-    val oldCh = ggYAxes.length
-    if (num != oldCh) {
-      val axesNew = new Array[Axis](num)
-      System.arraycopy(ggYAxes, 0, axesNew, 0, min(num, oldCh))
-      if (num < oldCh) {
-        var ch = oldCh
-        while (ch > num) {
-          ch -= 1
-          pYAxes.remove(ch)
-        }
-      } else {
-        var ch = oldCh
-        while (ch < num) {
-          val a = new Axis(SwingConstants.VERTICAL)
-          setYZoom(a)
-          axesNew(ch) = a
-          pYAxes.add(a)
-          ch += 1
-        }
-      }
-      ggYAxes = axesNew
-      pYAxes.revalidate()
-      pYAxes.repaint()
-    }
-  }
-
   private[this] val pYAxes = {
     val p = new JPanel
     p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS))
@@ -117,13 +95,8 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   }
 
   private[this] var _bus        : Bus       = null
-  private[this] var _target     : Group     = null
-  private[this] var _addAction  : AddAction = addToTail
   private[this] var _bufSize    : Int       = 4096
   private[this] var _bufSizeSet : Boolean   = false
-
-  private[this] var syn         : Synth     = null
-  private[this] var synOnline               = false
 
   private def fix(c: JComponent): c.type = {  // WTF
     c.setMaximumSize(c.getPreferredSize)
@@ -287,7 +260,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
 
     add(pTop  , BorderLayout.NORTH  )
     add(pYAxes, BorderLayout.WEST   )
-    add(view  , BorderLayout.CENTER )
+    add(_view  , BorderLayout.CENTER )
     addBusListeners()
 
 //    ggBufSize.addChangeListener(new ChangeListener {
@@ -295,7 +268,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
 //        bufferSize = mBufSize.getNumber.intValue()
 //    })
 
-    view.overlayPainter = new ScopeViewOverlayPainter {
+    _view.overlayPainter = new ScopeViewOverlayPainter {
       def paintScopeOverlay(g: Graphics2D, width: Int, height: Int): Unit =
         if (!isRunning) {
           g.setColor(Color.orange)
@@ -304,9 +277,9 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
         }
     }
 
-    view.addAncestorListener(new AncestorListener {
+    _view.addAncestorListener(new AncestorListener {
       def ancestorAdded(e: AncestorEvent): Unit =
-        view.requestFocus()
+        _view.requestFocus()
 
       def ancestorRemoved (e: AncestorEvent): Unit = ()
       def ancestorMoved   (e: AncestorEvent): Unit = ()
@@ -316,6 +289,34 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
 //      override def componentShown(e: ComponentEvent): Unit =
 //        view.requestFocus()
 //    })
+  }
+
+  private def setNumChannels(): Unit = {
+    val num   = if (style == 0 && _bus != null) max(1, _bus.numChannels) else 1
+    val oldCh = ggYAxes.length
+    if (num != oldCh) {
+      val axesNew = new Array[Axis](num)
+      System.arraycopy(ggYAxes, 0, axesNew, 0, min(num, oldCh))
+      if (num < oldCh) {
+        var ch = oldCh
+        while (ch > num) {
+          ch -= 1
+          pYAxes.remove(ch)
+        }
+      } else {
+        var ch = oldCh
+        while (ch < num) {
+          val a = new Axis(SwingConstants.VERTICAL)
+          setYZoom(a)
+          axesNew(ch) = a
+          pYAxes.add(a)
+          ch += 1
+        }
+      }
+      ggYAxes = axesNew
+      pYAxes.revalidate()
+      pYAxes.repaint()
+    }
   }
 
   private def removeBusListeners(): Unit = {
@@ -330,7 +331,9 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     ggBusType .addItemListener      (lBusType   )
   }
 
-  def style: Int = view.style
+  def view: JScopeView = _view
+
+  def style: Int = _view.style
 
   def style_=(value: Int): Unit = {
     ggStyle.setSelectedIndex(value)
@@ -338,7 +341,7 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   }
 
   private def setStyleFromUI(value: Int): Unit = {
-    view.style = value
+    _view.style = value
     if (value == 2 && mBusNum.getNumber.intValue() != 2) {
       setBusFromUI(mBusOff.getNumber.intValue(), 2)
     }
@@ -346,15 +349,15 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     setNumChannels()
   }
 
-  def xZoom: Float = view.xZoom
+  def xZoom: Float = _view.xZoom
 
   def xZoom_=(value: Float): Unit = {
-    view.xZoom = value
+    _view.xZoom = value
     updateXAxis()
   }
 
   private def updateXAxis(): Unit = {
-    var bestBufSize = view.getWidth
+    var bestBufSize = _view.getWidth
     if (style == 2) {
       val maxVal          = 1.0 / xZoom
       val minVal          = -maxVal
@@ -377,10 +380,10 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     }
   }
 
-  def yZoom: Float = view.yZoom
+  def yZoom: Float = _view.yZoom
 
   def yZoom_=(value: Float): Unit = {
-    view.yZoom = value
+    _view.yZoom = value
     var ch = 0
     while (ch < ggYAxes.length) {
       setYZoom(ggYAxes(ch))
@@ -396,36 +399,19 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     a.fixedBounds = maxVal >= 0.5
   }
 
-  def waveColors: ISeq[Color] = view.waveColors
+  def waveColors: ISeq[Color] = _view.waveColors
 
   def waveColors_=(value: ISeq[Color]): Unit =
-    view.waveColors = value
+    _view.waveColors = value
 
-  def start(): Unit = view.start()
+  def start(): Unit = _view.start()
 
   def stop(): Unit = {
-    view.stop()
-    view.repaint()
+    _view.stop()
+    _view.repaint()
   }
 
-  def isRunning: Boolean = view.isRunning
-
-  def target: Group = {
-    if (_target != null || _bus == null) _target else _bus.server.rootNode
-  }
-
-  def target_=(value: Group): Unit = {
-//    val old = target
-    _target = value
-//    if (value != old) {
-//    }
-  }
-
-  def addAction: AddAction = _addAction
-
-  def addAction_=(value: AddAction): Unit = {
-    _addAction = value
-  }
+  def isRunning: Boolean = _view.isRunning
 
   /** The default buffer size is dynamically
     * updated according to the number of frames
@@ -461,28 +447,9 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   }
 
   def dispose(): Unit = {
-    view.dispose()
-    val _syn  = syn
-    syn       = null
-    if (_syn != null) freeSynth(_syn)
+    _view.dispose()
   }
 
-  private def freeSynth(syn: Synth): Unit = {
-    try {
-      val s         = syn.server
-      val freeMsg   = syn.freeMsg
-      if (synOnline) {
-        s ! freeMsg
-      } else {
-        val syncMsg   = s.syncMsg()
-        val synced    = syncMsg.reply
-        s.!!(syncMsg) { case `synced` => s ! freeMsg }
-      }
-    } catch {
-      case NonFatal(_) => // ignore
-    }
-  }
-  
   private[this] var busType = 0
 
   private def setBusFromUI(off: Int, num: Int): Unit = if (_bus != null) {
@@ -570,66 +537,29 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
 
   def bus: Bus = _bus
 
+  protected def mkSynthGraph(b: Bus): Unit = {
+    import de.sciss.synth.ugen._
+    import Ops.stringToControl
+    val inOff = "out".kr
+    val buf   = "buf".kr
+    if (b.rate == audio) {
+      val in = In.ar(inOff, b.numChannels)
+      RecordBuf.ar(in, buf = buf)
+    } else {
+      // XXX TODO --- should use RecordBuf.kr with shorter buffers
+      val in = In.kr(inOff, b.numChannels)
+      RecordBuf.ar(K2A.ar(in), buf = buf)
+    }
+    ()
+  }
+
   def bus_=(value: Bus): Unit = {
     _bus = value
 
     val numChannels = value.numChannels
     val s           = bus.server
-    val oldSyn      = syn
 
-    if (numChannels > 0) {
-      import Ops._
-      val gf = new GraphFunction(() => {
-        import de.sciss.synth.ugen._
-        val inOff = "out".kr
-        val buf   = "buf".kr
-        if (value.rate == audio) {
-          val in = In.ar(inOff, numChannels)
-          RecordBuf.ar(in, buf = buf)
-        } else {
-          // XXX TODO --- should use RecordBuf.kr with shorter buffers
-          val in = In.kr(inOff, numChannels)
-          RecordBuf.ar(K2A.ar(in), buf = buf)
-        }
-        ()
-      })
-      val synDef    = GraphFunction.mkSynthDef(gf)
-
-      syn           = Synth (s)
-      val b         = Buffer(s)
-      val newMsg    = syn.newMsg(synDef.name, target = target, args = List("out" -> bus.index, "buf" -> b.id),
-        addAction = addAction)
-
-      val doneAlloc0  = newMsg :: synDef.freeMsg :: Nil
-      val doneAlloc   = if (oldSyn == null) doneAlloc0 else oldSyn.freeMsg :: doneAlloc0
-
-      val allocMsg  = b.allocMsg(numFrames = _bufSize, numChannels = bus.numChannels, completion =
-        Some(osc.Bundle.now(doneAlloc: _*))
-      )
-      val recvMsg   = synDef.recvMsg
-      val syncMsg   = s.syncMsg()
-      val synced    = syncMsg.reply
-
-      syn.onEnd { b.free() }
-
-      synOnline = false
-      s.!!(osc.Bundle.now(recvMsg, allocMsg, syncMsg)) {
-        case `synced` =>
-          // println("SYNCED")
-          Swing.onEDT {
-            synOnline   = true
-            view.buffer = b
-            //          start()
-          }
-      }
-
-    } else {
-      if (oldSyn != null) {
-        freeSynth(oldSyn)
-        syn           = null
-        view.buffer   = null
-      }
-    }
+    mkBusSynth(value)
 
     val numAudioIn  = s.config.inputBusChannels
     val numAudioOut = s.config.outputBusChannels
@@ -660,5 +590,101 @@ class JScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
     busType = newTpe
     setNumChannels()
     addBusListeners()
+  }
+}
+
+class JScopePanel extends AbstractScopePanel {
+  private[this] var _target     : Group     = null
+  private[this] var syn         : Synth     = null
+  private[this] var synOnline               = false
+  private[this] var _addAction  : AddAction = addToTail
+
+  def target: Group = {
+    val _bus = bus
+    if (_target != null || _bus == null) _target else _bus.server.rootNode
+  }
+
+  override def dispose(): Unit = {
+    super.dispose()
+    val _syn  = syn
+    syn       = null
+    if (_syn != null) freeSynth(_syn)
+  }
+
+  def target_=(value: Group): Unit = {
+    //    val old = target
+    _target = value
+    //    if (value != old) {
+    //    }
+  }
+
+  def addAction: AddAction = _addAction
+
+  def addAction_=(value: AddAction): Unit = {
+    _addAction = value
+  }
+
+  protected def mkBusSynth(_bus: Bus): Unit = {
+    val numChannels = _bus.numChannels
+    val oldSyn      = syn
+
+    if (numChannels > 0) {
+      import Ops._
+      val gf = new GraphFunction(() => {
+        mkSynthGraph(_bus)
+      })
+      val synDef    = GraphFunction.mkSynthDef(gf)
+      val s         = _bus.server
+      syn           = Synth (s)
+      val b         = Buffer(s)
+      val newMsg    = syn.newMsg(synDef.name, target = target, args = List("out" -> bus.index, "buf" -> b.id),
+        addAction = addAction)
+
+      val doneAlloc0  = newMsg :: synDef.freeMsg :: Nil
+      val doneAlloc   = if (oldSyn == null) doneAlloc0 else oldSyn.freeMsg :: doneAlloc0
+
+      val allocMsg  = b.allocMsg(numFrames = bufferSize, numChannels = numChannels, completion =
+        Some(osc.Bundle.now(doneAlloc: _*))
+      )
+      val recvMsg   = synDef.recvMsg
+      val syncMsg   = s.syncMsg()
+      val synced    = syncMsg.reply
+
+      syn.onEnd { b.free() }
+
+      synOnline = false
+      s.!!(osc.Bundle.now(recvMsg, allocMsg, syncMsg)) {
+        case `synced` =>
+          // println("SYNCED")
+          Swing.onEDT {
+            synOnline   = true
+            view.buffer = b
+            //          start()
+          }
+      }
+
+    } else {
+      if (oldSyn != null) {
+        freeSynth(oldSyn)
+        syn           = null
+        view.buffer   = null
+      }
+    }
+  }
+
+  private def freeSynth(syn: Synth): Unit = {
+    try {
+      val s         = syn.server
+      val freeMsg   = syn.freeMsg
+      if (synOnline) {
+        s ! freeMsg
+      } else {
+        val syncMsg   = s.syncMsg()
+        val synced    = syncMsg.reply
+        s.!!(syncMsg) { case `synced` => s ! freeMsg }
+      }
+    } catch {
+      case NonFatal(_) => // ignore
+    }
   }
 }
