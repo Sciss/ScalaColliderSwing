@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.41.7-SNAPSHOT"
+lazy val projectVersion = "1.41.7"
 lazy val mimaVersion    = "1.41.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -52,6 +52,7 @@ lazy val commonSettings = Seq(
     val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
     if (isSnapshot.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
   },
+  scalacOptions in (Compile, compile) ++= (if (scala.util.Properties.isJavaAtLeast("9")) Seq("-release", "8") else Nil), // JDK >8 breaks API; skip scala-doc
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   aggregate in assembly := false   // https://github.com/sbt/sbt-assembly/issues/147
 ) ++ publishSettings

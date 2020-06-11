@@ -85,6 +85,7 @@ imported with `import de.sciss.synth.swing.Implicits._`.
     // server
     s.gui.meter()               // show peak meters for main I/O
     s.gui.tree()                // show node tree for server's root group
+    s.gui.scope()               // show oscilloscope for the output buses of the server
 
     // group
     someGroup.gui.tree()        // show node tree with a given group as root
@@ -92,6 +93,7 @@ imported with `import de.sciss.synth.swing.Implicits._`.
     // audio-bus
     someBus.gui.meter()         // show peak meters for the given bus
     someBus.gui.waveform(dur)   // record and plot bus output for duration in seconds
+    someBus.gui.scope()         // show oscilloscope for the given bus
 
     // graph functions
     val fun = graph {           // use `graph { ... }` instead of `play { ... }` to capture function

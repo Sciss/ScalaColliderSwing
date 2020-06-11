@@ -127,7 +127,7 @@ object TextViewImpl {
       val edJ         = ed.peer
       val iMap        = edJ.getInputMap(JComponent.WHEN_FOCUSED)
       val aMap        = edJ.getActionMap
-      val executeKey  = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)
+      val executeKey  = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_DOWN_MASK)
       iMap.put(executeKey, "de.sciss.exec")
       aMap.put("de.sciss.exec", new AbstractAction {
         def actionPerformed(e: ActionEvent): Unit =
