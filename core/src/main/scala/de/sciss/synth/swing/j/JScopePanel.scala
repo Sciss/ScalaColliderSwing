@@ -20,12 +20,13 @@ import de.sciss.audiowidgets.AxisFormat
 import de.sciss.audiowidgets.j.Axis
 import de.sciss.numbers.Implicits._
 import de.sciss.osc
+import de.sciss.synth.swing.j.JScopeView.Config
 import de.sciss.synth.{AddAction, AudioBus, Buffer, Bus, ControlBus, GraphFunction, Group, Ops, Synth, addToTail, audio}
 import javax.swing.event.{AncestorEvent, AncestorListener, ChangeEvent, ChangeListener}
 import javax.swing.{AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSpinner, KeyStroke, SpinnerNumberModel, SwingConstants}
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.math.{max, min, ceil}
+import scala.math.{ceil, max, min}
 import scala.swing.Swing
 import scala.util.control.NonFatal
 
@@ -38,6 +39,7 @@ import scala.util.control.NonFatal
   * - <kbd>Space</kbd>: toggle run/pause
   * - <kbd>Period</kbd>: pause
   * - <kbd>J</kbd>/<kbd>L</kbd>: decrease or increase channel offset
+  * - <kbd>Shift</kbd>-<kbd>J</kbd>/<kbd>L</kbd>: decrease or increase number of channels
   * - <kbd>K</kbd>: switch between audio and control rate buses
   * - <kbd>I</kbd>/<kbd>O</kbd>: switch to audio inputs and audio outputs
   * - <kbd>S</kbd>: switch between parallel and overlay mode
@@ -54,11 +56,11 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
 
   private[this] val ggBusType     = new JComboBox(Array("Audio In", "Audio Out", "Audio Bus", "Control Bus"))
   private[this] val mBusOff       = new SpinnerNumberModel(0, 0, 8192, 1)
-  private[this] val mBusNum       = new SpinnerNumberModel(1, 0 /*1*/, 8192, 1)
-//  private[this] val mBufSize      = new SpinnerNumberModel(4096, 32, 65536, 1)
+  private[this] val mBusNumCh     = new SpinnerNumberModel(1, 0 /*1*/, 8192, 1)
+  //  private[this] val mBufSize      = new SpinnerNumberModel(4096, 32, 65536, 1)
   private[this] val ggBusOff      = new JSpinner(mBusOff)
-  private[this] val ggBusNum      = new JSpinner(mBusNum)
-//  private[this] val ggBufSize     = new JSpinner(mBufSize)
+  private[this] val ggBusNumCh    = new JSpinner(mBusNumCh)
+  //  private[this] val ggBufSize     = new JSpinner(mBufSize)
   private[this] val ggStyle       = {
     val res = new JComboBox(Array("Parallel", "Overlay", "Lissajous"))
     res.addItemListener(new ItemListener {
@@ -66,6 +68,8 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
     })
     res
   }
+
+//  private[this] var startWhenShowing = false  // store 'start' and 'stop' while panel is not yet showing
 
   private[this] val ggXAxis = {
     val a = new Axis(SwingConstants.HORIZONTAL)
@@ -79,14 +83,6 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
   }
 
   private[this] var ggYAxes = new Array[Axis](0)
-
-//  {
-//    val a = new Axis(SwingConstants.VERTICAL)
-//    a.fixedBounds = true
-//    a.minimum     = -1.0
-//    a.maximum     = +1.0
-//    a
-//  }
 
   private[this] val pYAxes = {
     val p = new JPanel
@@ -109,11 +105,11 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
     p.add(fix(ggBusType))
     p.add(fix(ggBusOff))
     ggBusOff.setToolTipText("Bus Offset")
-    p.add(fix(ggBusNum))
-    ggBusNum.setToolTipText("No. of Channels")
-//    p.add(Box.createHorizontalStrut(8))
-//    p.add(fix(ggBufSize))
-//    ggBufSize.setToolTipText("Buffer Size")
+    p.add(fix(ggBusNumCh))
+    ggBusNumCh.setToolTipText("No. of Channels")
+    //    p.add(Box.createHorizontalStrut(8))
+    //    p.add(fix(ggBufSize))
+    //    ggBufSize.setToolTipText("Buffer Size")
     p.add(Box.createHorizontalGlue())
     p.add(fix(ggStyle))
     p
@@ -138,7 +134,7 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
 
   private[this] val lBusOffNum: ChangeListener = new ChangeListener {
     def stateChanged(e: ChangeEvent): Unit =
-      setBusFromUI(mBusOff.getNumber.intValue(), mBusNum.getNumber.intValue())
+      setBusFromUI(mBusOff.getNumber.intValue(), mBusNumCh.getNumber.intValue())
   }
 
   private[this] val lBusType: ItemListener = new ItemListener {
@@ -157,8 +153,10 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
     val ksDecY    = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , InputEvent.CTRL_MASK)
     val ksIncX    = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.CTRL_MASK)
     val ksDecX    = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , InputEvent.CTRL_MASK)
-    val ksDecCh   = KeyStroke.getKeyStroke(KeyEvent.VK_J, 0)
-    val ksIncCh   = KeyStroke.getKeyStroke(KeyEvent.VK_L, 0)
+    val ksDecOff  = KeyStroke.getKeyStroke(KeyEvent.VK_J, 0)
+    val ksDecNumCh= KeyStroke.getKeyStroke(KeyEvent.VK_J, InputEvent.SHIFT_MASK)
+    val ksIncOff  = KeyStroke.getKeyStroke(KeyEvent.VK_L, 0)
+    val ksIncNumCh= KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.SHIFT_MASK)
     val ksSwRate  = KeyStroke.getKeyStroke(KeyEvent.VK_K, 0)
     val ksSwIn    = KeyStroke.getKeyStroke(KeyEvent.VK_I, 0)
     val ksSwOut   = KeyStroke.getKeyStroke(KeyEvent.VK_O, 0)
@@ -183,13 +181,21 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
       def actionPerformed(e: ActionEvent): Unit =
         xZoom = xZoom * (if (style == 2) 0.5f else 2f)
     }
-    val aIncCh = new AbstractAction() {
+    val aIncOff = new AbstractAction() {
       def actionPerformed(e: ActionEvent): Unit =
         Option(mBusOff.getNextValue).foreach(mBusOff.setValue)
     }
-    val aDecCh = new AbstractAction() {
+    val aDecOff = new AbstractAction() {
       def actionPerformed(e: ActionEvent): Unit =
         Option(mBusOff.getPreviousValue).foreach(mBusOff.setValue)
+    }
+    val aIncNumCh = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        Option(mBusNumCh.getNextValue).foreach(mBusNumCh.setValue)
+    }
+    val aDecNumCh = new AbstractAction() {
+      def actionPerformed(e: ActionEvent): Unit =
+        Option(mBusNumCh.getPreviousValue).foreach(mBusNumCh.setValue)
     }
     val aSwRate = new AbstractAction() {
       def actionPerformed(e: ActionEvent): Unit = {
@@ -234,10 +240,14 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
     im.put(ksIncX, "x-inc")
     am.put("x-dec", aDecX)
     im.put(ksDecX, "x-dec")
-    am.put("ch-inc", aIncCh)
-    im.put(ksIncCh, "ch-inc")
-    am.put("ch-dec", aDecCh)
-    im.put(ksDecCh, "ch-dec")
+    am.put("off-inc", aIncOff)
+    im.put(ksIncOff, "off-inc")
+    am.put("off-dec", aDecOff)
+    im.put(ksDecOff, "off-dec")
+    am.put("num-ch-inc", aIncNumCh)
+    im.put(ksIncNumCh, "num-ch-inc")
+    am.put("num-ch-dec", aDecNumCh)
+    im.put(ksDecNumCh, "num-ch-dec")
     am.put("switch-rate", aSwRate)
     im.put(ksSwRate, "switch-rate")
     am.put("switch-in", aSwIn)
@@ -253,20 +263,20 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
     am.put("stop", aStop)
     im.put(ksStop, "stop")
 
-//    am.put("DUMP", new AbstractAction() {
-//      def actionPerformed(e: ActionEvent): Unit = view.DUMP = !view.DUMP
-//    })
-//    im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "DUMP")
+    //    am.put("DUMP", new AbstractAction() {
+    //      def actionPerformed(e: ActionEvent): Unit = view.DUMP = !view.DUMP
+    //    })
+    //    im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "DUMP")
 
     add(pTop  , BorderLayout.NORTH  )
     add(pYAxes, BorderLayout.WEST   )
     add(_view  , BorderLayout.CENTER )
     addBusListeners()
 
-//    ggBufSize.addChangeListener(new ChangeListener {
-//      def stateChanged(e: ChangeEvent): Unit =
-//        bufferSize = mBufSize.getNumber.intValue()
-//    })
+    //    ggBufSize.addChangeListener(new ChangeListener {
+    //      def stateChanged(e: ChangeEvent): Unit =
+    //        bufferSize = mBufSize.getNumber.intValue()
+    //    })
 
     _view.overlayPainter = new ScopeViewOverlayPainter {
       def paintScopeOverlay(g: Graphics2D, width: Int, height: Int): Unit =
@@ -278,17 +288,19 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
     }
 
     _view.addAncestorListener(new AncestorListener {
-      def ancestorAdded(e: AncestorEvent): Unit =
+      def ancestorAdded(e: AncestorEvent): Unit = {
         _view.requestFocus()
+//        if (startWhenShowing) start()
+      }
 
       def ancestorRemoved (e: AncestorEvent): Unit = ()
       def ancestorMoved   (e: AncestorEvent): Unit = ()
     })
 
-//    view.addComponentListener(new ComponentAdapter {
-//      override def componentShown(e: ComponentEvent): Unit =
-//        view.requestFocus()
-//    })
+    //    view.addComponentListener(new ComponentAdapter {
+    //      override def componentShown(e: ComponentEvent): Unit =
+    //        view.requestFocus()
+    //    })
   }
 
   private def setNumChannels(): Unit = {
@@ -321,13 +333,13 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
 
   private def removeBusListeners(): Unit = {
     ggBusOff  .removeChangeListener (lBusOffNum )
-    ggBusNum  .removeChangeListener (lBusOffNum )
+    ggBusNumCh  .removeChangeListener (lBusOffNum )
     ggBusType .removeItemListener   (lBusType   )
   }
 
   private def addBusListeners(): Unit = {
     ggBusOff  .addChangeListener    (lBusOffNum )
-    ggBusNum  .addChangeListener    (lBusOffNum )
+    ggBusNumCh  .addChangeListener    (lBusOffNum )
     ggBusType .addItemListener      (lBusType   )
   }
 
@@ -342,7 +354,7 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
 
   private def setStyleFromUI(value: Int): Unit = {
     _view.style = value
-    if (value == 2 && mBusNum.getNumber.intValue() != 2) {
+    if (value == 2 && mBusNumCh.getNumber.intValue() != 2) {
       setBusFromUI(mBusOff.getNumber.intValue(), 2)
     }
     updateXAxis()
@@ -404,14 +416,20 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
   def waveColors_=(value: ISeq[Color]): Unit =
     _view.waveColors = value
 
-  def start(): Unit = _view.start()
+  def start(): Unit = {
+//    startWhenShowing = true
+//    if (_view.isShowing) {
+      _view.start()
+//    }
+  }
 
   def stop(): Unit = {
+//    startWhenShowing = false
     _view.stop()
     _view.repaint()
   }
 
-  def isRunning: Boolean = _view.isRunning
+  def isRunning: Boolean = /*startWhenShowing ||*/ _view.isRunning
 
   /** The default buffer size is dynamically
     * updated according to the number of frames
@@ -483,13 +501,13 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
         ControlBus(s, index, numChannels)
     }
 
-//    println(s"setBusFromUI($off, $num) index $index numChannels $numChannels")
+    //    println(s"setBusFromUI($off, $num) index $index numChannels $numChannels")
 
     bus = newBus
   }
 
   private def setBusTypeFromUI(tpeIdx: Int): Unit =
-    setBusTypeFromUI(tpeIdx, mBusOff.getNumber.intValue(), mBusNum.getNumber.intValue())
+    setBusTypeFromUI(tpeIdx, mBusOff.getNumber.intValue(), mBusNumCh.getNumber.intValue())
 
   private def setBusTypeFromUI(tpeIdx: Int, off: Int, num: Int): Unit = if (_bus != null) {
     val oldTpe      = busType
@@ -521,7 +539,7 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
       case 2 if oldTpe == 0 =>
         offset      = offset + numAudioOut
       case 2 if oldTpe == 1 =>
-        // nada
+      // nada
       case 2 =>
         offset      = 0
         numChannels = min(numChannels, numAudio)
@@ -530,7 +548,7 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
         numChannels = min(numChannels, numControl)
     }
 
-//    println(s"setBusTypeFromUI($tpeIdx) offset $offset numChannels $numChannels")
+    //    println(s"setBusTypeFromUI($tpeIdx) offset $offset numChannels $numChannels")
 
     setBusFromUI(off = offset, num = numChannels)
   }
@@ -538,8 +556,8 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
   def bus: Bus = _bus
 
   protected def mkSynthGraph(b: Bus): Unit = {
-    import de.sciss.synth.ugen._
     import Ops.stringToControl
+    import de.sciss.synth.ugen._
     val inOff = "out".kr
     val buf   = "buf".kr
     if (b.rate == audio) {
@@ -550,6 +568,10 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
       val in = In.kr(inOff, b.numChannels)
       RecordBuf.ar(K2A.ar(in), buf = buf)
     }
+    val trFreq  = "freq".kr
+    val tr      = Impulse.kr(trFreq)
+    val count   = Stepper.kr(tr)
+    SendTrig.kr(tr, count)
     ()
   }
 
@@ -579,20 +601,22 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
         (3, cb.index, s.config.controlBusChannels)
     }
 
-//    println(s"tpeIdx $tpeIdx index ${value.index} num ${value.numChannels} numAudioOut $numAudioOut numAudioIn $numAudioIn newTpe $newTpe numMax $numMax")
+    //    println(s"tpeIdx $tpeIdx index ${value.index} num ${value.numChannels} numAudioOut $numAudioOut numAudioIn $numAudioIn newTpe $newTpe numMax $numMax")
 
     removeBusListeners()
     ggBusType.setSelectedIndex(newTpe)
     mBusOff.setMaximum(numMax - 1)
     mBusOff.setValue(offNom)
-    mBusNum.setMaximum(numMax)
-    mBusNum.setValue(numChannels)
+    mBusNumCh.setMaximum(numMax)
+    mBusNumCh.setValue(numChannels)
     busType = newTpe
     setNumChannels()
     addBusListeners()
   }
 }
 
+/** @inheritdoc
+  */
 class JScopePanel extends AbstractScopePanel {
   private[this] var _target     : Group     = null
   private[this] var syn         : Synth     = null
@@ -637,13 +661,19 @@ class JScopePanel extends AbstractScopePanel {
       val s         = _bus.server
       syn           = Synth (s)
       val b         = Buffer(s)
-      val newMsg    = syn.newMsg(synDef.name, target = target, args = List("out" -> bus.index, "buf" -> b.id),
+      val trFreq    = Config.defaultTrigFreq(s)
+      val newMsg    = syn.newMsg(synDef.name, target = target,
+        args = List("out" -> bus.index, "buf" -> b.id, "freq" -> trFreq),
         addAction = addAction)
 
       val doneAlloc0  = newMsg :: synDef.freeMsg :: Nil
       val doneAlloc   = if (oldSyn == null) doneAlloc0 else oldSyn.freeMsg :: doneAlloc0
+      val useFrames   = bufferSize
+      val cfg         = Config.default(s, bufId = b.id, useFrames = useFrames,
+        numChannels = numChannels, nodeId = syn.id)
+      val bufFrames   = cfg.bufFrames
 
-      val allocMsg  = b.allocMsg(numFrames = bufferSize, numChannels = numChannels, completion =
+      val allocMsg  = b.allocMsg(numFrames = bufFrames, numChannels = numChannels, completion =
         Some(osc.Bundle.now(doneAlloc: _*))
       )
       val recvMsg   = synDef.recvMsg
@@ -658,16 +688,15 @@ class JScopePanel extends AbstractScopePanel {
           // println("SYNCED")
           Swing.onEDT {
             synOnline   = true
-            view.buffer = b
-            //          start()
+            view.config = cfg
           }
       }
 
     } else {
       if (oldSyn != null) {
         freeSynth(oldSyn)
-        syn           = null
-        view.buffer   = null
+        syn         = null
+        view.config = Config.Empty
       }
     }
   }
