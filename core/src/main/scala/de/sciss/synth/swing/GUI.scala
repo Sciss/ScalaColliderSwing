@@ -21,7 +21,7 @@ import at.iem.scalacollider.ScalaColliderDOT
 import de.sciss.file._
 import de.sciss.synth.Ops.stringToControl
 import de.sciss.synth.swing.impl.WaveformViewImpl
-import de.sciss.synth.swing.j.JScopePanel
+import de.sciss.synth.swing.j.JScopePanel2
 import de.sciss.synth.{AudioBus => SAudioBus, GraphFunction => SGraphFunction, Group => SGroup, Node => SNode, Server => SServer, SynthDef => SSynthDef}
 import javax.imageio.ImageIO
 
@@ -71,7 +71,7 @@ object GUI {
               addAction: AddAction = addToTail): Frame = {
       val s = bus.server
       require (s == target.server)
-      val p         = new JScopePanel
+      val p         = new JScopePanel2
       p.style       = style
       p.yZoom       = zoom.toFloat
       p.target      = target
@@ -84,6 +84,8 @@ object GUI {
         p.dispose()
       }
       configure(w)
+
+      w
     }
   }
 
