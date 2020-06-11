@@ -85,7 +85,7 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
     * text data field and does not draw an icon.
     * @param textField the data field for the text label.
     */
-  def this(textField: String) {
+  def this(textField: String) = {
     this()
     this.textField = textField
   }
@@ -98,7 +98,7 @@ class IconLabelRenderer() extends AbstractShapeRenderer {
     *                  in the data field should be an `Icon`, or null for no icon. If the
     *                  `iconField` parameter is null, no icon at all will be drawn.
     */
-  def this(textField: String, iconField: String) {
+  def this(textField: String, iconField: String) = {
     this()
     this.textField = textField
     iconField_=(iconField)

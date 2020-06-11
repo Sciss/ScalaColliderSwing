@@ -110,18 +110,16 @@ object JServerStatusPanel {
 class JServerStatusPanel(flags: Int) extends JPanel {
   import JServerStatusPanel._
 
-  def this(s: Server, flags: Int) {
+  def this(s: Server, flags: Int) = {
     this(flags)
     server = Some(s)
   }
 
-  def this(s: Server) {
+  def this(s: Server) =
     this(s, 0x03) // XXX weird scala bug... does not see COUNTS and BOOT_BUTTON
-  }
 
-  def this() {
+  def this() =
     this(0x03)
-  }
 
   private[this] val actionBoot  = new ActionBoot()
   private[this] val ggBoot      = new JButton(actionBoot)

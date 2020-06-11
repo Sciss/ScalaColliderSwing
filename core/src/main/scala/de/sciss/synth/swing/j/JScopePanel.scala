@@ -30,20 +30,23 @@ import scala.math.{ceil, max, min}
 import scala.swing.Swing
 import scala.util.control.NonFatal
 
-/** Component to view an oscilloscope for a real-time signal.
+/** Abstract component to view an oscilloscope for a real-time signal.
   *
+  * @define keyboard
   * The following keyboard shortcuts exist:
   *
-  * - <kbd>Ctrl</kbd>-<kbd>Up</kbd>/<kdb>Down</kbd>: increase or decrease vertical zoom
-  * - <kbd>Ctrl</kbd>-<kbd>Right</kbd>/<kdb>Left</kbd>: increase or decrease horizontal zoom
-  * - <kbd>Space</kbd>: toggle run/pause
-  * - <kbd>Period</kbd>: pause
-  * - <kbd>J</kbd>/<kbd>L</kbd>: decrease or increase channel offset
-  * - <kbd>Shift</kbd>-<kbd>J</kbd>/<kbd>L</kbd>: decrease or increase number of channels
-  * - <kbd>K</kbd>: switch between audio and control rate buses
-  * - <kbd>I</kbd>/<kbd>O</kbd>: switch to audio inputs and audio outputs
-  * - <kbd>S</kbd>: switch between parallel and overlay mode
-  * - <kbd>Shift</kbd>-<kbd>S</kbd>: switch between Lissajous (X/Y) and normal (X over time) mode
+  * <ul>
+  * <li><kbd>Ctrl</kbd>-<kbd>Up</kbd>/<kdb>Down</kbd>: increase or decrease vertical zoom
+  * <li><kbd>Ctrl</kbd>-<kbd>Right</kbd>/<kdb>Left</kbd>: increase or decrease horizontal zoom
+  * <li><kbd>Space</kbd>: toggle run/pause
+  * <li><kbd>Period</kbd>: pause
+  * <li><kbd>J</kbd>/<kbd>L</kbd>: decrease or increase channel offset
+  * <li><kbd>Shift</kbd>-<kbd>J</kbd>/<kbd>L</kbd>: decrease or increase number of channels
+  * <li><kbd>K</kbd>: switch between audio and control rate buses
+  * <li><kbd>I</kbd>/<kbd>O</kbd>: switch to audio inputs and audio outputs
+  * <li><kbd>S</kbd>: switch between parallel and overlay mode
+  * <li><kbd>Shift</kbd>-<kbd>S</kbd>: switch between Lissajous (X/Y) and normal (X over time) mode
+  * </ul>
   */
 abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with ScopeViewLike {
   // ---- abstract ----
@@ -149,19 +152,19 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
     // install key actions
     val im        = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
     val am        = this.getActionMap
-    val ksIncY    = KeyStroke.getKeyStroke(KeyEvent.VK_UP   , InputEvent.CTRL_MASK)
-    val ksDecY    = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , InputEvent.CTRL_MASK)
-    val ksIncX    = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.CTRL_MASK)
-    val ksDecX    = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , InputEvent.CTRL_MASK)
+    val ksIncY    = KeyStroke.getKeyStroke(KeyEvent.VK_UP   , InputEvent.CTRL_DOWN_MASK)
+    val ksDecY    = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , InputEvent.CTRL_DOWN_MASK)
+    val ksIncX    = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.CTRL_DOWN_MASK)
+    val ksDecX    = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , InputEvent.CTRL_DOWN_MASK)
     val ksDecOff  = KeyStroke.getKeyStroke(KeyEvent.VK_J, 0)
-    val ksDecNumCh= KeyStroke.getKeyStroke(KeyEvent.VK_J, InputEvent.SHIFT_MASK)
+    val ksDecNumCh= KeyStroke.getKeyStroke(KeyEvent.VK_J, InputEvent.SHIFT_DOWN_MASK)
     val ksIncOff  = KeyStroke.getKeyStroke(KeyEvent.VK_L, 0)
-    val ksIncNumCh= KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.SHIFT_MASK)
+    val ksIncNumCh= KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.SHIFT_DOWN_MASK)
     val ksSwRate  = KeyStroke.getKeyStroke(KeyEvent.VK_K, 0)
     val ksSwIn    = KeyStroke.getKeyStroke(KeyEvent.VK_I, 0)
     val ksSwOut   = KeyStroke.getKeyStroke(KeyEvent.VK_O, 0)
     val ksSwOver  = KeyStroke.getKeyStroke(KeyEvent.VK_S, 0)
-    val ksSwXY    = KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.SHIFT_MASK)
+    val ksSwXY    = KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.SHIFT_DOWN_MASK)
     val ksStart   = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)
     val ksStop    = KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, 0)
 
@@ -416,6 +419,11 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
   def waveColors_=(value: ISeq[Color]): Unit =
     _view.waveColors = value
 
+  def screenColor: Color = _view.screenColor
+
+  def screenColor_=(value: Color): Unit =
+    _view.screenColor = value
+
   def start(): Unit = {
 //    startWhenShowing = true
 //    if (_view.isShowing) {
@@ -615,7 +623,9 @@ abstract class AbstractScopePanel extends JPanel(new BorderLayout(0, 0)) with Sc
   }
 }
 
-/** @inheritdoc
+/** A component to view an oscilloscope for a real-time signal.
+  *
+  * $keyboard
   */
 class JScopePanel extends AbstractScopePanel {
   private[this] var _target     : Group     = null

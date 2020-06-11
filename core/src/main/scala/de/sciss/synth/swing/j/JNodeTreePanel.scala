@@ -14,37 +14,34 @@
 package de.sciss.synth.swing
 package j
 
+import java.awt.event.{ActionEvent, MouseAdapter, MouseEvent}
 import java.awt.geom.Point2D
-
-import collection.immutable.IntMap
-import prefuse.action.{ActionList, RepaintAction}
-import prefuse.action.animate.{ColorAnimator, LocationAnimator, VisibilityAnimator}
-import prefuse.render.{AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer}
-import prefuse.util.ColorLib
-import prefuse.visual.sort.TreeDepthItemSorter
-import de.sciss.synth.{Group, Node, NodeManager, Ops, Synth, message}
-import prefuse.{Constants, Display, Visualization}
-import prefuse.visual.{NodeItem, VisualItem}
-import de.sciss.synth.swing.impl.{DynamicTreeLayout, IconLabelRenderer}
-import prefuse.data.expression.AbstractPredicate
-import prefuse.data.{Graph, Tuple, Node => PNode}
-import prefuse.visual.expression.InGroupPredicate
-import prefuse.data.event.TupleSetListener
-import prefuse.data.tuple.TupleSet
 import java.awt.{BasicStroke, BorderLayout, Color, EventQueue}
 
-import prefuse.action.assignment.{ColorAction, StrokeAction}
-import javax.swing.{AbstractAction, Action, Icon, JFrame, JMenuItem, JOptionPane, JPanel, JPopupMenu, WindowConstants}
-import java.awt.event.{ActionEvent, InputEvent, MouseAdapter, MouseEvent}
-
-import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomToFitControl}
-import javax.swing.event.{AncestorEvent, AncestorListener}
-import de.sciss.osc
-
-import annotation.tailrec
-import DynamicTreeLayout.{INFO, NodeInfo}
 import de.sciss.audiowidgets.Util
+import de.sciss.osc
+import de.sciss.synth.swing.impl.DynamicTreeLayout.{INFO, NodeInfo}
+import de.sciss.synth.swing.impl.{DynamicTreeLayout, IconLabelRenderer}
+import de.sciss.synth.{Group, Node, NodeManager, Ops, Synth, message}
+import javax.swing.event.{AncestorEvent, AncestorListener}
+import javax.swing.{AbstractAction, Action, Icon, JFrame, JMenuItem, JOptionPane, JPanel, JPopupMenu, WindowConstants}
+import prefuse.action.animate.{ColorAnimator, LocationAnimator, VisibilityAnimator}
+import prefuse.action.assignment.{ColorAction, StrokeAction}
+import prefuse.action.{ActionList, RepaintAction}
+import prefuse.controls.{Control, FocusControl, PanControl, WheelZoomControl, ZoomToFitControl}
+import prefuse.data.event.TupleSetListener
+import prefuse.data.expression.AbstractPredicate
+import prefuse.data.tuple.TupleSet
+import prefuse.data.{Graph, Tuple, Node => PNode}
+import prefuse.render.{AbstractShapeRenderer, DefaultRendererFactory, EdgeRenderer}
+import prefuse.util.ColorLib
+import prefuse.visual.expression.InGroupPredicate
+import prefuse.visual.sort.TreeDepthItemSorter
+import prefuse.visual.{NodeItem, VisualItem}
+import prefuse.{Constants, Display, Visualization}
 
+import scala.annotation.tailrec
+import scala.collection.immutable.IntMap
 import scala.util.Failure
 
 trait NodeTreePanelLike {
@@ -616,10 +613,20 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
         }
     }
 
-    private[this] val actionGroupDumpTree = new AbstractAction("Dump tree") {
+    private[this] val actionGroupDumpTree = new AbstractAction("Dump Tree") {
       def actionPerformed(e: ActionEvent): Unit =
         selectionVar match {
-          case Some(g: Group) => g.dumpTree((e.getModifiers & InputEvent.ALT_MASK) != 0)
+          case Some(g: Group) =>
+            g.dumpTree()
+          case _ =>
+        }
+    }
+
+    private[this] val actionGroupDumpTreeCtl = new AbstractAction("Dump Tree with Controls") {
+      def actionPerformed(e: ActionEvent): Unit =
+        selectionVar match {
+          case Some(g: Group) =>
+            g.dumpTree(postControls = true)
           case _ =>
         }
     }
@@ -654,7 +661,8 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     item(actionNodeTrace)
     item(actionGroupFreeAll)
     item(actionGroupDeepFree)
-    item(actionGroupDumpTree).setToolTipText("Hold Alt key to dump controls")
+    item(actionGroupDumpTree) // .setToolTipText("Hold Alt key to dump controls")
+    item(actionGroupDumpTreeCtl)
 
     display.add(this)
     display.addMouseListener(popupTrigger)
@@ -665,8 +673,8 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
     def confirmDestructiveActions_=(b: Boolean): Unit = {
       _confirmDestructiveActions = b
       actionNodeFree      .putValue(Action.NAME, if (b) "Free..."       else "Free"     )
-      actionGroupFreeAll  .putValue(Action.NAME, if (b) "Free all..."   else "Free all" )
-      actionGroupDeepFree .putValue(Action.NAME, if (b) "Free deep..."  else "Free deep")
+      actionGroupFreeAll  .putValue(Action.NAME, if (b) "Free All..."   else "Free All" )
+      actionGroupDeepFree .putValue(Action.NAME, if (b) "Free Deep..."  else "Free Deep")
     }
 
     def selection_=(nodeOption: Option[Node]): Unit = {

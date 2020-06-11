@@ -26,6 +26,44 @@ import javax.swing.JComponent
 
 import scala.collection.immutable.{Seq => ISeq}
 
+
+trait ScopeViewOverlayPainter {
+  def paintScopeOverlay(g: Graphics2D, width: Int, height: Int): Unit
+}
+
+/** @define info
+  * An oscilloscope canvas component.
+  * Has controls for resolution (zoom), setting
+  * waveform color, and choosing between three
+  * different styles: 0 - parallel, 1 - overlay, 2 - lissajous (x/y).
+  */
+trait ScopeViewLike {
+  /** The drawing style can be one of
+    * `0` (or `JScopeView.STYLE_PARALLEL`),
+    * `1` (or `JScopeView.STYLE_OVERLAY`),
+    * `2` (or `JScopeView.STYLE_LISSAJOUS`).
+    *
+    * In parallel or "normal" style, each channel is drawn separately
+    * in a vertical per-channel arrangement. In overlay mode, all channels
+    * are drawn superimposed on each other. In Lissajous or X/Y style,
+    * the first channel specifies the x-coordinate, and the second channel
+    * specifies the y-coordinate.
+    */
+  var style: Int
+  var xZoom: Float
+  var yZoom: Float
+  var waveColors: ISeq[Color]
+
+  var screenColor: Color
+
+  def start(): Unit
+  def stop (): Unit
+
+  def dispose(): Unit
+
+  def isRunning: Boolean
+}
+
 object JScopeView {
   // warning: while scsynth seems to have been updated to 64K buffers,
   // the /b_setn is only sent for sizes <= 8K for some reason!!
@@ -82,7 +120,7 @@ object JScopeView {
   }
 }
 
-/** @inheritdoc
+/** $info
   */
 class JScopeView extends JComponent with ScopeViewLike {
   import JScopeView._
@@ -483,6 +521,10 @@ class JScopeView extends JComponent with ScopeViewLike {
   }
 
   def waveColors: ISeq[Color] = _waveColors.toList
+
+  def screenColor: Color = getBackground
+
+  def screenColor_=(value: Color): Unit = setBackground(value)
 
   //  var DUMP = false
 
