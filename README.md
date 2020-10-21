@@ -14,7 +14,7 @@ is a client for the [SuperCollider](https://supercollider.github.io/) sound synt
 
 (C)opyright 2008&ndash;2020 by Hanns Holger Rutz. All rights reserved. It is released under
 the [GNU General Public License](https://git.iem.at/sciss/ScalaColliderSwing/raw/main/licenses/ScalaColliderSwing-License.txt)
-v3+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+v3+ and comes with absolutely no warranties. To contact the author, send an e-mail to `contact at sciss.de`.
 
 Please see the `licenses` folder for details. It contains the license headers for all dependencies and transitive
 dependencies. For the _binary release_ of ScalaCollider-Swing, source code is not included but available via the
@@ -35,7 +35,7 @@ Please consider supporting this project through Liberapay (see badge above) – 
 
 ## building from source
 
-ScalaCollider-Swing compiles against Scala 2.13, 2.12 using [sbt](https://www.scala-sbt.org/).
+ScalaCollider-Swing builds with [sbt](https://www.scala-sbt.org/) against Scala 2.13, 2.12.
 The last version supporting Scala 2.11 was 1.41.4.
 
 - `sbt assembly` creates a fully self-contained jar (platform neutral)
@@ -51,7 +51,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current version `v` is `"2.0.0"`.
+The current version `v` is `"2.1.0"`.
 
 ## contributing
 
