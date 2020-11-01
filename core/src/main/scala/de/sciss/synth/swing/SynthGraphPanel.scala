@@ -201,6 +201,7 @@ class SynthGraphPanel(name: String, graph: UGenGraph, forceDirected: Boolean)
   private def stopAnimation(): Unit = {
     vis.cancel(ACTION_COLOR)
     vis.cancel(ACTION_LAYOUT)
+    ()
   }
 
   private class RateColorAction(group: String, field: String)

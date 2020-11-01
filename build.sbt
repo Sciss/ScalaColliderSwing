@@ -5,8 +5,8 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.1.0"
-lazy val mimaVersion    = "2.1.0"
+lazy val projectVersion = "2.2.0-SNAPSHOT"
+lazy val mimaVersion    = "2.2.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
 lazy val authorEMail    = "contact@sciss.de"
@@ -16,10 +16,10 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 lazy val deps = new {
   val core = new {
     val audioWidgets    = "2.0.0"
-    val dot             = "1.1.0"
+    val dot             = "1.2.0-SNAPSHOT"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "2.1.0"
+    val scalaCollider   = "2.2.0-SNAPSHOT"
     val ugens           = "1.20.0"
   }
   val intp = new {
@@ -50,7 +50,9 @@ lazy val commonSettings = Seq(
   licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
   scalacOptions ++= {
     val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
-    if (isSnapshot.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
+    val ys = if (isSnapshot.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
+    val sv = scalaVersion.value
+    if (sv.startsWith("2.13.")) ys :+ "-Wvalue-discard" else ys
   },
   scalacOptions in (Compile, compile) ++= (if (scala.util.Properties.isJavaAtLeast("9")) Seq("-release", "8") else Nil), // JDK >8 breaks API; skip scala-doc
   updateOptions := updateOptions.value.withLatestSnapshots(false),

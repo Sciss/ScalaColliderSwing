@@ -402,6 +402,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
 
     initPrefs()
     TextViewDockable.empty()
+    ()
   }
 
   private sealed trait UnsavedResult
@@ -738,13 +739,19 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
   private object ActionFileSave extends Action("Save") with FileAction {
     accelerator = Some(KeyStrokes.menu1 + Key.S)
 
-    protected def perform(dock: TextViewDockable): Unit = saveOrSaveAs(dock)
+    protected def perform(dock: TextViewDockable): Unit = {
+      saveOrSaveAs(dock)
+      ()
+    }
   }
 
   private object ActionFileSaveAs extends Action("Save As...") with FileAction {
     accelerator = Some(KeyStrokes.menu1 + KeyStrokes.shift + Key.S)
 
-    protected def perform(dock: TextViewDockable): Unit = saveAs(dock)
+    protected def perform(dock: TextViewDockable): Unit = {
+      saveAs(dock)
+      ()
+    }
   }
 
   private object ActionLookUpHelpCursor extends Action("Look up Documentation for Cursor") with FileAction {
@@ -852,12 +859,18 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     }
 
     val gFile = Group("file", "File")
-      .add(Item("new" )("New"     -> (menu1 + Key.N))(TextViewDockable.empty()))
+      .add(Item("new" )("New"     -> (menu1 + Key.N)) {
+        TextViewDockable.empty()
+        ()
+      })
       .add(Item("open")("Open..." -> (menu1 + Key.O))(queryOpenFile()))
       .add(_recent.menu)
       .addLine()
       .add(Item("close"  , ActionFileClose ))
-      .add(Item("close-all")("Close All" -> (menu1 + shift + Key.W))(closeAll()))
+      .add(Item("close-all")("Close All" -> (menu1 + shift + Key.W)) {
+        closeAll()
+        ()
+      })
       .add(Item("save"   , ActionFileSave  ))
       .add(Item("save-as", ActionFileSaveAs))
 

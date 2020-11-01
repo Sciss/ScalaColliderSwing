@@ -103,6 +103,7 @@ object JServerStatusPanel {
       g.drawImage(imgGaugeEmpty, peakCPU + 1, 1,
         55, 21, peakCPU, 0, 54, 20,
         Color.black, this)
+      ()
     }
   }
 }
@@ -226,6 +227,7 @@ class JServerStatusPanel(flags: Int) extends JPanel {
     def addS(c: Component, gap: Int = 4): Unit = {
       add(c)
       add(Box.createHorizontalStrut(gap))
+      ()
     }
 
     if ((flags & BOOT_BUTTON) != 0) {

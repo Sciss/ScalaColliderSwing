@@ -295,6 +295,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
 
               loop(parentId = g.id, predId = -1, numChildren = _numChildren)
               server.nodeManager.addListener(nodeListener)
+              ()
             }
           }
       }
@@ -459,6 +460,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
         case Some(pParent) =>
           insertChild(pNode, pParent, info, iNode)
           t.addEdge(pParent, pNode)
+          ()
 
         case None =>
           // disappeared from the radar
@@ -532,6 +534,7 @@ class JNodeTreePanel extends JPanel(new BorderLayout()) with NodeTreePanelLike {
         code
       } finally {
         vis.run(action)
+        ()
       }
     }
 

@@ -19,6 +19,7 @@ import java.awt.event.MouseEvent
 import java.awt.{Color, Dimension, Font, Graphics, Graphics2D, Point, RenderingHints}
 import java.io.File
 
+import de.sciss.audiofile.AudioFile
 import javax.swing.JComponent
 import javax.swing.event.MouseInputAdapter
 import de.sciss.audiowidgets.j.WavePainter
@@ -136,10 +137,11 @@ object WaveformViewImpl {
     // val box = scala.swing.Component.wrap(ggWave)
     val f   = GUI.makeFrame("Plot", "PlotFrame", box /* , smallBar = false */) {
       path.delete()
+      ()
     }
 
     def openBuffer(): Unit = {
-      val af = io.AudioFile.openRead(path)
+      val af = AudioFile.openRead(path)
       try {
         val num   = math.min(numFr, af.numFrames).toInt
         val data  = Array.ofDim[Float](numCh, num)

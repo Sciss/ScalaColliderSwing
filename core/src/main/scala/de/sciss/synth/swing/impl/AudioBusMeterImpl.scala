@@ -64,6 +64,7 @@ class AudioBusMeterImpl(val strips: ISeq[AudioBusMeter.Strip]) extends AudioBusM
         val peak  = Peak.kr(sig, tr)
         val rms   = A2K.kr(Lag.ar(sig.squared, 0.1))
         SendReply.kr(tr, Flatten(Zip(peak, rms)), "/$meter")
+        ()
       }
 
       var compMsgs: List[osc.Message] = d.freeMsg :: Nil
@@ -85,7 +86,10 @@ class AudioBusMeterImpl(val strips: ISeq[AudioBusMeter.Strip]) extends AudioBusM
           case Message("/$meter", synth.id, _, vals @ _*) =>
             val pairs = vals.asInstanceOf[Seq[Float]].toIndexedSeq
             val time  = System.currentTimeMillis()
-            Swing.onEDT(meter.update(pairs, 0, time))
+            Swing.onEDT {
+              meter.update(pairs, 0, time)
+              ()
+            }
         }
         resps  ::= resp
 

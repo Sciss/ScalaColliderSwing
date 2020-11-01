@@ -701,6 +701,7 @@ class JScopePanel extends AbstractScopePanel {
             view.config = cfg
           }
       }
+      ()
 
     } else {
       if (oldSyn != null) {
@@ -721,6 +722,7 @@ class JScopePanel extends AbstractScopePanel {
         val syncMsg   = s.syncMsg()
         val synced    = syncMsg.reply
         s.!!(syncMsg) { case `synced` => s ! freeMsg }
+        ()
       }
     } catch {
       case NonFatal(_) => // ignore
