@@ -16,7 +16,7 @@ package de.sciss.synth.swing
 import java.awt.GraphicsEnvironment
 import java.io.{File, FileInputStream, IOException}
 
-import de.sciss.scalainterpreter.{CodePane, InterpreterPane, LogPane, NamedParam}
+import de.sciss.scalainterpreter.{CodePane, InterpreterPane, LogPane}
 import de.sciss.{scalainterpreter => si}
 
 import scala.swing.Swing._
@@ -79,7 +79,7 @@ class ScalaInterpreterFrame(replSupport: REPLSupport)
     )
     // intpCfg.quietImports = false
 
-    intpCfg.bindings = List(NamedParam("replSupport", replSupport))
+    intpCfg.bindings = List(("replSupport", replSupport))
     //         in.bind( "s", classOf[ Server ].getName, ntp )
     //         in.bind( "in", classOf[ Interpreter ].getName, in )
     intpCfg.out = Some(lp.writer)

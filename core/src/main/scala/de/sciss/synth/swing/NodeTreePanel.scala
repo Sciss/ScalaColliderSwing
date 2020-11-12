@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2020 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v3+
+ *  This software is published under the GNU Affero General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -20,7 +20,7 @@ import java.awt.EventQueue
 import javax.swing.WindowConstants
 
 class NodeTreePanel extends Component with NodeTreePanelLike {
-   treePanel =>
+  treePanel =>
 
   override lazy val peer: JNodeTreePanel = new JNodeTreePanel with SuperMixin
 

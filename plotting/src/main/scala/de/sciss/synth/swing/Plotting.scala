@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2020 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v3+
+ *  This software is published under the GNU Affero General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -32,10 +32,10 @@ import scala.swing.{Action, Component, Frame, Point}
 object Plotting {
   // var windowOnTop = false
 
-  private sealed trait Type
-  private case object TypeLine    extends Type
-  private case object TypeStep    extends Type
-  private case object TypeScatter extends Type
+  protected sealed trait Type
+  protected case object TypeLine    extends Type
+  protected case object TypeStep    extends Type
+  protected case object TypeScatter extends Type
 
   private val strokes = {
     import BasicStroke._
@@ -182,9 +182,9 @@ object Plotting {
     val _title = title
 
     val __frame = if (frame) {
-      val _frame = new Frame {
-        title = _title
-        contents = Component.wrap(_panelJ)
+      val _frame = new Frame { f =>
+        f.title   = _title
+        contents  = Component.wrap(_panelJ)
         pack()
         centerOnScreen()
       }

@@ -15,29 +15,29 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "2.0.0"
-    val dot             = "1.2.0-SNAPSHOT"
+    val audioWidgets    = "2.1.0"
+    val dot             = "1.2.0"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "2.2.0-SNAPSHOT"
+    val scalaCollider   = "2.3.0-SNAPSHOT"
     val ugens           = "1.20.0"
   }
   val intp = new {
-    val interpreterPane = "1.10.1"
+    val interpreterPane = "1.11.0"
   }
   val plot = new {
-    val chart           = "0.7.1"
-    val pdflitz         = "1.4.1" // incurs GPL
+    val chart           = "0.8.0"
+    val pdflitz         = "1.5.0"
   }
   val app = new {
-    val desktop         = "0.10.7"
+    val desktop         = "0.11.1-SNAPSHOT"
     val docking         = "2.0.0"
-    val dsp             = "2.0.0"
+    val dsp             = "2.1.0-SNAPSHOT"
     val kollFlitz       = "0.2.4"
     val pegDown         = "1.6.0"
-    val submin          = "0.3.4" // incurs GPL
-    // val webLaF          = "2.2.1" // incurs GPL
-    val webLaF          = "1.2.11" // incurs GPL
+    val submin          = "0.3.4"
+    // val webLaF          = "2.2.1"
+    val webLaF          = "1.2.11"
   }
 }
 
@@ -45,16 +45,18 @@ lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
   scalaVersion       := "2.13.3",
-  crossScalaVersions := Seq("2.13.3", "2.12.12"),
+  crossScalaVersions := Seq("3.0.0-M1", "2.13.3", "2.12.12"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
-  licenses           := Seq("GPL v3+" -> url("http://www.gnu.org/licenses/gpl-3.0.txt")),
+  licenses           := Seq("AGPL v3+" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")),
   scalacOptions ++= {
     val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
     val ys = if (isSnapshot.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
     val sv = scalaVersion.value
     if (sv.startsWith("2.13.")) ys :+ "-Wvalue-discard" else ys
   },
-  scalacOptions in (Compile, compile) ++= (if (scala.util.Properties.isJavaAtLeast("9")) Seq("-release", "8") else Nil), // JDK >8 breaks API; skip scala-doc
+  scalacOptions in (Compile, compile) ++= {
+    if (!isDotty.value && scala.util.Properties.isJavaAtLeast("9")) Seq("-release", "8") else Nil
+  }, // JDK >8 breaks API; skip scala-doc
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   aggregate in assembly := false   // https://github.com/sbt/sbt-assembly/issues/147
 ) ++ publishSettings
@@ -211,7 +213,7 @@ lazy val interpreter = project.withId(s"$baseNameL-interpreter").in(file("interp
     description    := "REPL for ScalaCollider",
     libraryDependencies ++= Seq(
       "de.sciss"        %% "scalainterpreterpane" % deps.intp.interpreterPane,
-      "org.scala-lang"  %  "scala-compiler"       % scalaVersion.value  // make sure we have the newest
+//      "org.scala-lang"  %  "scala-compiler"       % scalaVersion.value  // make sure we have the newest
     ),
     mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-interpreter" % mimaVersion)
   )

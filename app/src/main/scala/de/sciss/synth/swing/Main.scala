@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2020 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v3+
+ *  This software is published under the GNU Affero General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -41,7 +41,6 @@ import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.swing.event.{Key, MouseButtonEvent, MouseClicked}
 import scala.swing.{Action, BorderPanel, BoxPanel, Component, EditorPane, Label, MenuItem, Orientation, ScrollPane, Swing}
-import scala.tools.nsc.interpreter.NamedParam
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
@@ -109,7 +108,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     )
     // intpCfg.quietImports = false
 
-    intpCfg.bindings = List(NamedParam("replSupport", repl))
+    intpCfg.bindings = List(("replSupport", repl))
     // intpCfg.out = Some(lp.writer)
 
     val res = Interpreter(intpCfg)
@@ -344,7 +343,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     res.setLocation(CLocation.base().normalEast(0.0333).north(0.75)) // .east(0.333)
     res.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
     res.setTitleIcon(null)
-    dockCtrl.addDockable[SingleCDockable](res)
+    dockCtrl.addDockable/*[SingleCDockable]*/(res)
     res
   }
 
@@ -383,7 +382,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     lgd.setTitleIconHandling(IconHandling.KEEP_NULL_ICON) // this must be called before setTitleIcon
     lgd.setTitleIcon(null)
 
-    dockCtrl.addDockable[SingleCDockable](lgd)
+    dockCtrl.addDockable/*[SingleCDockable]*/(lgd)
     lgd.setVisible(true)
 
     helpDockable  // init
@@ -664,7 +663,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
   }
 
   private trait FileAction {
-    _: Action =>
+    self: Action =>
 
     protected var _view: Option[TextViewDockable] = None
 
@@ -817,7 +816,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
       s"""<html><center>
           |<font size=+1><b>About $name</b></font><p>
           |Copyright (c) 2008&ndash;2020 Hanns Holger Rutz. All rights reserved.<p>
-          |This software is published under the GNU General Public License v3+
+          |This software is published under the GNU Affero General Public License v3+
           |<p>&nbsp;<p><i>
           |ScalaCollider v${de.sciss.synth.BuildInfo.version}<br>
           |ScalaCollider-Swing v${de.sciss.synth.swing.BuildInfo.version}<br>

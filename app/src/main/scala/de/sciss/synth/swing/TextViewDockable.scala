@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2020 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v3+
+ *  This software is published under the GNU Affero General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -66,7 +66,7 @@ object TextViewDockable {
       case TextView.DirtyChange(_) => updateTitle()
       case TextView.FileChange (_) => updateTitle()
     }
-    dockControl.addDockable[TextViewDockable](dock)
+    dockControl.addDockable/*[TextViewDockable]*/(dock: MultipleCDockable)
     dock.setVisible(true)
     documentHandler.addDocument(dock)
 

@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2008-2020 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is published under the GNU General Public License v3+
+ *  This software is published under the GNU Affero General Public License v3+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -72,25 +72,19 @@ object WaveformViewImpl {
      val signal  = data()
       GUIRecordOut(signal)(numCh = _)
     }
-    val ug      = sg.expand(synth.impl.DefaultUGenGraphBuilderFactory)
-    val defName = "$swing_waveform" + numCh
-    val sd      = SynthDef(defName, ug)
-    val syn     = Synth(server)
-    val sr      = server.sampleRate
-    val numFr   = math.ceil(duration * sr).toInt
+    val ug          = sg.expand(synth.impl.DefaultUGenGraphBuilderFactory)
+    val defName     = "$swing_waveform" + numCh
+    val sd          = SynthDef(defName, ug)
+    val syn         = Synth(server)
+    val sr          = server.sampleRate
+    val numFr       = math.ceil(duration * sr).toInt
 
-    //         def roundUp( i: Int ) = { val j = i + 32768 - 1; j - j % 32768 }
-    //
-    //         val numFramesC = roundUp( numFrames )
-    //         val durC       = numFramesC / server.sampleRate
     val buf         = Buffer(server)
     val myArgs: List[ControlSet] = List("$buf" -> buf.id, "$dur" -> duration)
     val synthMsg    = syn.newMsg(defName, target, myArgs ++ args, addAction)
     val defFreeMsg  = sd.freeMsg
     val compl       = osc.Bundle.now(synthMsg, defFreeMsg)
     val recvMsg     = sd.recvMsg(buf.allocMsg(numFr, numCh, compl))
-    //         val allocMsg   = buf.allocMsg( numFrames, numChannels,
-    //            completion = buf.writeMsg( path, numFrames = 0, leaveOpen = true, completion = compl ))
 
     import WavePainter.MultiResolution
 
