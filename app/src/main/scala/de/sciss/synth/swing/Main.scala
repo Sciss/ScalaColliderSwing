@@ -81,7 +81,7 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
     res
   }
 
-  private lazy val repl: REPLSupport = new REPLSupport(sp, null)
+  lazy val repl: REPLSupport = new REPLSupport(sp, null)
 
   private lazy val intpFut: Future[Interpreter] = {
     val intpCfg = si.Interpreter.Config()
@@ -104,11 +104,12 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
       "de.sciss.synth.swing.AppFunctions._",  // ScalaCollider swing app extensions
       "de.sciss.synth.swing.Plotting.Implicits._", // ScalaCollider swing plotting extensions
       "de.sciss.synth.ugen._",                // UGens
-      "replSupport._"                         // REPL bindings
+      "de.sciss.synth.swing.Main.repl._"                         // REPL bindings
     )
     // intpCfg.quietImports = false
 
-    intpCfg.bindings = List(("replSupport", repl))
+    // currently broken for Dotty:
+//    intpCfg.bindings = List(("replSupport", repl))
     // intpCfg.out = Some(lp.writer)
 
     val res = Interpreter(intpCfg)

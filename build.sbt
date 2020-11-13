@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.2.0-SNAPSHOT"
+lazy val projectVersion = "2.2.0"
 lazy val mimaVersion    = "2.2.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -16,10 +16,10 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 lazy val deps = new {
   val core = new {
     val audioWidgets    = "2.1.0"
-    val dot             = "1.2.0"
+    val dot             = "1.3.0"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "2.3.0-SNAPSHOT"
+    val scalaCollider   = "2.3.0"
     val ugens           = "1.20.0"
   }
   val intp = new {
@@ -30,9 +30,9 @@ lazy val deps = new {
     val pdflitz         = "1.5.0"
   }
   val app = new {
-    val desktop         = "0.11.1-SNAPSHOT"
+    val desktop         = "0.11.1"
     val docking         = "2.0.0"
-    val dsp             = "2.1.0-SNAPSHOT"
+    val dsp             = "2.1.0"
     val kollFlitz       = "0.2.4"
     val pegDown         = "1.6.0"
     val submin          = "0.3.4"
@@ -50,7 +50,7 @@ lazy val commonSettings = Seq(
   licenses           := Seq("AGPL v3+" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")),
   scalacOptions ++= {
     val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
-    val ys = if (isSnapshot.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
+    val ys = if (isSnapshot.value || isDotty.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
     val sv = scalaVersion.value
     if (sv.startsWith("2.13.")) ys :+ "-Wvalue-discard" else ys
   },
