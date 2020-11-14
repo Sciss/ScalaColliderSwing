@@ -138,7 +138,7 @@ object WaveformViewImpl {
       val af = AudioFile.openRead(path)
       try {
         val num   = math.min(numFr, af.numFrames).toInt
-        val data  = Array.ofDim[Float](numCh, num)
+        val data  = Array.ofDim[Double](numCh, num)
         af.read(data, 0, num)
         af.close()
         //println( "... read " + num + " frames from " + path.getAbsolutePath )
