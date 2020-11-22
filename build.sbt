@@ -5,8 +5,8 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.3.0"
-lazy val mimaVersion    = "2.3.0"
+lazy val projectVersion = "2.4.0"
+lazy val mimaVersion    = "2.4.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
 lazy val authorEMail    = "contact@sciss.de"
@@ -15,7 +15,7 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "2.2.0"
+    val audioWidgets    = "2.3.0"
     val dot             = "1.4.0"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
@@ -30,7 +30,7 @@ lazy val deps = new {
     val pdflitz         = "1.5.0"
   }
   val app = new {
-    val desktop         = "0.11.1"
+    val desktop         = "0.11.2"
     val docking         = "2.0.0"
     val dsp             = "2.2.0"
     val kollFlitz       = "0.2.4"
@@ -44,8 +44,8 @@ lazy val deps = new {
 lazy val commonSettings = Seq(
   version            := projectVersion,
   organization       := "de.sciss",
-  scalaVersion       := "2.13.3",
-  crossScalaVersions := Seq("3.0.0-M1", "2.13.3", "2.12.12"),
+  scalaVersion       := "2.13.4",
+  crossScalaVersions := Seq("3.0.0-M1", "2.13.4", "2.12.12"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("AGPL v3+" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")),
   scalacOptions ++= {
