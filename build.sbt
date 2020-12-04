@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.4.0"
+lazy val projectVersion = "2.4.1-SNAPSHOT"
 lazy val mimaVersion    = "2.4.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -15,12 +15,12 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "2.3.0"
-    val dot             = "1.4.0"
+    val audioWidgets    = "2.3.1-SNAPSHOT"
+    val dot             = "1.4.1"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "2.4.0"
-    val ugens           = "1.20.0"
+    val scalaCollider   = "2.4.1"
+    val ugens           = "1.20.1"
   }
   val intp = new {
     val interpreterPane = "1.11.0"
@@ -30,9 +30,9 @@ lazy val deps = new {
     val pdflitz         = "1.5.0"
   }
   val app = new {
-    val desktop         = "0.11.2"
+    val desktop         = "0.11.3"
     val docking         = "2.0.0"
-    val dsp             = "2.2.0"
+    val dsp             = "2.2.1"
     val kollFlitz       = "0.2.4"
     val pegDown         = "1.6.0"
     val submin          = "0.3.4"
@@ -41,11 +41,15 @@ lazy val deps = new {
   }
 }
 
+// sonatype plugin requires that these are in global
+ThisBuild / version      := projectVersion
+ThisBuild / organization := "de.sciss"
+
 lazy val commonSettings = Seq(
-  version            := projectVersion,
-  organization       := "de.sciss",
+//  version            := projectVersion,
+//  organization       := "de.sciss",
   scalaVersion       := "2.13.4",
-  crossScalaVersions := Seq("3.0.0-M1", "2.13.4", "2.12.12"),
+  crossScalaVersions := Seq("3.0.0-M2", "2.13.4", "2.12.12"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("AGPL v3+" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")),
   scalacOptions ++= {
@@ -63,27 +67,21 @@ lazy val commonSettings = Seq(
 
 lazy val publishSettings = Seq(
   publishMavenStyle := true,
-  publishTo :=
-    Some(if (isSnapshot.value)
-      "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-    else
-      "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-    ),
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false },
-  pomExtra := { val n = baseName
-    <scm>
-      <url>git@git.iem.at:sciss/{n}.git</url>
-      <connection>scm:git:git@git.iem.at:sciss/{n}.git</connection>
-    </scm>
-      <developers>
-        <developer>
-          <id>sciss</id>
-          <name>Hanns Holger Rutz</name>
-          <url>http://www.sciss.de</url>
-        </developer>
-      </developers>
-  }
+  developers := List(
+    Developer(
+      id    = "sciss",
+      name  = authorName,
+      email = authorEMail,
+      url   = url("https://www.sciss.de")
+    )
+  ),
+  scmInfo := {
+    val h = "git.iem.at"
+    val a = s"sciss/$baseName"
+    Some(ScmInfo(url(s"https://$h/$a"), s"scm:git@$h:$a.git"))
+  },
 )
 
 def appMainClass = Some("de.sciss.synth.swing.Main")
