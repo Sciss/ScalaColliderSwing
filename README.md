@@ -3,7 +3,6 @@
 # ScalaCollider-Swing
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Sciss/ScalaCollider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/Sciss/ScalaColliderSwing.svg?branch=main)](https://travis-ci.org/Sciss/ScalaColliderSwing)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.13)
 <a href="https://liberapay.com/sciss"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg" height="24"></a>
 
