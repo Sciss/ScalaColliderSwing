@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.4.1-SNAPSHOT"
+lazy val projectVersion = "2.4.1"
 lazy val mimaVersion    = "2.4.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -15,7 +15,7 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 
 lazy val deps = new {
   val core = new {
-    val audioWidgets    = "2.3.1-SNAPSHOT"
+    val audioWidgets    = "2.3.1"
     val dot             = "1.4.1"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"

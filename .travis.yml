@@ -1,3 +1,5 @@
+if: commit_message !~ /(<>)/
+
 dist: trusty
 
 language: scala
