@@ -536,8 +536,10 @@ object Main extends SwingApplicationImpl[TextViewDockable]("ScalaCollider") {
 
   private def clearLog(): Unit = lg.clear()
 
-  private def dumpNodes(controls: Boolean): Unit =
+  private def dumpNodes(controls: Boolean): Unit = {
+    import de.sciss.synth.Ops._
     serverOption.foreach(_.dumpTree(controls = controls))
+  }
 
   private lazy val _recent = RecentFiles(Main.userPrefs("recent-docs"))(checkOpenFile)
 

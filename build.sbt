@@ -5,8 +5,8 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.4.1"
-lazy val mimaVersion    = "2.4.0"
+lazy val projectVersion = "2.5.0"
+lazy val mimaVersion    = "2.5.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
 lazy val authorEMail    = "contact@sciss.de"
@@ -16,10 +16,10 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 lazy val deps = new {
   val core = new {
     val audioWidgets    = "2.3.1"
-    val dot             = "1.4.1"
+    val dot             = "1.5.0"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "2.4.1"
+    val scalaCollider   = "2.5.0"
     val ugens           = "1.20.1"
   }
   val intp = new {
@@ -53,14 +53,20 @@ lazy val commonSettings = Seq(
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("AGPL v3+" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")),
   scalacOptions ++= {
-    val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
+    val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8") 
     val ys = if (isSnapshot.value || isDotty.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
     val sv = scalaVersion.value
     if (sv.startsWith("2.13.")) ys :+ "-Wvalue-discard" else ys
   },
+  scalacOptions ++= {
+    if (isDotty.value) Nil else Seq("-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
+  },
   scalacOptions in (Compile, compile) ++= {
     if (!isDotty.value && scala.util.Properties.isJavaAtLeast("9")) Seq("-release", "8") else Nil
   }, // JDK >8 breaks API; skip scala-doc
+  sources in (Compile, doc) := {
+    if (isDotty.value) Nil else (sources in (Compile, doc)).value // dottydoc is complaining about something
+  },
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   aggregate in assembly := false   // https://github.com/sbt/sbt-assembly/issues/147
 ) ++ publishSettings
@@ -116,7 +122,7 @@ lazy val pkgDebianSettings = Seq(
   name                      in Linux  := appName,
   packageName               in Linux  := appNameL,
   packageSummary            in Debian := appDescription,
-  mainClass                 in Debian := appMainClass,
+  // mainClass                 in Debian := appMainClass,
   maintainer                in Debian := s"$authorName <$authorEMail>",
   debianPackageDependencies in Debian += "java8-runtime",
   packageDescription        in Debian :=

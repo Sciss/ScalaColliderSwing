@@ -3,6 +3,7 @@
 # ScalaCollider-Swing
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Sciss/ScalaCollider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://github.com/Sciss/ScalaColliderSwing/workflows/Scala%20CI/badge.svg?branch=main)](https://github.com/Sciss/ScalaColliderSwing/actions?query=workflow%3A%22Scala+CI%22)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderswing_2.13)
 <a href="https://liberapay.com/sciss"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg" height="24"></a>
 
@@ -11,7 +12,7 @@
 ScalaCollider-Swing is a Swing GUI front-end for [ScalaCollider](https://git.iem.at/sciss/ScalaCollider). ScalaCollider
 is a client for the [SuperCollider](https://supercollider.github.io/) sound synthesis server.
 
-(C)opyright 2008&ndash;2020 by Hanns Holger Rutz. All rights reserved. It is released under
+(C)opyright 2008&ndash;2021 by Hanns Holger Rutz. All rights reserved. It is released under
 the [GNU Affero General Public License](https://git.iem.at/sciss/ScalaColliderSwing/raw/main/licenses/ScalaColliderSwing-License.txt)
 v3+ and comes with absolutely no warranties. To contact the author, send an e-mail to `contact at sciss.de`.
 
@@ -50,7 +51,7 @@ Or just to some sub-modules:
     "de.sciss" %% "scalacolliderswing-plotting"    % v  // plus plotting functions
     "de.sciss" %% "scalacolliderswing-app"         % v  // plus the desktop IDE
 
-The current version `v` is `"2.4.1"`.
+The current version `v` is `"2.5.0"`.
 
 ## contributing
 
