@@ -198,7 +198,7 @@ object GUI {
   }
 
   final class GraphFunction[A] private[swing](fun: SGraphFunction[A]) {
-    def waveform(duration: Double = 0.1, target: Node = Server.default.defaultGroup,
+    def waveform(duration: Double = 0.1, target: Node = SServer.default.defaultGroup,
                  fadeTime: Double = 0.02, addAction: AddAction = addToHead, args: Seq[ControlSet] = Nil): Frame = {
       val resIn: () => GE = fun.result match {
         case SGraphFunction.Result.In(view) => () => view(fun.peer())
