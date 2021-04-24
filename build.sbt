@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.6.2"
+lazy val projectVersion = "2.6.3"
 lazy val mimaVersion    = "2.6.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -16,10 +16,10 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 lazy val deps = new {
   val core = new {
     val audioWidgets    = "2.3.2"
-    val dot             = "1.6.2"
+    val dot             = "1.6.3"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "2.6.2"
+    val scalaCollider   = "2.6.3"
     val ugens           = "1.21.1"
   }
   val intp = new {
@@ -42,14 +42,15 @@ lazy val deps = new {
 }
 
 // sonatype plugin requires that these are in global
-ThisBuild / version      := projectVersion
-ThisBuild / organization := "de.sciss"
+ThisBuild / version       := projectVersion
+ThisBuild / organization  := "de.sciss"
+ThisBuild / versionScheme := Some("pvp")
 
 lazy val commonSettings = Seq(
 //  version            := projectVersion,
 //  organization       := "de.sciss",
-  scalaVersion       := "2.13.4",
-  crossScalaVersions := Seq("3.0.0-RC1", "2.13.4", "2.12.13"),
+  scalaVersion       := "2.13.5",
+  crossScalaVersions := Seq("3.0.0-RC3", "2.13.5", "2.12.13"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("AGPL v3+" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")),
   scalacOptions ++= {
