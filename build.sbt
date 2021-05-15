@@ -5,7 +5,7 @@ lazy val appNameL       = appName.toLowerCase
 lazy val baseName       = s"${appName}Swing"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "2.6.3"
+lazy val projectVersion = "2.6.4"
 lazy val mimaVersion    = "2.6.0"
 
 lazy val authorName     = "Hanns Holger Rutz"
@@ -16,10 +16,10 @@ lazy val appDescription = "Standalone application for ScalaCollider"
 lazy val deps = new {
   val core = new {
     val audioWidgets    = "2.3.2"
-    val dot             = "1.6.3"
+    val dot             = "1.6.4"
     val fileUtil        = "1.1.5"
     val prefuse         = "1.0.1"
-    val scalaCollider   = "2.6.3"
+    val scalaCollider   = "2.6.4"
     val ugens           = "1.21.1"
   }
   val intp = new {
@@ -50,24 +50,26 @@ lazy val commonSettings = Seq(
 //  version            := projectVersion,
 //  organization       := "de.sciss",
   scalaVersion       := "2.13.5",
-  crossScalaVersions := Seq("3.0.0-RC3", "2.13.5", "2.12.13"),
+  crossScalaVersions := Seq("3.0.0", "2.13.5", "2.12.13"),
   homepage           := Some(url(s"https://git.iem.at/sciss/$baseName")),
   licenses           := Seq("AGPL v3+" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")),
   scalacOptions ++= {
     val xs = Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8") 
-    val ys = if (isSnapshot.value || isDotty.value) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
     val sv = scalaVersion.value
+    val isDot = sv.startsWith("3.")
+    val ys = if (isSnapshot.value || isDot) xs else xs ++ Seq("-Xelide-below", "INFO")  // elide logging in stable versions
     if (sv.startsWith("2.13.")) ys :+ "-Wvalue-discard" else ys
   },
   scalacOptions ++= {
-    if (isDotty.value) Nil else Seq("-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
+    // if (isDotty.value) Nil else 
+    Seq("-Xlint:-stars-align,-missing-interpolator,_", "-Xsource:2.13")
   },
   scalacOptions in (Compile, compile) ++= {
-    if (!isDotty.value && scala.util.Properties.isJavaAtLeast("9")) Seq("-release", "8") else Nil
+    if (/* !isDotty.value && */ scala.util.Properties.isJavaAtLeast("9")) Seq("-release", "8") else Nil
   }, // JDK >8 breaks API; skip scala-doc
-  sources in (Compile, doc) := {
-    if (isDotty.value) Nil else (sources in (Compile, doc)).value // dottydoc is complaining about something
-  },
+  // sources in (Compile, doc) := {
+  //   if (isDotty.value) Nil else (sources in (Compile, doc)).value // dottydoc is complaining about something
+  // },
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   aggregate in assembly := false   // https://github.com/sbt/sbt-assembly/issues/147
 ) ++ publishSettings
